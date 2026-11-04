@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { nb, nbDeep } from '../../data/helpers';
+
+const principles = nbDeep([
+  { k: 'Safety, not surveillance', d: 'Our systems exist to prevent harm and defects. We do not build tools to monitor individual productivity.' },
+  { k: 'No individual performance scoring', d: 'Safety and ergonomics analytics report by zone, station and shift by default — never as rankings of people.' },
+  { k: 'No facial recognition by default', d: 'Faces are blurred on the edge device. Identification is only enabled where contractually required, lawful and disclosed to workers.' },
+  { k: 'No emotion recognition', d: 'We do not infer emotions, sentiment or personality from video.' },
+  { k: 'A human can always override', d: 'Every alert can be reviewed, dismissed or escalated by a person. Automated actions on equipment are advisory unless the customer’s safety engineering signs off.' },
+  { k: 'Transparency with the workforce', d: 'Each deployment documents what is and is not detected. We provide notice templates and support briefings with worker representatives.' },
+  { k: 'Measured, not claimed', d: 'Accuracy is measured on the customer’s own data and reported monthly, including false alarms and known limitations.' },
+  { k: 'Regulation-ready', d: 'We design for GDPR, India’s DPDP Act and the EU AI Act: logging, human oversight, data minimisation and documented risk assessment.' },
+]);
+---
+<BaseLayout title="AI ethics charter" description="The Infraglance AI ethics charter: safety not surveillance, no individual performance scoring, no facial recognition by default, human oversight always.">
+  <PageHero eyebrow="Trust · AI ethics charter" title="Safety, <span class='gradient-text'>not surveillance.</span>" lead="Vision AI in the workplace only works when the people on the floor trust it. These are the commitments behind every Infraglance deployment." image="ppe-helmet-closeup" crumbs={[{ href: '/trust/ai-ethics', label: 'AI ethics charter' }]} />
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">The charter</span>
+        <h2>{principles.length} commitments.</h2>
+      </div>
+      <ol class="pr" role="list">
+        {principles.map((p, i) => <li data-reveal style={`--d:${(i % 2) * 0.04}s`}><span class="mono n">{String(i + 1).padStart(2, '0')}</span><div><h3>{p.k}</h3><p>{p.d}</p></div></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <CTASection image="ppe-welder" title="Questions from your works council or union?" lead={nb("We’re happy to walk worker representatives through exactly what the system detects, stores and reports — before anything is installed.")} secondary={{ href: '/trust/security', label: 'Security & compliance' }} />
+</BaseLayout>
+
+<style>
+  .pr { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+  .pr li { display: grid; grid-template-columns: 40px 1fr; gap: var(--s-3); padding: var(--s-6); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .n { color: var(--cyan); font-size: var(--fs-xs); padding-top: 3px; }
+  .pr h3 { font-size: var(--fs-lg); margin-bottom: var(--s-1); }
+  .pr p { color: var(--muted); font-size: var(--fs-sm); }
+  @media (max-width: 760px) { .pr { grid-template-columns: 1fr; } }
+</style>

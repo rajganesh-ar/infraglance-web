@@ -1,0 +1,79 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // Must equal the Worker's name in Cloudflare: Workers Builds fails on a mismatch.
+  "name": "infraglance-web",
+  "main": "./dist/_worker.js/index.js",
+  // 2026-01-14 is the newest date supported by the workerd that @astrojs/cloudflare bundles for
+  // `astro dev`; a later date only prints a "falling back" warning there. Raise it with the adapter.
+  "compatibility_date": "2026-01-14",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  // Keep per-branch Preview URLs on explicitly. Without this key, turning off workers.dev (or adding
+  // custom-domain routes) makes every production deploy switch Preview URLs off again.
+  // Preview hosts are public (unlisted): set false if previews must never be reachable.
+  "preview_urls": true,
+
+  // Static site + one Worker route (/api/contact).
+  //   html_handling "drop-trailing-slash": /platform serves dist/platform/index.html with no redirect,
+  //     and /platform/ redirects to /platform (astro.config.mjs uses trailingSlash: 'never').
+  //   not_found_handling "404-page": unknown URLs get dist/404.html with status 404 from the asset layer
+  //     (no Worker invocation, and the public/_headers security headers apply).
+  //   run_worker_first ["/api/*"]: only the API reaches the Worker. Needed with "404-page": a no-JS form
+  //     POST is a navigation request and would otherwise be answered by the asset layer.
+  //     Add the path here if you ever add another on-demand (prerender = false) route.
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "html_handling": "drop-trailing-slash",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true },
+
+  // ── 1. Lead storage (required) ──────────────────────────────────────────────────────────────
+  // PLACEHOLDER: the all-zero database_id below is not a real database. `wrangler deploy` fails with
+  // it, and release builds stop early with a clear message (see astro.config.mjs). One-time setup:
+  //   npx wrangler d1 create infraglance-leads    → paste the returned id here and commit it
+  //   npm run db:migrate:remote                   → creates the leads table from migrations/
+  // A D1 id is an identifier, not a secret. Local dev (npm run db:migrate:local) works as is.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "infraglance-leads",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // ── 2. Lead notification e-mail (optional, recommended) ─────────────────────────────────────
+  // Off until Email Routing is set up; leads are still stored in D1. To turn it on:
+  //   a. Cloudflare dashboard → infraglance.com → Email → Email Routing → enable it.
+  //   b. Destination addresses → add and VERIFY the inbox that should receive leads. It must be a
+  //      real external mailbox (Google Workspace, Microsoft 365, Gmail…), not an alias such as
+  //      sales@infraglance.com that only forwards.
+  //   c. Uncomment the block below and put that same inbox in destination_address AND vars.LEAD_TO.
+  // "send_email": [
+  //   { "name": "LEAD_MAIL", "destination_address": "you@your-verified-inbox.example" }
+  // ],
+
+  "vars": {
+    // Sender: any address on the infraglance.com zone (the zone with Email Routing enabled).
+    "LEAD_FROM": "website@infraglance.com",
+    // Recipient: must equal send_email.destination_address. Placeholder until step 2 is done.
+    "LEAD_TO": "you@your-verified-inbox.example"
+  }
+
+  // ── 3. Secrets (never in this file) ─────────────────────────────────────────────────────────
+  //   npx wrangler secret put TURNSTILE_SECRET      (or dashboard → Worker → Settings → Variables and secrets)
+  // Local dev reads .dev.vars (copy .dev.vars.example; it holds Cloudflare's public TEST secret).
+
+  // ── 4. Custom domain (after infraglance.com is on this Cloudflare account) ──────────────────
+  // "routes": [
+  //   { "pattern": "infraglance.com", "custom_domain": true },
+  //   { "pattern": "www.infraglance.com", "custom_domain": true }
+  // ],
+  // Once the domain serves the site, also add "workers_dev": false so the copy on
+  // infraglance-web.<subdomain>.workers.dev is not indexed as duplicate content.
+  // "preview_urls": true above keeps branch previews working after that.
+}

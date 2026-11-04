@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import Status from '../../components/ui/Status.astro';
+import { products, productsByPillar } from '../../data/products';
+import { pillars } from '../../data/pillars';
+import { gridFor, nb } from '../../data/helpers';
+
+const count = (phase: string) => products.filter((p) => p.phase === phase).length;
+const available = count('Available');
+const early = count('Early access');
+const roadmap = count('Roadmap');
+const groups = pillars.map((p) => ({ p, items: productsByPillar(p.slug) })).filter((g) => g.items.length > 0);
+---
+<BaseLayout title="Products" description="The Infraglance catalogue: Guard, Inspect, Flow, Sense and Infra products for safety, quality inspection, conveyors, plant condition and infrastructure.">
+  <PageHero eyebrow="Product catalogue" title={`${products.length} products. <span class='gradient-text'>One platform.</span>`} lead={`${available} available today, ${early} open for early access and ${roadmap} on the roadmap. Every product reports into Glance Hub; products for plants and sites run on Glance Edge.`} image="packaging-line" crumbs={[{ href: '/products', label: 'Products' }]} />
+
+  <section class="section section--tight tone-light">
+    <div class="container container--wide">
+      <div class="filters" role="group" aria-label="Filter by pillar">
+        <button type="button" class="filter is-on" data-f="all" aria-pressed="true">All <span class="mono">{products.length}</span></button>
+        {groups.map(({ p, items }) => (
+          <button type="button" class="filter" data-f={p.slug} aria-pressed="false" style={`--accent:${p.color}`}><span class="dot accent"></span>{p.name.replace('Glance ', '')} <span class="mono">{items.length}</span></button>
+        ))}
+      </div>
+
+      <div class="groups" data-list>
+        {groups.map(({ p, items }) => (
+          <div class="group" data-p={p.slug} style={`--accent:${p.color}`}>
+            <div class="group-head">
+              <h2>{p.name} <span class="muted">· {p.area}</span></h2>
+              <a href={`/solutions/${p.slug}`} class="link-arrow">About {p.name.replace('Glance ', '')} <span class="arrow" aria-hidden="true">→</span></a>
+            </div>
+            <div class={gridFor(items.length)}>
+              {items.map((it) => (
+                <a href={`/products/${it.slug}`} class="card item">
+                  <Status phase={it.phase} />
+                  <h3>{it.name}</h3>
+                  <p>{it.tagline}</p>
+                  <span class="card-foot link-arrow">View product <span class="arrow" aria-hidden="true">→</span></span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+  <CTASection image="plastic-molding" title="Not sure which product fits?" lead={nb("Tell us the problem and show us a little footage. We’ll tell you which products apply — or whether it needs custom engineering.")} />
+</BaseLayout>
+
+<style>
+  .groups { display: grid; gap: var(--s-12); }
+  .group[hidden] { display: none; }
+  .group-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--s-2) var(--s-6); margin-bottom: var(--s-5); padding-bottom: var(--s-3); border-bottom: 1px solid var(--line); }
+  .group-head h2 { font-size: var(--fs-xl); }
+  .group-head h2 .muted { font-weight: 500; }
+  .card :global(.status) { align-self: flex-start; }
+</style>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('[data-f]')];
+  const groups = [...document.querySelectorAll<HTMLElement>('[data-list] [data-p]')];
+  if (btns.length && groups.length) {
+    const apply = (f: string) => {
+      btns.forEach((b) => { const on = b.dataset.f === f; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+      groups.forEach((g) => (g.hidden = f !== 'all' && g.dataset.p !== f));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => {
+      const f = b.dataset.f || 'all';
+      apply(f);
+      try { history.replaceState(null, '', f === 'all' ? location.pathname : `#${f}`); } catch { /* sandboxed */ }
+    }));
+    const initial = location.hash.slice(1);
+    if (btns.some((b) => b.dataset.f === initial)) apply(initial);
+  }
+</script>

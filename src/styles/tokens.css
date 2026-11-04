@@ -1,0 +1,195 @@
+/*
+ * Design tokens. Dark is the base (hero slider, platform UI, final CTA).
+ * Sections marked .tone-light / .tone-mist re-declare the surface, text and
+ * accent tokens, so every component that uses the tokens flips automatically.
+ * Type, spacing, widths and radii never flip.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces — dark */
+  --bg: #05070b;
+  --bg-2: #080b11;
+  --surface: #0c1118;
+  --surface-2: #111821;
+  --surface-3: #17202b;
+  --line: #1a2330;
+  --line-2: #263244;
+  --hairline: rgb(255 255 255 / 0.07);
+
+  /* Text — dark (all ≥ 4.5:1 on --bg-2 except --faint, which is for rules/decoration) */
+  --text: #eef3f8;
+  --text-2: #c3cdd8;
+  --text-3: #9ba7b5; /* supporting labels: grey mono labels, table heads, meta (≥ 7:1) */
+  --muted: #8593a3;
+  --faint: #6f7d8d;
+
+  /* Accents (tuned per tone) */
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34, 211, 238, 0.12);
+  --blue: #3b82f6;
+  --amber: #f59e0b;
+  --teal: #2dd4bf;
+  --green: #22c55e;
+  --red: #ef4444;
+
+  /* Pillars */
+  --guard: var(--amber);
+  --inspect: var(--cyan);
+  --flow: var(--blue);
+  --sense: var(--teal);
+  --infra: var(--green);
+
+  /* Primary action (flips per tone) */
+  --primary: #22d3ee;
+  --primary-hover: #67e8f9;
+  --primary-fg: #00131a;
+  --primary-glow: rgba(34, 211, 238, 0.45);
+
+  /* Brand constants (never flip) */
+  --ink: #05070b;
+  --ink-rgb: 5 7 11;
+  --navy: #0a1422;
+
+  /* ---------- Type ---------- */
+  --font-display: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* 375px → 1440px+ */
+  --fs-display: clamp(2.25rem, 1.6rem + 2.8vw, 4rem);      /* 36 → 64, home hero only */
+  --fs-h1: clamp(2rem, 1.5rem + 2.2vw, 3.5rem);            /* 32 → 56 */
+  --fs-h1-long: clamp(1.75rem, 1.4rem + 1.5vw, 2.75rem);   /* 28 → 44, titles > 64 chars */
+  --fs-3xl: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);        /* 28 → 40, section h2 */
+  --fs-2xl: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);      /* 22 → 28 */
+  --fs-xl: clamp(1.125rem, 1.03rem + 0.35vw, 1.375rem);    /* 18 → 22, h3 */
+  --fs-lg: clamp(1.0625rem, 1.03rem + 0.15vw, 1.125rem);   /* 17 → 18, lead, card titles */
+  --fs-md: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.75rem;
+  --fs-micro: 0.75rem;                                      /* 12px — the floor; mono uppercase labels */
+  --fs-badge: 0.6875rem;                                    /* 11px — compact badge/status pills only */
+  --fs-stat: clamp(2rem, 1.6rem + 1.4vw, 3rem);
+  --fs-code: 0.8125rem;
+
+  /* ---------- Spacing (4px grid) ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+  --section-y: clamp(3.5rem, 2.5rem + 4vw, 6rem);          /* 56 → 96 */
+  --section-y-tight: clamp(2.5rem, 2rem + 2vw, 4rem);      /* 40 → 64 */
+  --gap: clamp(1rem, 0.75rem + 0.6vw, 1.5rem);             /* 16 → 24 */
+  --gutter: clamp(1rem, 3.2vw, 3rem);
+  --card-pad: clamp(1.25rem, 1rem + 0.6vw, 1.5rem);        /* 20 → 24 */
+  --card-pad-lg: clamp(1.5rem, 1rem + 1.6vw, 2.5rem);      /* 24 → 40 */
+  --header-h: 64px;
+  --sticky-top: calc(var(--header-h) + 24px);
+
+  /* ---------- Widths ---------- */
+  --w-wide: 84rem;   /* 1344 */
+  --w-main: 76rem;   /* 1216 */
+  --w-text: 42.5rem; /* 680 ≈ 70ch at 17px */
+
+  /* ---------- Radii ---------- */
+  --radius: 2px;      /* buttons, inputs, chips, cards, images */
+  --radius-lg: 4px;   /* panels, menus, dropdowns */
+  --radius-win: 6px;  /* app-mockup windows only */
+
+  /* ---------- Effects ---------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.25), 0 16px 32px -16px rgba(0, 0, 0, 0.55);
+  --shadow-menu: 0 1px 2px rgba(0, 0, 0, 0.3), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-img: 0.8s;
+
+  /* Media scrims: ink overlays for copy on photos/video. --scrim-k scales the copy ramps;
+     .media-scrim re-derives it per element from --media-lum (brighter frame → stronger, never below 1). */
+  --scrim-k: 1;
+}
+
+.tone-light, .tone-mist {
+  color-scheme: light;
+  --bg: #f5f7fa;
+  --bg-2: #eef2f6;
+  --surface: #ffffff;
+  --surface-2: #f1f4f8;
+  --surface-3: #e7ecf2;
+  --line: #dde4ec;
+  --line-2: #c8d2dd;
+  --hairline: rgb(8 17 29 / 0.08);
+  --text: #08111d;
+  --text-2: #2a3a4d;
+  --text-3: #46566a;
+  --muted: #566679;
+  --faint: #6a7a8c;
+  /* Accents darkened to ≥ 4.5:1 on white, --bg and the mist background */
+  --cyan: #0a7187;
+  --cyan-dim: rgba(10, 113, 135, 0.1);
+  --blue: #1d5fd1;
+  --amber: #a34a07;
+  --teal: #0f766e;
+  --green: #13733a;
+  --red: #c62828;
+  --primary: #08111d;
+  --primary-hover: #1e3048;
+  --primary-fg: #ffffff;
+  --primary-glow: rgba(8, 17, 29, 0.28);
+  --shadow-sm: 0 1px 2px rgba(10, 20, 34, 0.06);
+  --shadow-lg: 0 1px 2px rgba(10, 20, 34, 0.06), 0 16px 32px -16px rgba(10, 20, 34, 0.18);
+  --shadow-menu: 0 1px 2px rgba(10, 20, 34, 0.06), 0 24px 48px -20px rgba(10, 20, 34, 0.28);
+  --guard: var(--amber);
+  --inspect: var(--cyan);
+  --flow: var(--blue);
+  --sense: var(--teal);
+  --infra: var(--green);
+  background: var(--bg);
+  color: var(--text);
+}
+.tone-mist { --bg: #eaeff4; background: var(--bg); }
+
+/* Re-assert dark tokens (e.g. a dark mockup or media tile inside a light section). */
+.tone-dark {
+  color-scheme: dark;
+  --bg: #05070b;
+  --bg-2: #080b11;
+  --surface: #0c1118;
+  --surface-2: #111821;
+  --surface-3: #17202b;
+  --line: #1a2330;
+  --line-2: #263244;
+  --hairline: rgb(255 255 255 / 0.07);
+  --text: #eef3f8;
+  --text-2: #c3cdd8;
+  --text-3: #9ba7b5;
+  --muted: #8593a3;
+  --faint: #6f7d8d;
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34, 211, 238, 0.12);
+  --blue: #3b82f6;
+  --amber: #f59e0b;
+  --teal: #2dd4bf;
+  --green: #22c55e;
+  --red: #ef4444;
+  --primary: #22d3ee;
+  --primary-hover: #67e8f9;
+  --primary-fg: #00131a;
+  --primary-glow: rgba(34, 211, 238, 0.45);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.25), 0 16px 32px -16px rgba(0, 0, 0, 0.55);
+  --shadow-menu: 0 1px 2px rgba(0, 0, 0, 0.3), 0 24px 48px -20px rgba(0, 0, 0, 0.7);
+  --guard: var(--amber);
+  --inspect: var(--cyan);
+  --flow: var(--blue);
+  --sense: var(--teal);
+  --infra: var(--green);
+  color: var(--text);
+}

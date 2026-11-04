@@ -1,0 +1,92 @@
+---
+import Picture from '../media/Picture.astro';
+import Video from '../media/Video.astro';
+import { photo, video as videoEntry } from '../../lib/media';
+
+interface Props {
+  eyebrow: string;
+  title: string; // may contain inline HTML (e.g. a .gradient-text span)
+  lead?: string;
+  accent?: string;
+  /** Trail after Home, ending with the current page. Rendered only when it has ≥ 2 levels. */
+  crumbs?: { href: string; label: string }[];
+  image?: string; // photo key
+  video?: string; // video key (poster falls back to image)
+  size?: 'md' | 'lg';
+  /** Long headline mode (smaller h1, wider measure). Auto when the plain-text title exceeds 64 chars. */
+  long?: boolean;
+}
+const { eyebrow, title, lead, accent = 'var(--cyan)', crumbs = [], image, video, size = 'md', long } = Astro.props;
+const media = !!(image || video);
+// Bind a spaced em/en dash to the word before it, so a line never starts with "— …".
+const titleHtml = title.replace(/\s+([—–])\s+/g, ' $1 ');
+const plain = title.replace(/<[^>]+>/g, '').replace(/&[a-z#0-9]+;/gi, ' ').trim();
+const isLong = long ?? plain.length > 64;
+
+// Breadcrumbs: Home + trail, shown only with ≥ 2 levels. The last level is the current page (a span with
+// aria-current); if the trail stops short of this page (e.g. at its parent), the page title is appended.
+const stripSlash = (h: string) => h.replace(/(.)\/+$/, '$1');
+const here = stripSlash(Astro.url.pathname);
+const norm = (h: string) => stripSlash(h.replace(/[?#].*$/, ''));
+const trail: { href: string; label: string; current: boolean }[] = [];
+if (crumbs.length >= 2) {
+  const lastIsHere = norm(crumbs[crumbs.length - 1].href) === here;
+  crumbs.forEach((c, k) => trail.push({ ...c, current: lastIsHere && k === crumbs.length - 1 }));
+  if (!lastIsHere) trail.push({ href: here, label: plain, current: true });
+}
+
+// Optional per-asset brightness (0–1) from the media manifest; tunes the scrim strength.
+const lumIn = (e: unknown) => (e as { lum?: number } | undefined)?.lum;
+const lum = lumIn(videoEntry(video)) ?? lumIn(photo(image ?? video));
+const style = `--accent:${accent}${lum != null ? `;--media-lum:${lum}` : ''}`;
+---
+<section class:list={['phero', 'tone-dark', `phero--${size}`, { 'has-media': media, 'phero--long': isLong }]} style={style}>
+  {video ? (
+    <Video src={video} poster={image} class="phero-media" priority alt="" />
+  ) : image ? (
+    <Picture img={image} alt="" decorative priority class="phero-media" sizes="100vw" />
+  ) : (
+    <div class="bg-grid" aria-hidden="true"></div>
+  )}
+  {media ? <div class="media-scrim" aria-hidden="true"></div> : <div class="glow" aria-hidden="true"></div>}
+  <div class:list={['container container--wide inner', { 'on-media': media }]}>
+    {trail.length > 0 && (
+      <nav aria-label="Breadcrumb" class="crumbs mono">
+        <ol role="list">
+          <li><a href="/">Home</a></li>
+          {trail.map((c) => <li>{c.current ? <span aria-current="page">{c.label}</span> : <a href={c.href}>{c.label}</a>}</li>)}
+        </ol>
+      </nav>
+    )}
+    <span class="eyebrow">{eyebrow}</span>
+    <h1 set:html={titleHtml} />
+    {lead && <p class="lead">{lead}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .phero { position: relative; overflow: hidden; background: var(--ink); color: #fff; display: flex; align-items: flex-end; }
+  .phero--md, .phero--lg { padding-top: calc(var(--header-h) + clamp(2.5rem, 1.5rem + 3vw, 4.5rem)); }
+  .phero--md { min-height: clamp(20rem, 48svh, 30rem); padding-bottom: clamp(2.5rem, 1.5rem + 3vw, 4rem); }
+  .phero--lg { min-height: clamp(26rem, 66svh, 38rem); padding-bottom: clamp(3rem, 2rem + 3vw, 5rem); }
+  .phero:not(.has-media) { min-height: 0; }
+  .phero :global(.phero-media) { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .bg-grid { position: absolute; inset: 0; opacity: 0.7; }
+  .glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 80% at 85% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%); }
+  .inner { position: relative; display: grid; gap: 16px; justify-items: start; }
+  .inner > :global(:last-child:not(.lead):not(h1):not(.eyebrow)) { margin-top: 8px; }
+  h1 { font-size: var(--fs-h1); line-height: 1.08; letter-spacing: -0.02em; max-width: 22ch; color: #fff; }
+  .phero--long h1 { font-size: var(--fs-h1-long); line-height: 1.12; letter-spacing: -0.016em; max-width: 30ch; }
+  /* Copy stays inside the scrimmed column (≈ 48% of a 1440 frame) */
+  .lead { color: rgb(238 243 248 / 0.9); max-width: 58ch; }
+  .has-media .inner > :global(p:not(.lead)) { max-width: 62ch; }
+
+  .crumbs { font-size: var(--fs-micro); letter-spacing: 0.04em; color: rgb(238 243 248 / 0.82); }
+  .crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .crumbs li { display: inline-flex; align-items: center; gap: 6px; }
+  .crumbs li + li::before { content: '/'; opacity: 0.5; }
+  .crumbs a { border-radius: var(--radius); transition: color 0.18s; }
+  .crumbs a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+  .crumbs [aria-current='page'] { color: #fff; }
+</style>

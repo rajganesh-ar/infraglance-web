@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import { site } from '../data/site';
+
+// Legal review is still pending: have counsel approve this text before launch. Before launch, add the
+// controller's registered legal name and postal address to "Who is responsible", and make sure stored
+// contact requests are actually deleted after 24 months (nothing purges the D1 leads table yet).
+// Non-breaking spaces keep the date on one line in the hero lead.
+const updated = '4 November 2026';
+---
+<BaseLayout title="Privacy notice" description="How Infraglance handles personal data submitted through this website: what we collect, why, where it is stored, how long we keep it and your rights.">
+  <PageHero eyebrow="Legal" title="Privacy notice" lead={`How we handle personal data submitted through this website. Last updated ${updated}.`} crumbs={[{ href: '/privacy', label: 'Privacy notice' }]} />
+
+  <section class="section section--tight tone-light">
+    <div class="container container--text prose">
+      <p>This notice explains how Infraglance (“we”) handles personal data collected through this website. It does not cover data processed by the Infraglance platform on behalf of customers, which is governed by our customer agreements and data processing agreements.</p>
+      <h2 id="who-is-responsible">Who is responsible</h2>
+      <p>Infraglance decides why and how the personal data described here is processed, and is responsible for it (the “controller”). For any question about this notice or your data, write to <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+      <h2 id="what-we-collect">What we collect</h2>
+      <ul>
+        <li><strong>Contact and demo requests:</strong> name, work email, company, role, industry, areas of interest and your message.</li>
+        <li><strong>Security data:</strong> a one-way hash of your IP address (to limit abuse) and your country as reported by our hosting provider.</li>
+        <li><strong>Analytics:</strong> we use Cloudflare Web Analytics, which does not use cookies or track you across sites.</li>
+      </ul>
+      <h2 id="why-we-use-it">Why we use it</h2>
+      <p>To respond to your request, arrange demos or feasibility studies, and protect the website from spam and abuse. We do not sell personal data or use it for advertising.</p>
+      <h2 id="where-it-is-stored">Where it is stored</h2>
+      <p>Requests are stored in a database operated by Cloudflare on our behalf and forwarded to our sales mailbox. Bot protection is provided by Cloudflare Turnstile.</p>
+      <h2 id="how-long-we-keep-it">How long we keep it</h2>
+      <p>We keep contact requests for up to 24 months after our last interaction, unless you become a customer or ask us to delete them sooner.</p>
+      <h2 id="your-rights">Your rights</h2>
+      <p>Depending on where you live (for example under the GDPR or India’s Digital Personal Data Protection Act), you may have the right to access, correct or delete your data, or to object to its use. Write to <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import InsightCard from '../../components/cards/InsightCard.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import CategoryTabs from '../../components/content/CategoryTabs.astro';
+import { getCollection } from 'astro:content';
+import { freshImage, ctaPoolFor, nb } from '../../data/helpers';
+
+const posts = (await getCollection('insights')).sort((a, b) => +b.data.date - +a.data.date);
+const featured = posts.find((p) => p.data.featured) ?? posts[0];
+const rest = posts.filter((p) => p !== featured);
+const heroImage = 'robot-cell';
+// Closing backdrop: never the hero or a card photo already on this page.
+const ctaImage = freshImage(ctaPoolFor('insights'), [heroImage, ...posts.map((p) => p.data.hero)]);
+---
+<BaseLayout title="Insights" description="Engineering notes from Infraglance on industrial safety, quality inspection, conveyors, plant condition, infrastructure inspection, edge AI and regulation.">
+  <PageHero eyebrow="Insights" title="Notes from the <span class='gradient-text'>engineering team.</span>" lead={nb("Practical, vendor-honest guides on making vision AI work on real sites — written by the engineers who build and deploy it.")} image={heroImage} crumbs={[{ href: '/insights', label: 'Insights' }]} />
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <CategoryTabs active="all" />
+      {featured && <div class="feature-slot"><InsightCard post={featured} variant="feature" /></div>}
+      {rest.length > 0 && <div class="grid-bal list">{rest.map((p, i) => <InsightCard post={p} delay={(i % 3) * 0.05} />)}</div>}
+    </div>
+  </section>
+
+  <CTASection image={ctaImage} title="Want us to look at your site?" lead={nb("Every article here comes from real engineering questions. Bring yours — we’ll answer it on your own footage in a paid feasibility study.")} />
+</BaseLayout>
+
+<style>
+  .list { margin-top: var(--gap); }
+  /* The featured card's layout lives in InsightCard.astro, so home and this page share it. */
+</style>

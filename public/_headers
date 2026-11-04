@@ -1,0 +1,39 @@
+# Cloudflare Workers static-assets headers. Applies to every asset response, including the 404 page
+# (wrangler.jsonc not_found_handling). /api/* is answered by the Worker, which sets its own headers.
+# Limits: 100 rules, 2,000 characters per line. Only one rule per path may set Cache-Control.
+#
+# CSP notes:
+#   'unsafe-inline' (script/style)  Astro inlines small scripts and styles.
+#   'wasm-unsafe-eval'              meshopt decoder (WebAssembly) for the compressed 3D people.
+#   blob: in img-src/connect-src    GLTFLoader decodes embedded GLB textures through blob: URLs.
+#   challenges.cloudflare.com       Turnstile script + iframe.
+#   static.cloudflareinsights.com / cloudflareinsights.com   Cloudflare Web Analytics beacon.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self' data:; connect-src 'self' blob: data: https://cloudflareinsights.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+# Content-hashed build output and media: cache for a year.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/media/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 3D people and daylight HDRI. File names are not content-hashed, so cache for a week and revalidate
+# in the background; if `npm run people` changes a file, returning visitors pick it up within days.
+/models/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/hdri/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+# Stable names, changed rarely.
+/og/*
+  Cache-Control: public, max-age=86400
+
+/favicon.svg
+  Cache-Control: public, max-age=86400

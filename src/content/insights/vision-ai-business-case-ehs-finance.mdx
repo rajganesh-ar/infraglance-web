@@ -1,0 +1,115 @@
+---
+title: "Building a vision-AI business case EHS and finance will both sign"
+seoTitle: "A vision-AI business case for EHS and finance"
+description: "How to baseline, choose leading indicators, design a pilot and count total cost, with a clearly labelled worked example instead of borrowed ROI claims."
+date: 2026-09-24
+category: Strategy
+hero: factory-hall-wide
+heroAlt: "Modern factory hall with automated production equipment"
+tags: [Business case, Leading indicators, Pilot design, EHS]
+---
+
+Vision-AI proposals often stall at the same point. EHS argues prevention, finance asks for payback, and neither fully trusts the other's numbers.
+
+Vendor ROI slides make this worse. They quote figures from someone else's plant, built on assumptions you cannot see. A business case that both functions will sign needs three things: baselines from your own records, a pilot designed to answer one question, and the full cost.
+
+## Start with a baseline you measured
+
+**Lagging data comes from your own records.** Pull 12–36 months of what you already track: recordable injuries, first-aid cases, property damage (rack repairs, damaged product, vehicle repairs), quality escapes, scrap, rework and downtime. Use the source systems rather than slide decks. Write down how each figure is defined.
+
+**Leading data usually does not exist yet.** That is often the reason for the project. Nobody counts near-misses between forklifts and pedestrians, or the share of time people in a hot-work zone wear face shields. You cannot baseline these numbers from history.
+
+**Measure the baseline in "silent mode".** Install the system and let it detect and log for a few weeks, with no alerts, warnings or dashboards for supervisors. This gives you a baseline rate of unsafe conditions before the system starts changing behaviour. Note what was announced to the workforce and when. People behave differently once they know cameras are counting, and that is part of what you are measuring.
+
+## Leading and lagging: use both, judge the pilot on leading
+
+Safety professionals have long paired the two. OSHA's guide to [using leading indicators](https://www.osha.gov/sites/default/files/publications/OSHA_LEADING_INDICATORS.pdf) describes them as proactive, preventive and predictive measures. HSE's [HSG254](https://www.hse.gov.uk/pubns/books/hsg254.htm) pairs a leading and a lagging indicator for each risk control system, so that each one checks the other.
+
+For a vision-AI pilot, this has a practical consequence. At a single site, serious injuries are rare enough that an eight-week pilot cannot show a meaningful change in the injury rate. Leading indicators move quickly enough to measure. They are only useful, though, if they plausibly cause the outcome you care about. Near-misses at a blind intersection qualify. "Number of alerts generated" does not.
+
+| Indicator type | Examples | Role in the business case |
+|---|---|---|
+| Lagging, safety | Injuries, lost-time incidents, property damage | Long-term outcome, reviewed annually |
+| Leading, safety | Near-misses per 1,000 vehicle movements, PPE compliance rate per zone, time to close corrective actions | Primary pilot success criteria |
+| Quality and operations | Escape rate, false rejects, scrap, minutes of unplanned downtime | Measured directly and costed |
+| System performance | Precision, recall, false alarms per camera per day, uptime | Go/no-go gate. These are not benefits |
+
+Normalise for exposure. Raw counts rise and fall with volume, so report near-misses per 1,000 vehicle movements or per shift-hour, and defects per 10,000 parts.
+
+<Figure img="team-engineering" alt="Engineering team discussing data at a shared screen" caption="Agree the indicators, definitions and decision rule with EHS, operations, finance and worker representatives before the pilot starts." />
+
+## Design the pilot to answer one question
+
+A pilot that "explores the technology" ends with an opinion. A pilot designed around a question ends with a decision.
+
+- **Pick one zone or line.** Choose a representative one, or deliberately the worst one, and record which and why.
+- **Run in phases:** a silent baseline, then active operation with alerts, point-of-work warnings and a supervisor workflow, then measurement.
+- **Use a comparison.** Compare before and after on the same zone. Where you can, also compare with a similar zone that has no system. This separates the system's effect from seasonal changes, volume and other safety initiatives running at the same time.
+- **Fix the duration and success criteria in writing before the start,** and have them signed by EHS, operations and finance.
+- **Measure accuracy on your own footage.** A system that floods supervisors with false alarms fails, however good the slides were.
+- **Decide in advance what each outcome means:** scale up, extend the pilot, or stop.
+
+## Count the total cost, not the licence
+
+The subscription is usually the most visible cost. It is often not the largest.
+
+| Cost item | One-off or recurring | Often forgotten? |
+|---|---|---|
+| Cameras: reuse of existing ones, new ones, mounts, lighting for inspection | One-off | Lighting and mounts |
+| Network: PoE switches, fibre runs, firewall and VLAN changes | One-off | OT and IT staff time |
+| Edge hardware and installation | One-off | Spares |
+| Calibration, commissioning and site acceptance | One-off | |
+| Integrations: EHS software, PLC, CMMS, MES | One-off, plus upkeep | Upkeep |
+| Subscription and support | Recurring | |
+| Internal time to review alerts and close actions | Recurring | Very often the largest item |
+| Change management: consultation, data protection impact assessment, training, signage | Mostly one-off | Yes |
+| Maintenance: lens cleaning, recalibration after layout changes | Recurring | Yes |
+
+If nobody is assigned to respond to alerts, the value is zero, whatever the detection accuracy. Put the response time in the cost model.
+
+## A worked example (illustrative only)
+
+<Callout title="Every number here is hypothetical" tone="warn">
+
+The figures below are round numbers chosen to show the method. They are not a quote, a benchmark or a result from any deployment. The currency units are arbitrary. Replace every figure with your own.
+
+</Callout>
+
+**Scenario:** vehicle–pedestrian and PPE monitoring in a warehouse, using 20 existing cameras, assessed over three years.
+
+| Cost | Year 0 | Each year | Three-year total |
+|---|---|---|---|
+| Edge hardware, installation, calibration | 30,000 | | 30,000 |
+| Integrations and commissioning | 20,000 | | 20,000 |
+| Training, consultation, signage | 10,000 | | 10,000 |
+| Subscription and support | | 40,000 | 120,000 |
+| Internal review time (0.25 FTE at 60,000 a year) | | 15,000 | 45,000 |
+| **Total** | **60,000** | **55,000** | **225,000** |
+
+**Hard savings, measured during the pilot (hypothetical):**
+
+- Maintenance records show 50,000 a year of rack and product damage from vehicle impacts. The pilot zone showed a 30% reduction, and the case assumes it holds site-wide: **15,000 a year.**
+- Supervisor walk-round audit hours redeployed to other work, counted only if those hours are actually reassigned: **10,000 a year.**
+
+That gives 25,000 a year, or 75,000 over three years. **Net cost not covered by hard savings: 225,000 − 75,000 = 150,000.**
+
+Many safety cases stop here and look like a loss. The more useful question is what that 150,000 buys in risk reduction.
+
+**Find the break-even point.** What does one serious vehicle-related injury cost your business? Build the figure from your own claims, insurance, investigation, downtime and replacement-labour data, not a published average. Call it *C*. The system breaks even if it prevents 150,000 ÷ *C* serious injuries over three years. At a hypothetical *C* of 300,000, that is 0.5 injuries in three years, the equivalent of preventing one every six years.
+
+Now EHS and finance have a specific judgement to make together. *Given the near-miss reduction measured in the pilot, is it plausible that we prevent one serious injury every six years?* That is a far better conversation than arguing over a vendor's ROI percentage. Finance can add discounting, tax and risk weighting, and the structure stays the same.
+
+<Figure img="engineer-laptop" alt="Engineer working on a laptop beside a test rig" caption="The model is simple enough to rebuild in a spreadsheet with your own figures, which is the point." />
+
+## What to agree before the pilot starts
+
+- **Baselines:** which systems, which period, and how each metric is defined
+- **Leading indicators:** definitions, the exposure used to normalise them, and who owns each
+- **Success criteria and decision rule:** what result leads to scaling up, extending or stopping
+- **Accuracy acceptance:** precision, recall and false alarms per camera per day, measured on your footage
+- **Alert ownership:** who responds, how quickly, and how actions are closed
+- **People and privacy:** worker consultation completed and a data protection impact assessment signed off
+- **Full cost model,** including internal time and maintenance
+- **What happens next:** the rollout plan and the budget line if the pilot succeeds
+
+Our method follows this order. A one-week discovery workshop agrees the success criteria. A paid feasibility study on your own footage sets expected accuracy. A four- to eight-week proof of value on one zone or line measures the result against the agreed baseline. If you are building a case for [Guard PPE+](/products/guard-ppe), [Guard Traffic](/products/guard-traffic) or an inspection station, [talk to us](/contact). We will help you build the model with your numbers, not ours.

@@ -1,0 +1,267 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import Picture from '../../components/media/Picture.astro';
+import Scene from '../../components/Scene.astro';
+import UseCaseCard from '../../components/cards/UseCaseCard.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { usecases } from '../../data/usecases';
+import type { UseCase } from '../../data/usecase-types';
+import { pillarBySlug } from '../../data/pillars';
+import { productBySlug } from '../../data/products';
+import { industryBySlug } from '../../data/industries';
+import { gridFor, lcFirst, nb, freshImage, ctaPoolFor } from '../../data/helpers';
+import Status from '../../components/ui/Status.astro';
+import { photo, pick } from '../../lib/media';
+import { site } from '../../data/site';
+
+export function getStaticPaths() {
+  return usecases.map((u) => ({ params: { slug: u.slug }, props: { u } }));
+}
+const { u } = Astro.props as { u: UseCase };
+const p = pillarBySlug[u.pillar];
+const prods = u.products.map((s) => productBySlug[s]).filter(Boolean);
+const more = usecases.filter((x) => x.slug !== u.slug && x.pillar === u.pillar).concat(usecases.filter((x) => x.pillar !== u.pillar)).slice(0, 3);
+const og = photo(u.hero);
+// Closing backdrop: the pillar photo unless this page already shows it (hero, gallery, cards).
+const onPage = [u.video || u.hero, ...u.gallery.map((g) => g.img), ...more.map((x) => x.hero)];
+const ctaImage = freshImage([p.photo, ...ctaPoolFor(u.slug)], onPage);
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: u.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Use cases', item: `${site.url}/use-cases` },
+      { '@type': 'ListItem', position: 2, name: u.title, item: `${site.url}/use-cases/${u.slug}` },
+    ],
+  },
+];
+---
+<BaseLayout title={`${u.title} — vision AI use case`.length <= 46 ? `${u.title} — vision AI use case` : `${u.title} with vision AI`.length <= 46 ? `${u.title} with vision AI` : u.title} description={u.summary} image={og ? pick(og.jpg, 1280) : undefined} jsonLd={jsonLd}>
+  <PageHero eyebrow={`${p.name} · Use case`} title={u.title} lead={nb(u.headline)} accent={p.color} image={u.hero} video={u.video} size="md" crumbs={[{ href: '/use-cases', label: 'Use cases' }, { href: `/use-cases/${u.slug}`, label: u.title }]}>
+    <div class="btn-row"><a href="/contact?topic=feasibility" class="btn btn--primary">Start a feasibility study <span class="arrow" aria-hidden="true">→</span></a><a href="#how" class="btn btn--ghost">How it works</a></div>
+  </PageHero>
+
+  <!-- Problem -->
+  <section class="section tone-light" style={`--accent:${p.color}`}>
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Why it matters</span>
+        <h2>The problem</h2>
+        <p class="lead">{u.summary}</p>
+        {u.problem.map((para) => <p class="body">{para}</p>)}
+      </div>
+      {u.gallery[0] && (
+        <figure class="shot" data-reveal style="--d:0.1s">
+          <Picture img={u.gallery[0].img} alt={u.gallery[0].alt} framed sizes="(min-width: 1024px) 50vw, 100vw" />
+          <figcaption>{u.gallery[0].caption}</figcaption>
+        </figure>
+      )}
+    </div>
+  </section>
+
+  <!-- Gaps -->
+  <section class="section tone-light" style={`--accent:${p.color}`}>
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">What today’s approaches miss</span>
+        <h2>Where it falls short now.</h2>
+      </div>
+      <ol class="gaps" role="list">
+        {u.gaps.map((g, i) => <li data-reveal style={`--d:${i * 0.05}s`}><span class="mono n">0{i + 1}</span><p>{g}</p></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Workflow + 3D (mist: the 3D is a light daylight scene) -->
+  <section class="section tone-mist how" id="how" style={`--accent:${p.color}`}>
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">How Infraglance solves it</span>
+        <h2>From camera to action.</h2>
+      </div>
+      <ol class="flow" role="list" style={`--n:${u.workflow.length}`}>
+        {u.workflow.map((s, i) => (
+          <li data-reveal style={`--d:${i * 0.06}s`}>
+            <span class="node mono">0{i + 1}</span>
+            <div class="flow-copy">
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div class="scene-wrap" data-reveal>
+        <Scene name={p.scene} note={false} caption={p.sceneCaption} accent={p.color} class="uc-scene" />
+        <div class="scene-head" aria-hidden="true">
+          <span class="eyebrow">Illustrative 3D</span>
+          <span class="cap">{p.sceneCaption}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Detects / setup / measure -->
+  <section class="section tone-light" style={`--accent:${p.color}`}>
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">In detail</span>
+        <h2>What it sees, what it needs, what to measure.</h2>
+      </div>
+      <div class="cols">
+        <div class="card" data-reveal><span class="eyebrow">What it detects</span><ul class="check-list">{u.detects.map((x) => <li>{x}</li>)}</ul></div>
+        <div class="card" data-reveal style="--d:0.06s"><span class="eyebrow">What you need</span><ul class="check-list">{u.setup.map((x) => <li>{x}</li>)}</ul></div>
+        <div class="card measure" data-reveal style="--d:0.12s">
+          <span class="eyebrow">What to measure in a pilot</span>
+          <ol class="kpis" role="list">{u.measure.map((x, i) => <li><span class="mono">K{i + 1}</span>{x}</li>)}</ol>
+          <p class="note">Targets are agreed with you before the pilot starts and measured on your own sites.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {u.gallery[1] && (
+    <section class="wide-shot tone-dark">
+      <Picture img={u.gallery[1].img} alt={u.gallery[1].alt} sizes="100vw" class="ws-img" />
+      <div class="ws-shade" aria-hidden="true"></div>
+      <div class="container container--wide ws-cap"><p>{u.gallery[1].caption}</p></div>
+    </section>
+  )}
+
+  <!-- Products + industries -->
+  <section class="section tone-light" style={`--accent:${p.color}`}>
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Products used</span>
+          <h2>Built from these products.</h2>
+        </div>
+        <div class="used-in">
+          <span class="mono used-h">Used in</span>
+          <div class="chips">{u.industries.map((s) => <a class="chip ind" href={`/industries/${s}`}>{industryBySlug[s].name}</a>)}</div>
+        </div>
+      </div>
+      <div class={gridFor(prods.length)}>
+        {prods.map((it, i) => (
+          <a href={`/products/${it.slug}`} class="card" data-reveal style={`--accent:${pillarBySlug[it.pillar].color}; --d:${i * 0.05}s`}>
+            <Status phase={it.phase} />
+            <h3>{it.name}</h3>
+            <p>{it.tagline}</p>
+            <span class="card-foot link-arrow">View product <span class="arrow" aria-hidden="true">→</span></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section tone-mist" style={`--accent:${p.color}`}>
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Questions</span>
+        <h2>Frequently asked.</h2>
+        <a href="/faq" class="link-arrow">All FAQs <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div data-reveal>
+        {u.faq.map((f, i) => (
+          <details class="accordion" open={i === 0}>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">More use cases</span>
+          <h2>Related problems we solve.</h2>
+        </div>
+        <a href="/use-cases" class="btn btn--ghost">All use cases <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="grid-bal">{more.map((x, i) => <UseCaseCard u={x} delay={i * 0.05} />)}</div>
+    </div>
+  </section>
+
+  <CTASection
+    title={`Let’s look at ${lcFirst(u.title)} on your site.`}
+    image={ctaImage}
+    primary={{ href: '/contact?topic=feasibility', label: 'Start a feasibility study' }}
+  />
+</BaseLayout>
+
+<style>
+  .body { color: var(--text-2); font-size: var(--fs-md); max-width: 62ch; }
+  .shot { margin: 0; }
+  .shot :global(.pic) { aspect-ratio: 4 / 3; border-radius: var(--radius); }
+  .shot figcaption { margin-top: var(--s-3); font-size: var(--fs-sm); color: var(--muted); padding-left: var(--s-3); border-left: 2px solid var(--accent); }
+
+  .gaps { display: grid; gap: var(--s-2); margin: 0; padding: 0; }
+  .gaps li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--s-3); align-items: baseline; padding: var(--s-4) var(--s-5); background: var(--surface); border: 1px solid var(--line); border-left: 2px solid var(--accent); border-radius: var(--radius); }
+  .gaps .n { font-size: var(--fs-xs); color: var(--accent); }
+  .gaps p { color: var(--text-2); }
+
+  /* Workflow: horizontal steps on wide screens, a vertical timeline below. */
+  .flow { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); margin: 0; padding: 0; }
+  .flow::before { content: ''; position: absolute; left: 19px; top: 20px; bottom: 20px; width: 1px; background: linear-gradient(180deg, var(--accent), transparent); opacity: 0.6; }
+  .flow li { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--s-4); align-items: start; align-content: start; }
+  .flow-copy { display: grid; gap: var(--s-2); padding-top: var(--s-2); }
+  .node { width: 40px; height: 40px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--accent); color: var(--accent); font-size: var(--fs-xs); border-radius: var(--radius); }
+  .flow h3 { font-size: var(--fs-lg); }
+  .flow p { font-size: var(--fs-sm); color: var(--muted); max-width: 60ch; }
+  @media (min-width: 1200px) {
+    .flow { grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: var(--gap); }
+    .flow::before { left: 0; right: 0; top: 20px; bottom: auto; width: auto; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
+    .flow li { grid-template-columns: minmax(0, 1fr); gap: var(--s-3); }
+    .flow-copy { padding-top: 0; }
+  }
+
+  .scene-wrap { position: relative; margin-top: var(--s-12); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg); }
+  .scene-wrap :global(.uc-scene) { width: 100%; aspect-ratio: 16 / 9; max-height: 520px; }
+  .scene-head { position: absolute; left: var(--s-5); right: var(--s-5); top: var(--s-4); z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); pointer-events: none; }
+  .scene-head .cap { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--muted); }
+
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+  /* The three detail cards share one body size and rhythm (14px / 1.55, 8px between items). */
+  .cols .card { gap: var(--s-4); }
+  .cols .check-list { gap: var(--s-2); }
+  .cols .check-list li { font-size: var(--fs-sm); line-height: 1.55; }
+  .kpis { display: grid; gap: var(--s-2); margin: 0; padding: 0; }
+  .kpis li { display: grid; grid-template-columns: 26px 1fr; align-items: baseline; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
+  .kpis .mono { color: var(--accent); font-size: var(--fs-micro); }
+  .cols .card p.note { font-size: var(--fs-sm); margin-top: auto; padding-top: var(--s-3); border-top: 1px solid var(--line); }
+
+  .wide-shot { position: relative; height: clamp(20rem, 52vh, 34rem); overflow: hidden; display: flex; align-items: flex-end; }
+  .wide-shot :global(.ws-img) { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ws-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(5, 7, 11, 0.85), transparent 50%); }
+  .ws-cap { position: relative; padding-bottom: var(--s-8); }
+  .ws-cap p { color: rgba(238, 243, 248, 0.88); font-size: var(--fs-sm); border-left: 2px solid var(--accent); padding-left: var(--s-3); max-width: 70ch; }
+
+  .used-in { display: grid; gap: var(--s-2); justify-items: end; }
+  .used-h { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .used-in .chips { justify-content: flex-end; }
+  .ind { transition: border-color 0.2s, color 0.2s; }
+  .ind:hover { border-color: var(--text-2); color: var(--text); }
+  .card :global(.status) { align-self: flex-start; }
+
+
+  @media (max-width: 1024px) {
+    .cols { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 800px) {
+    .used-in { justify-items: start; }
+    .used-in .chips { justify-content: flex-start; }
+  }
+  @media (max-width: 640px) {
+    .scene-wrap :global(.uc-scene) { aspect-ratio: 4 / 3; }
+    .scene-head .cap { display: none; }
+  }
+</style>

@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import MethodTimeline from '../components/sections/MethodTimeline.astro';
+import CTASection from '../components/sections/CTASection.astro';
+import { nbDeep } from '../data/helpers';
+
+const models = nbDeep([
+  { k: 'Feasibility study', model: 'Fixed fee', time: '1–2 weeks', d: 'We test your use case on your own footage or samples and report what can be detected, expected accuracy, hardware needed and the business case. Credited against a proof of value.', badge: 'Start here' },
+  { k: 'Proof of value', model: 'Fixed scope', time: '4–8 weeks', d: 'One line, zone or structure running live, with success criteria agreed up front and measured weekly.' },
+  { k: 'Product subscription', model: 'Annual, per camera · station · asset', time: 'Ongoing', d: 'The software, model updates, drift monitoring, Glance Hub, support and the monthly accuracy report card.' },
+  { k: 'Hardware', model: 'Purchase or lease', time: 'Per site', d: 'Glance Edge boxes, inspection stations, Belt Kits, Glance Pods and Nudge devices — or bring your own approved hardware.' },
+  { k: 'Engineering services', model: 'Fixed fee or milestones', time: 'Per project', d: 'Custom models, special imaging, integrations with MES, ERP, SCADA and EHS, and on-prem or air-gapped deployments.' },
+  { k: 'Managed inspection', model: 'Per survey · km · structure', time: 'Scheduled', d: 'For infrastructure: we plan and fly the drone or vehicle surveys and deliver engineer-reviewed reports.' },
+]);
+const drivers = [
+  ['Number of camera streams, stations or assets', 'Sets edge hardware size and subscription volume.'],
+  ['Which products and models run', 'Some models (e.g. 3D measurement, line-scan) need more compute.'],
+  ['Imaging and lighting', 'Inspection usually needs engineered lighting; safety usually runs on existing CCTV.'],
+  ['Integrations', 'PLC, MES, CMMS, EHS and VMS connections are scoped per system.'],
+  ['Deployment model', 'Cloud-connected, on-premise or air-gapped.'],
+  ['Support level', 'Business-hours or 24/7 response, on-site spares, dedicated engineer.'],
+];
+const included = ['Glance Hub dashboard, events and evidence', 'Model updates and drift monitoring', 'Monthly accuracy report card', 'Staged over-the-air updates with rollback', 'Role-based access and audit logs', 'Email and phone support'];
+---
+<BaseLayout title="Pricing & engagement" description="How Infraglance engagements and pricing work: feasibility studies, proofs of value, subscriptions per camera or station, hardware and engineering services.">
+  <PageHero eyebrow="Pricing & engagement" title="Pay to prove it <span class='gradient-text'>before you scale it.</span>" lead="No two sites are the same, so we don’t publish a price list. Every engagement starts small and fixed-fee, and scales only when the results are measured on your own site." image="bottling-line" crumbs={[{ href: '/pricing', label: 'Pricing & engagement' }]}>
+    <div class="btn-row"><a href="/contact?topic=feasibility" class="btn btn--primary">Start a feasibility study <span class="arrow" aria-hidden="true">→</span></a><a href="#models" class="btn btn--ghost">Engagement models</a></div>
+  </PageHero>
+
+  <section class="section tone-light" id="models">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Engagement models</span>
+        <h2>Six ways to work with us.</h2>
+      </div>
+      <div class="grid grid-3 models">
+        {models.map((m, i) => (
+          <div class={`card model ${i === 0 ? 'model--first' : ''}`} data-reveal style={`--d:${(i % 3) * 0.05}s`}>
+            <div class="mrow"><span class="mono n">0{i + 1}</span>{m.badge && <span class="badge">{m.badge}</span>}</div>
+            <h3>{m.k}</h3>
+            <dl><div><dt>Model</dt><dd>{m.model}</dd></div><div><dt>Timing</dt><dd>{m.time}</dd></div></dl>
+            <p>{m.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide split">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">What drives cost</span>
+        <h2>Six things set the price.</h2>
+        <p class="lead">A feasibility study turns these into a fixed quote for your site&nbsp;— no surprises after the pilot.</p>
+      </div>
+      <div class="table-wrap" data-reveal>
+        <table class="data drivers"><thead><tr><th scope="col">Driver</th><th scope="col">Why it matters</th></tr></thead><tbody>{drivers.map(([a, b]) => <tr><td><b>{a}</b></td><td>{b}</td></tr>)}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-light">
+    <div class="container container--wide split">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Every subscription includes</span>
+        <h2>The software, and&nbsp;proof it’s working.</h2>
+        <ul class="check-list">{included.map((x) => <li>{x}</li>)}</ul>
+      </div>
+      <div class="card fair" data-reveal>
+        <span class="eyebrow">Fair terms</span>
+        <ul class="check-list">
+          <li>You own your footage, images and data.</li>
+          <li>Accuracy and false-alarm limits written into the contract.</li>
+          <li>Feasibility fee credited against the proof of value.</li>
+          <li>No lock-in on cameras&nbsp;— any RTSP / ONVIF camera.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist" id="method">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">The Glance Method</span>
+        <h2>How a project runs.</h2>
+      </div>
+      <MethodTimeline />
+    </div>
+  </section>
+
+  <CTASection
+    image="chemical-plant-night"
+    title="Get a fixed quote for your site."
+    primary={{ href: '/contact?topic=feasibility', label: 'Start a feasibility study' }}
+    secondary={{ href: '/faq', label: 'Read the FAQ' }}
+  />
+</BaseLayout>
+
+<style>
+  .model { gap: var(--s-3); }
+  .model--first { border-color: var(--cyan); box-shadow: inset 0 3px 0 var(--cyan); }
+  .mrow { display: flex; justify-content: space-between; align-items: center; min-height: 22px; }
+  .n { font-size: var(--fs-xs); color: var(--cyan); }
+  .model h3 { font-size: var(--fs-xl); }
+  dl { display: grid; gap: var(--s-1); margin: 0; padding: var(--s-3) 0; border-block: 1px solid var(--line); }
+  dl div { display: grid; grid-template-columns: 72px 1fr; gap: var(--s-2); font-size: var(--fs-sm); }
+  dt { color: var(--muted); font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em; padding-top: 3px; }
+  dd { margin: 0; color: var(--text); font-weight: 500; }
+  .fair { gap: var(--s-4); }
+
+  /* Phones: each cost driver becomes a block (driver, then why it matters) instead of a clipped table. */
+  @media (max-width: 640px) {
+    .drivers { min-width: 0; }
+    .drivers thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .drivers tr { display: grid; gap: var(--s-1); padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .drivers tr:last-child { border-bottom: 0; }
+    .drivers td { padding: 0; border: 0; }
+    .drivers td b { color: var(--text); }
+  }
+</style>

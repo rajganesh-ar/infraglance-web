@@ -1,0 +1,48 @@
+---
+/**
+ * Glance UI icon set: 16 × 16 grid, 1.5 px stroke, round caps and joins.
+ * Replaces glyphs (▲ ▼ ✓ ↵ ● ▮) that fall outside the web-font subsets.
+ */
+// Kept on one line: the Astro compiler hoists `export type` and breaks multi-line unions.
+type IconName = 'arrow-up' | 'arrow-down' | 'check' | 'alert' | 'send' | 'signal' | 'battery' | 'grid' | 'camera' | 'bell' | 'chart' | 'wrench' | 'settings' | 'cursor' | 'layers' | 'play';
+
+interface Props {
+  name: IconName;
+  size?: number;
+  class?: string;
+}
+const { name, size = 16, class: cls = '' } = Astro.props;
+
+const paths: Record<IconName, string> = {
+  'arrow-up': '<path d="M8 13V3.5M4 7.5l4-4 4 4"/>',
+  'arrow-down': '<path d="M8 3v9.5M4 8.5l4 4 4-4"/>',
+  check: '<path d="M3.5 8.5l3 3 6-7"/>',
+  alert: '<path d="M8 2.5l6 11H2z"/><path d="M8 6.5v3.5"/><path d="M8 12h.01"/>',
+  send: '<path d="M14 2L7 9"/><path d="M14 2l-4.5 12L7 9 2 6.5z"/>',
+  signal: '<path d="M2.5 13v-1.5M6 13V9.5M9.5 13V6.5M13 13V3.5"/>',
+  battery: '<rect x="1.5" y="4.5" width="11.5" height="7" rx="1.5"/><path d="M14.5 7v2"/><rect x="3.25" y="6.25" width="7" height="3.5" rx=".5" fill="currentColor" stroke="none"/>',
+  grid: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
+  camera: '<rect x="1.5" y="4.5" width="9" height="7" rx="1"/><path d="M10.5 7l4-2v6l-4-2"/>',
+  bell: '<path d="M4 11.5V7a4 4 0 0 1 8 0v4.5l1 1H3z"/><path d="M6.5 14.5h3"/>',
+  chart: '<path d="M2.5 13.5h11"/><path d="M4.5 11V8M8 11V4.5M11.5 11V6.5"/>',
+  wrench: '<path d="M10.2 2.6a3.2 3.2 0 0 0-3.4 4.3L2.6 11.1a1.2 1.2 0 0 0 0 1.7l.6.6a1.2 1.2 0 0 0 1.7 0l4.2-4.2a3.2 3.2 0 0 0 4.3-3.4l-1.9 1.9-1.9-.4-.4-1.9z"/>',
+  settings: '<path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/>',
+  cursor: '<path d="M3 2l9.5 5.2-4.2 1.1-1.9 4.2z" fill="currentColor"/>',
+  layers: '<path d="M8 2.5l5.5 3L8 8.5l-5.5-3z"/><path d="M2.5 8.5L8 11.5l5.5-3"/>',
+  play: '<path d="M5 3.5v9l7.5-4.5z" fill="currentColor"/>',
+};
+---
+<svg
+  class={`ui-ic ${cls}`}
+  width={size}
+  height={size}
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+  set:html={paths[name]}
+></svg>

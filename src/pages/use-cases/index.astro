@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import UseCaseCard from '../../components/cards/UseCaseCard.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { usecases } from '../../data/usecases';
+import { pillars } from '../../data/pillars';
+import { nb } from '../../data/helpers';
+---
+<BaseLayout title="Use cases" description="Use cases: PPE compliance, forklift safety, defect and colour inspection, conveyors, leak detection, gauge reading, bridge and substation inspection.">
+  <PageHero eyebrow="Use cases" title="Problems we solve, <span class='gradient-text'>end to end.</span>" lead="Each use case shows the problem, where today’s approaches fall short, how Infraglance works from camera to action, and what to measure in a pilot." image="metro-platform" crumbs={[{ href: '/use-cases', label: 'Use cases' }]} />
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="filters" role="group" aria-label="Filter by pillar">
+        <button type="button" class="filter is-on" data-f="all" aria-pressed="true">All <span class="mono">{usecases.length}</span></button>
+        {pillars.map((p) => {
+          const n = usecases.filter((u) => u.pillar === p.slug).length;
+          return n > 0 && <button type="button" class="filter" data-f={p.slug} aria-pressed="false" style={`--accent:${p.color}`}><span class="dot accent"></span>{p.name.replace('Glance ', '')} <span class="mono">{n}</span></button>;
+        })}
+      </div>
+      <div class="grid-bal" data-list>
+        {usecases.map((u, i) => <div class="item" data-p={u.pillar}><UseCaseCard u={u} delay={(i % 3) * 0.05} /></div>)}
+      </div>
+    </div>
+  </section>
+
+  <CTASection image="v-refinery-night" title="Don’t see your problem here?" lead={nb("Many problems have no off-the-shelf product yet. Tell us what you need to see — we’ll tell you honestly whether vision can do it.")} secondary={{ href: '/engineering', label: 'Custom engineering' }} />
+</BaseLayout>
+
+<style>
+  .item { display: flex; }
+  .item > :global(*) { flex: 1; }
+  .item[hidden] { display: none; }
+</style>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('[data-f]')];
+  const items = [...document.querySelectorAll<HTMLElement>('[data-list] [data-p]')];
+  if (btns.length && items.length) {
+    const apply = (f: string) => {
+      btns.forEach((b) => { const on = b.dataset.f === f; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+      items.forEach((i) => (i.hidden = f !== 'all' && i.dataset.p !== f));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => {
+      const f = b.dataset.f || 'all';
+      apply(f);
+      try { history.replaceState(null, '', f === 'all' ? location.pathname : `#${f}`); } catch { /* sandboxed */ }
+    }));
+    const initial = location.hash.slice(1);
+    if (btns.some((b) => b.dataset.f === initial)) apply(initial);
+  }
+</script>

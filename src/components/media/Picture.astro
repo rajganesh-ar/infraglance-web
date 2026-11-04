@@ -1,0 +1,62 @@
+---
+/**
+ * Responsive photo from the media manifest (AVIF + JPEG srcset). While it loads, the box shows the
+ * graded image's average colour, so light sections never flash a dark block. A missing key renders
+ * a neutral placeholder, never a broken image.
+ *
+ * `framed` (or class "pic--framed") adds a 1px hairline inside the edge so bright images keep a
+ * defined edge on light/mist sections.
+ */
+import { photo, srcset, pick } from '../../lib/media';
+
+interface Props {
+  img: string;
+  alt?: string;
+  sizes?: string;
+  class?: string;
+  priority?: boolean;
+  /** object-position. Defaults to the manifest's focal point (`pos`), then the centre. */
+  position?: string;
+  decorative?: boolean;
+  framed?: boolean;
+}
+const { img, alt, sizes = '100vw', class: cls = '', priority = false, decorative = false, framed = false } = Astro.props;
+const p = photo(img);
+const position = Astro.props.position ?? p?.pos ?? '50% 50%';
+const altText = decorative ? '' : (alt ?? p?.alt ?? '');
+const classes = ['pic', framed && 'pic--framed', cls].filter(Boolean).join(' ');
+---
+{p ? (
+  <picture class={classes} style={`--pic-color:${p.color}`}>
+    <source type="image/avif" srcset={srcset(p.avif)} sizes={sizes} />
+    <img
+      src={pick(p.jpg, 1280)}
+      srcset={srcset(p.jpg)}
+      sizes={sizes}
+      width={p.w}
+      height={p.h}
+      alt={altText}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : 'auto'}
+      decoding={priority ? 'sync' : 'async'}
+      style={`object-position:${position}`}
+    />
+  </picture>
+) : (
+  <div class={`${classes} pic--missing`} role={decorative ? undefined : 'img'} aria-label={decorative ? undefined : altText || undefined} data-missing={img}></div>
+)}
+
+<style>
+  .pic { display: block; overflow: hidden; }
+  .pic img { display: block; width: 100%; height: 100%; object-fit: cover; background-color: var(--pic-color, var(--surface-2)); }
+  .pic--framed {
+    border-radius: var(--radius);
+    outline: 1px solid rgb(255 255 255 / 0.06);
+    outline-offset: -1px;
+  }
+  :global(:is(.tone-light, .tone-mist)) .pic--framed { outline-color: rgb(8 17 29 / 0.1); }
+  .pic--missing {
+    min-height: 160px; height: 100%;
+    background: linear-gradient(135deg, var(--surface-2), var(--surface-3) 60%, var(--surface-2));
+  }
+</style>

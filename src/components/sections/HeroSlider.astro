@@ -1,0 +1,330 @@
+---
+import Video from '../media/Video.astro';
+import { video, photo } from '../../lib/media';
+import { productsByPillar } from '../../data/products';
+import { nb } from '../../data/helpers';
+import type { PillarSlug } from '../../data/pillars';
+
+const slides = [
+  { video: 'v-workers-ppe', poster: 'ppe-site-workers', pillar: 'Glance Guard · Safety', color: 'var(--guard)', title: 'Safety that sees context, not just helmets.', text: 'PPE worn correctly, danger zones that know when they’re armed, forklifts kept apart from people — warnings at the point of work.', href: '/solutions/guard', tab: 'Safety' },
+  { video: 'v-inspection-line', poster: 'bottling-line', pillar: 'Glance Inspect · Quality', color: 'var(--inspect)', title: 'Every defect and every shade, before it ships.', text: 'Train on good parts only, measure colour difference against your master, and pass, review or reject at line speed.', href: '/solutions/inspect', tab: 'Quality' },
+  { video: 'v-bulk-conveyor', poster: 'mining-conveyor', pillar: 'Glance Flow · Conveyors', color: 'var(--flow)', title: 'One camera watching what ten sensors used to.', text: 'Belt rips, drift, spillage, blockages, hot idlers and micro-stops — fused with the signals from your PLC.', href: '/solutions/flow', tab: 'Conveyors' },
+  { video: 'v-refinery-night', poster: 'chemical-plant-night', pillar: 'Glance Sense · Plant condition', color: 'var(--sense)', title: 'Leaks, hot spots and gauges, read by your cameras.', text: 'A learned baseline for every camera, thermal monitoring and analog gauge reading for brownfield plants.', href: '/solutions/sense', tab: 'Plant' },
+  { video: 'v-bridge-aerial', poster: 'bridge-steel', pillar: 'Glance Infra · Assets', color: 'var(--infra)', title: 'Cracks measured. Change tracked. Reports signed.', text: 'Drone surveys of bridges and power assets, reviewed by qualified engineers. Road and rail are on the roadmap.', href: '/solutions/infra', tab: 'Infrastructure' },
+];
+// Optional per-asset brightness (0–1) from the media manifest; tunes the scrim strength.
+const lumIn = (e: unknown) => (e as { lum?: number } | undefined)?.lum;
+const lumOf = (v: string, p: string) => lumIn(video(v)) ?? lumIn(photo(p));
+const n = slides.length;
+// Honest primary action: a pillar with nothing generally available yet offers early access, not a demo.
+const ctaFor = (href: string) => {
+  const slug = href.split('/').pop() as PillarSlug;
+  return productsByPillar(slug).some((it) => it.phase === 'Available')
+    ? { label: 'Book a demo', href: '/contact' }
+    : { label: 'Join early access', href: `/contact?topic=early-access-${slug}` };
+};
+---
+<section class="hero tone-dark" data-hero aria-roledescription="carousel" aria-label="What Infraglance does">
+  <h1 class="sr-only">Infraglance — vision AI for industry and infrastructure</h1>
+  <div class="slides">
+    {slides.map((s, i) => {
+      const lum = lumOf(s.video, s.poster);
+      const cta = ctaFor(s.href);
+      return (
+        <div
+          class={`slide ${i === 0 ? 'is-on' : ''}`}
+          id={`hero-slide-${i}`}
+          data-slide={i}
+          role="tabpanel"
+          aria-roledescription="slide"
+          aria-label={`${i + 1} of ${n}: ${s.tab}`}
+          aria-hidden={i === 0 ? 'false' : 'true'}
+          style={`--accent:${s.color}${lum != null ? `;--media-lum:${lum}` : ''}`}
+        >
+          <Video src={s.video} poster={s.poster} class="slide-media" priority={i === 0} manual alt="" />
+          <div class="media-scrim" aria-hidden="true"></div>
+          <div class="container container--wide slide-copy">
+            <div class="copy on-media">
+              <span class="eyebrow">{s.pillar}</span>
+              <h2 class="title">{nb(s.title)}</h2>
+              <p class="lead">{nb(s.text)}</p>
+              <div class="btn-row">
+                <a href={cta.href} class="btn btn--primary btn--lg" tabindex={i === 0 ? undefined : -1}>{cta.label} <span class="arrow" aria-hidden="true">→</span></a>
+                <a href={s.href} class="btn btn--ghost btn--lg" tabindex={i === 0 ? undefined : -1}>Explore {s.pillar.split(' · ')[0].replace('Glance ', '')} <span class="arrow" aria-hidden="true">→</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  <div class="bar">
+    <div class="container container--wide bar-inner">
+      <span class="count mono" aria-hidden="true"><b data-count-cur>01</b> / {String(n).padStart(2, '0')}</span>
+      <div class="hs-tabs" role="tablist" aria-label="Choose a slide">
+        {slides.map((s, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`hero-tab-${i}`}
+            class={`hs-tab ${i === 0 ? 'is-on' : ''}`}
+            data-tab={i}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`hero-slide-${i}`}
+            tabindex={i === 0 ? 0 : -1}
+            style={`--accent:${s.color}`}
+          >
+            <span class="line" aria-hidden="true"><i></i></span>
+            <span class="tab-t">{s.tab}</span>
+          </button>
+        ))}
+      </div>
+      <button type="button" class="pause" data-pause aria-label="Pause slideshow">
+        <svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><rect class="i-pause" x="3" y="2" width="3" height="10" fill="currentColor"/><rect class="i-pause" x="8" y="2" width="3" height="10" fill="currentColor"/><path class="i-play" d="M4 2 L12 7 L4 12Z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    --bar-h: 60px;
+    position: relative; height: clamp(34rem, 88svh, 54rem); overflow: hidden;
+    background: var(--ink); color: #fff;
+  }
+  .slides, .slide { position: absolute; inset: 0; }
+  .slides { touch-action: pan-y pinch-zoom; }
+  .slide { opacity: 0; visibility: hidden; transition: opacity 0.8s ease, visibility 0s linear 0.8s; }
+  .slide.is-on { opacity: 1; visibility: visible; transition: opacity 0.8s ease; }
+  .slide :global(.slide-media) { position: absolute; inset: 0; }
+  .slide.is-on :global(.slide-media img), .slide.is-on :global(.slide-media video) { animation: drift 9s linear both; }
+  .hero:is(.is-paused, .is-held) .slide.is-on :global(.slide-media :is(img, video)) { animation-play-state: paused; }
+  @keyframes drift { from { transform: scale(1.05); } to { transform: scale(1); } }
+
+  /* Copy sits bottom-left, always below the fixed header and above the tab bar */
+  .slide-copy {
+    position: relative; height: 100%; display: flex; align-items: flex-end;
+    padding-top: calc(var(--header-h) + 24px);
+    padding-bottom: calc(var(--bar-h) + clamp(1.75rem, 1rem + 3vh, 3.5rem));
+  }
+  .copy { max-width: 40rem; display: grid; gap: 16px; }
+  .copy > * { opacity: 0; transform: translateY(0.5rem); transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out); }
+  .slide.is-on .copy > * { opacity: 1; transform: none; }
+  .slide.is-on .copy > :nth-child(2) { transition-delay: 0.08s; }
+  .slide.is-on .copy > :nth-child(3) { transition-delay: 0.16s; }
+  .slide.is-on .copy > :nth-child(4) { transition-delay: 0.24s; }
+  .title { font-size: var(--fs-display); line-height: 1.04; letter-spacing: -0.02em; color: #fff; }
+  .lead { color: rgb(238 243 248 / 0.88); max-width: 36rem; }
+  .copy .btn-row { margin-top: 8px; }
+
+  /* Compact tab bar */
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; border-top: 1px solid rgb(255 255 255 / 0.12); }
+  .bar-inner { display: flex; align-items: center; gap: 24px; height: var(--bar-h); }
+  .count { font-size: var(--fs-micro); color: rgb(255 255 255 / 0.8); letter-spacing: 0.08em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .count b { color: #fff; font-weight: 500; }
+  .hs-tabs { flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+  .hs-tab { display: grid; gap: 8px; text-align: left; padding: 10px 0; color: rgb(255 255 255 / 0.78); transition: color 0.2s; border-radius: var(--radius); }
+  .hs-tab:hover, .hs-tab.is-on { color: #fff; }
+  .hs-tab:focus-visible { outline-offset: 4px; }
+  .line { display: block; height: 2px; background: rgb(255 255 255 / 0.2); overflow: hidden; }
+  .line i { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  .hs-tab.is-done .line i { transform: scaleX(1); }
+  .hs-tab.is-on .line i { animation: fill var(--dur, 7s) linear forwards; }
+  .hero:is(.is-paused, .is-held) .hs-tab.is-on .line i { animation-play-state: paused; }
+  @keyframes fill { to { transform: scaleX(1); } }
+  .tab-t { font-size: var(--fs-xs); font-weight: 500; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pause { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 0.28); color: #fff; border-radius: var(--radius); transition: border-color 0.18s, background-color 0.18s; }
+  .pause:hover { border-color: rgb(255 255 255 / 0.6); background: rgb(255 255 255 / 0.06); }
+  .pause .i-play { display: none; }
+  .hero.is-paused .pause .i-play { display: block; }
+  .hero.is-paused .pause .i-pause { display: none; }
+
+  /* Short landscape viewports: step the title down so the copy never runs under the header */
+  @media (max-height: 680px) and (min-width: 761px) {
+    .title { font-size: var(--fs-h1); }
+    .copy { gap: 12px; }
+  }
+  @media (max-width: 760px) {
+    .hero { --bar-h: 56px; }
+    /* Phones: copy fills the lower ~55% of the frame; keep the subject above it brighter */
+    .slide .media-scrim {
+      background: var(--scrim-top), linear-gradient(0deg,
+        rgb(var(--ink-rgb) / calc(0.84 * var(--scrim-k))) 0%,
+        rgb(var(--ink-rgb) / calc(0.74 * var(--scrim-k))) 30%,
+        rgb(var(--ink-rgb) / calc(0.6 * var(--scrim-k))) 56%,
+        rgb(var(--ink-rgb) / calc(0.3 * var(--scrim-k))) 74%,
+        rgb(var(--ink-rgb) / 0.26) 100%);
+    }
+    .slide-copy { padding-bottom: calc(var(--bar-h) + 24px); }
+    .copy { max-width: none; gap: 12px; }
+    .lead { font-size: var(--fs-md); }
+    .copy .btn-row { margin-top: 4px; }
+    .copy .btn-row { gap: 8px; }
+    .copy .btn--lg { padding: 0 16px; font-size: var(--fs-sm); }
+    .hs-tabs { gap: 8px; }
+    /* Lines only on phones; the label stays available to screen readers as the tab name */
+    .tab-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    /* 2px line + 21px above/below = a 44px tap target */
+    .hs-tab { position: relative; padding: 21px 0; }
+    .pause { width: 44px; height: 44px; }
+    .bar-inner { gap: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.is-on :global(.slide-media :is(img, video)) { animation: none; }
+  }
+</style>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  if (hero) {
+    const slides = [...hero.querySelectorAll<HTMLElement>('[data-slide]')];
+    const tabs = [...hero.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+    const cur = hero.querySelector<HTMLElement>('[data-count-cur]')!;
+    const pauseBtn = hero.querySelector<HTMLButtonElement>('[data-pause]')!;
+    const DUR = 7000;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let i = 0;
+    let timer = 0;
+    let t0 = 0; // when the current countdown started (0 = not running)
+    let remaining = DUR; // ms left on the current slide; the CSS bar is paused in step with it
+    let paused = reduced; // user (or reduced-motion) pause
+    let onScreen = true;
+    let focusIn = false; // keyboard focus inside the hero
+    let loaded = document.readyState === 'complete';
+    hero.style.setProperty('--dur', `${DUR}ms`);
+
+    const vid = (n: number) => slides[n].querySelector<HTMLElement>('[data-video]');
+    const canRun = () => !paused && onScreen && !focusIn && !document.hidden;
+
+    /** Stops the countdown and freezes the bar where it is. */
+    const hold = () => {
+      clearTimeout(timer);
+      timer = 0;
+      if (t0) remaining = Math.max(0, remaining - (performance.now() - t0));
+      t0 = 0;
+      hero.classList.add('is-held');
+    };
+    /** (Re)starts the countdown from `remaining` if nothing is holding it. */
+    const run = () => {
+      clearTimeout(timer);
+      timer = 0;
+      t0 = 0;
+      if (!canRun()) { hero.classList.add('is-held'); return; }
+      hero.classList.remove('is-held');
+      t0 = performance.now();
+      timer = window.setTimeout(() => go((i + 1) % slides.length), remaining);
+    };
+    /** Plays the current clip only when it is visible, not paused, and the page has finished loading (LCP first). */
+    const syncVideo = () => {
+      const v = vid(i);
+      if (!v) return;
+      const play = !reduced && loaded && onScreen && !paused && !document.hidden;
+      v.dispatchEvent(new Event(play ? 'vid:play' : 'vid:pause'));
+    };
+    const restartBar = () => {
+      const b = tabs[i].querySelector<HTMLElement>('.line i');
+      if (!b) return;
+      b.style.animation = 'none';
+      void b.offsetWidth;
+      b.style.animation = '';
+    };
+
+    const go = (n: number, focusTab = false) => {
+      if (n === i) return; // the current tab: nothing to do, timer and bar stay in sync
+      vid(i)?.dispatchEvent(new Event('vid:pause'));
+      slides[i].classList.remove('is-on');
+      slides[i].setAttribute('aria-hidden', 'true');
+      slides[i].querySelectorAll('a').forEach((a) => a.setAttribute('tabindex', '-1'));
+      tabs.forEach((t, k) => {
+        t.classList.toggle('is-on', k === n);
+        t.classList.toggle('is-done', k < n);
+        t.setAttribute('aria-selected', String(k === n));
+        t.tabIndex = k === n ? 0 : -1;
+      });
+      i = n;
+      slides[i].classList.add('is-on');
+      slides[i].setAttribute('aria-hidden', 'false');
+      slides[i].querySelectorAll('a').forEach((a) => a.removeAttribute('tabindex'));
+      cur.textContent = String(i + 1).padStart(2, '0');
+      if (focusTab) tabs[i].focus();
+      remaining = DUR;
+      restartBar();
+      syncVideo();
+      run();
+    };
+
+    tabs.forEach((t, k) => {
+      t.addEventListener('click', () => go(k));
+      t.addEventListener('keydown', (e) => {
+        const last = tabs.length - 1;
+        const to = e.key === 'ArrowRight' ? (k === last ? 0 : k + 1)
+          : e.key === 'ArrowLeft' ? (k === 0 ? last : k - 1)
+          : e.key === 'Home' ? 0 : e.key === 'End' ? last : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        go(to, true);
+      });
+    });
+
+    const setPaused = (p: boolean) => {
+      paused = p;
+      hero.classList.toggle('is-paused', p);
+      pauseBtn.setAttribute('aria-label', p ? 'Play slideshow' : 'Pause slideshow');
+      if (p) hold();
+      else run();
+      syncVideo();
+    };
+    pauseBtn.addEventListener('click', () => setPaused(!paused));
+
+    // Keyboard focus inside the slider holds rotation (WCAG 2.2.2); a mouse click on a tab does not.
+    hero.addEventListener('focusin', (e) => {
+      if (!(e.target as Element).matches(':focus-visible')) return;
+      focusIn = true;
+      hold();
+    });
+    hero.addEventListener('focusout', (e) => {
+      if (hero.contains(e.relatedTarget as Node | null)) return;
+      if (!focusIn) return;
+      focusIn = false;
+      run();
+    });
+
+    // Horizontal swipe only; vertical scrolls and pinches are left to the browser.
+    let x0 = NaN;
+    let y0 = NaN;
+    hero.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 1) { x0 = NaN; return; }
+      x0 = e.touches[0].clientX;
+      y0 = e.touches[0].clientY;
+    }, { passive: true });
+    hero.addEventListener('touchend', (e) => {
+      if (Number.isNaN(x0) || e.changedTouches.length !== 1) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - x0;
+      const dy = t.clientY - y0;
+      x0 = NaN;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go((i + (dx < 0 ? 1 : slides.length - 1)) % slides.length);
+    }, { passive: true });
+
+    new IntersectionObserver(([e]) => {
+      const now = e.intersectionRatio >= 0.2;
+      if (now === onScreen) return;
+      onScreen = now;
+      if (onScreen) run();
+      else hold();
+      syncVideo();
+    }, { threshold: [0, 0.2, 0.5] }).observe(hero);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) hold();
+      else run();
+      syncVideo();
+    });
+
+    if (!loaded) window.addEventListener('load', () => { loaded = true; syncVideo(); }, { once: true });
+
+    if (reduced) setPaused(true);
+    else { run(); syncVideo(); }
+  }
+</script>

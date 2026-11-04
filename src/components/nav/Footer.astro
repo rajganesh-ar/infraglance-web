@@ -1,0 +1,107 @@
+---
+import Logo from '../ui/Logo.astro';
+import { pillars } from '../../data/pillars';
+import { industries } from '../../data/industries';
+import { site } from '../../data/site';
+const year = new Date().getFullYear();
+
+const cols: { h: string; links: { href: string; label: string }[] }[] = [
+  {
+    h: 'Solutions',
+    links: [
+      ...pillars.map((p) => ({ href: `/solutions/${p.slug}`, label: p.name })),
+      { href: '/products', label: 'All products' },
+      { href: '/use-cases', label: 'Use cases' },
+    ],
+  },
+  { h: 'Industries', links: industries.map((i) => ({ href: `/industries/${i.slug}`, label: i.name })) },
+  {
+    h: 'Platform',
+    links: [
+      { href: '/platform#hub', label: 'Glance Hub' },
+      { href: '/platform#edge', label: 'Glance Edge' },
+      { href: '/platform#studio', label: 'Glance Studio' },
+      { href: '/platform#ask', label: 'Glance Ask' },
+      { href: '/platform#api', label: 'API & SDK' },
+      { href: '/engineering', label: 'Custom engineering' },
+      { href: '/experience-lab', label: 'Experience Lab' },
+    ],
+  },
+  {
+    h: 'Company',
+    links: [
+      { href: '/company/about', label: 'About' },
+      { href: '/company/careers', label: 'Careers' },
+      { href: '/partners', label: 'Partners' },
+      { href: '/pricing', label: 'Pricing & engagement' },
+      { href: '/insights', label: 'Insights' },
+      { href: '/faq', label: 'FAQ' },
+      { href: '/contact', label: 'Contact' },
+    ],
+  },
+  {
+    h: 'Trust',
+    links: [
+      { href: '/trust/security', label: 'Security & compliance' },
+      { href: '/trust/ai-ethics', label: 'AI ethics charter' },
+      { href: '/privacy', label: 'Privacy notice' },
+      { href: '/terms', label: 'Terms of use' },
+      { href: '/credits', label: 'Image credits' },
+    ],
+  },
+];
+---
+<footer class="footer tone-dark">
+  <div class="container container--wide">
+    <div class="top">
+      <div class="brand-col">
+        <a href="/" class="home" aria-label="Infraglance home"><Logo /></a>
+        <p>{site.tagline}. Edge-first, camera-agnostic, built for the physical world.</p>
+        <a class="mono mail" href={`mailto:${site.email}`}>{site.email}</a>
+      </div>
+      <nav class="cols" aria-label="Footer">
+        {cols.map((c) => (
+          <div class="col">
+            <h2>{c.h}</h2>
+            <ul role="list">{c.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+          </div>
+        ))}
+      </nav>
+    </div>
+    <div class="bottom">
+      <span>© {year} Infraglance. All rights reserved.</span>
+      <a href={site.linkedin} rel="noopener" class="social">LinkedIn <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer { border-top: 1px solid var(--line); background: var(--bg-2); padding-block: clamp(3rem, 2rem + 3vw, 4rem) 24px; }
+  .top { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(0, 4fr); gap: clamp(2rem, 1rem + 3vw, 4rem); }
+  .brand-col { display: grid; gap: 14px; align-content: start; max-width: 280px; }
+  .home { justify-self: start; border-radius: var(--radius); }
+  .brand-col p { font-size: var(--fs-sm); line-height: 1.55; color: var(--muted); }
+  .mail { justify-self: start; font-size: var(--fs-xs); color: var(--cyan); }
+  .mail:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .cols { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }
+  h2 { font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: 500; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); margin-bottom: 14px; }
+  ul { display: grid; gap: 8px; }
+  ul a { display: inline-block; font-size: var(--fs-sm); line-height: 1.4; color: var(--text-2); transition: color 0.18s; }
+  ul a:hover { color: var(--text); }
+  /* Touch: every link gets a 44px-tall hit area (rows sit flush instead of gapped) */
+  @media (pointer: coarse) {
+    h2 { margin-bottom: 4px; }
+    ul { gap: 0; }
+    ul a { display: inline-flex; align-items: center; min-height: 44px; }
+    .mail, .social { display: inline-flex; align-items: center; min-height: 44px; }
+  }
+  .bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem); padding-top: 20px; border-top: 1px solid var(--line); font-size: var(--fs-xs); color: var(--muted); }
+  .social { color: var(--text-2); }
+  .social:hover { color: var(--text); }
+  @media (max-width: 1100px) {
+    .top { grid-template-columns: 1fr; }
+    .brand-col { max-width: 420px; }
+  }
+  @media (max-width: 860px) { .cols { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 24px; } }
+  @media (max-width: 560px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

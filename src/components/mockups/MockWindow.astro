@@ -1,0 +1,45 @@
+---
+/**
+ * Window chrome for every Glance app mockup: one dark product UI that stays
+ * dark inside light sections, with a crisp short shadow there.
+ *
+ * Props: app (e.g. "Glance Hub"), context (breadcrumb parts), pillar colour
+ * for the app mark (Infraglance frame + eye), and an accessible label
+ * describing the animation.
+ * Legacy props still work: `title` ("App · ctx · ctx") and `accent`.
+ */
+import '../../styles/mock-ui.css';
+import AppMark from './ui/AppMark.astro';
+
+interface Props {
+  app?: string;
+  context?: string[];
+  pillar?: string;
+  label: string;
+  tag?: string;
+  class?: string;
+  /** @deprecated use app + context */
+  title?: string;
+  /** @deprecated use pillar */
+  accent?: string;
+}
+const { app, context, pillar, accent, title = '', tag = 'Demo data', label, class: cls = '' } = Astro.props;
+const parts = title.split(' · ').map((s) => s.trim()).filter(Boolean);
+const appName = app ?? parts[0] ?? 'Glance';
+const ctx = context ?? (app ? [] : parts.slice(1));
+const glyph = pillar ?? accent ?? 'var(--ui-accent)';
+const aria = `${label.trim().replace(/\.?$/, '.')} ${tag}.`;
+---
+<figure class={`mock ui ui-win tone-dark ${cls}`} style={`--pillar:${glyph}`} role="img" aria-label={aria}>
+  <div class="ui-bar" aria-hidden="true">
+    <AppMark size={16} class="ui-app" />
+    <span class="ui-bar-title">{appName}</span>
+    {ctx.length > 0 && (
+      <span class="ui-bar-ctx">{ctx.map((c, i) => (<>{i > 0 && <i>/</i>}{c}</>))}</span>
+    )}
+    <span class="ui-pill ui-demo">{tag}</span>
+  </div>
+  <div class="ui-body mock-body" aria-hidden="true">
+    <slot />
+  </div>
+</figure>

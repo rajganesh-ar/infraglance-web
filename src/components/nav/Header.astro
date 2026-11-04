@@ -1,0 +1,373 @@
+---
+import Logo from '../ui/Logo.astro';
+import { pillars } from '../../data/pillars';
+import { industries } from '../../data/industries';
+
+const path = Astro.url.pathname.replace(/(.)\/+$/, '$1');
+const isIn = (p: string) => path === p || path.startsWith(p + '/');
+const active = (...ps: string[]) => (ps.some(isIn) ? 'is-active' : '');
+const current = (p: string) => (path === p ? 'page' : undefined);
+const companyPaths = ['/company', '/trust', '/pricing', '/faq', '/partners', '/experience-lab'];
+---
+<header class="site-header" data-header>
+  <div class="container container--wide bar">
+    <a href="/" class="brand" aria-label="Infraglance home"><Logo /></a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="/platform" class={`nav-link ${active('/platform')}`} aria-current={current('/platform')}>Platform</a>
+
+      <div class="nav-item" data-menu>
+        <button type="button" class={`nav-link ${active('/solutions', '/products')}`} aria-expanded="false" aria-controls="menu-solutions">
+          Solutions <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="menu menu--wide" id="menu-solutions">
+          <div class="menu-grid">
+            {pillars.map((p) => (
+              <a href={`/solutions/${p.slug}`} class="menu-card" style={`--accent:${p.color}`} aria-current={current(`/solutions/${p.slug}`)}>
+                <span class="badge"><span class="dot"></span>{p.area}</span>
+                <strong>{p.name}</strong>
+                <span class="desc">{p.short}</span>
+              </a>
+            ))}
+            <a href="/products" class="menu-card menu-card--all" aria-current={current('/products')}>
+              <span class="badge badge--neutral">Catalogue</span>
+              <strong>All products</strong>
+              <span class="desc">Browse every Guard, Inspect, Flow, Sense and Infra product.</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-menu>
+        <button type="button" class={`nav-link ${active('/industries')}`} aria-expanded="false" aria-controls="menu-industries">
+          Industries <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="menu" id="menu-industries">
+          <ul class="menu-list" role="list">
+            {industries.map((i) => (
+              <li><a href={`/industries/${i.slug}`} aria-current={current(`/industries/${i.slug}`)}><span class="mono glyph" aria-hidden="true">{i.glyph}</span><span><strong>{i.name}</strong><small class="segs">{i.segments.split(' · ').map((s) => <span>{s}</span>)}</small></span></a></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <a href="/use-cases" class={`nav-link ${active('/use-cases')}`} aria-current={current('/use-cases')}>Use cases</a>
+      <a href="/insights" class={`nav-link ${active('/insights')}`} aria-current={current('/insights')}>Insights</a>
+      <a href="/engineering" class={`nav-link ${active('/engineering')}`} aria-current={current('/engineering')}>Engineering</a>
+
+      <div class="nav-item" data-menu>
+        <button type="button" class={`nav-link ${active(...companyPaths)}`} aria-expanded="false" aria-controls="menu-company">
+          Company <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="menu menu--narrow menu--end" id="menu-company">
+          <ul class="menu-list menu-list--plain" role="list">
+            <li><a href="/company/about" aria-current={current('/company/about')}><strong>About</strong><small>Mission, principles and team</small></a></li>
+            <li><a href="/experience-lab" aria-current={current('/experience-lab')}><strong>Experience Lab</strong><small>See it running live</small></a></li>
+            <li><a href="/pricing" aria-current={current('/pricing')}><strong>Pricing &amp; engagement</strong><small>How projects and subscriptions work</small></a></li>
+            <li><a href="/partners" aria-current={current('/partners')}><strong>Partners</strong><small>Integrators, OEMs and technology partners</small></a></li>
+            <li><a href="/faq" aria-current={current('/faq')}><strong>FAQ</strong><small>Cameras, data, accuracy, deployment</small></a></li>
+            <li><a href="/trust/security" aria-current={current('/trust/security')}><strong>Security &amp; compliance</strong><small>Roadmap and practices</small></a></li>
+            <li><a href="/trust/ai-ethics" aria-current={current('/trust/ai-ethics')}><strong>AI ethics charter</strong><small>Safety, not surveillance</small></a></li>
+            <li><a href="/company/careers" aria-current={current('/company/careers')}><strong>Careers</strong><small>Build vision AI for the physical world</small></a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="actions">
+      <a href="/contact" class="btn btn--primary btn--sm cta">Book a demo <span class="arrow" aria-hidden="true">→</span></a>
+      <button type="button" class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav" data-burger>
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav" id="mobile-nav" hidden>
+    <nav class="container" aria-label="Mobile">
+      <a href="/platform" aria-current={current('/platform')}>Platform</a>
+      <details>
+        <summary>Solutions</summary>
+        {pillars.map((p) => <a href={`/solutions/${p.slug}`} style={`--accent:${p.color}`} aria-current={current(`/solutions/${p.slug}`)}><span class="dot accent"></span>{p.name}</a>)}
+        <a href="/products" aria-current={current('/products')}>All products</a>
+      </details>
+      <details>
+        <summary>Industries</summary>
+        {industries.map((i) => <a href={`/industries/${i.slug}`} aria-current={current(`/industries/${i.slug}`)}>{i.name}</a>)}
+      </details>
+      <a href="/use-cases" aria-current={current('/use-cases')}>Use cases</a>
+      <a href="/insights" aria-current={current('/insights')}>Insights</a>
+      <a href="/engineering" aria-current={current('/engineering')}>Engineering</a>
+      <details>
+        <summary>Company</summary>
+        <a href="/company/about">About</a>
+        <a href="/experience-lab">Experience Lab</a>
+        <a href="/pricing">Pricing &amp; engagement</a>
+        <a href="/partners">Partners</a>
+        <a href="/faq">FAQ</a>
+        <a href="/trust/security">Security &amp; compliance</a>
+        <a href="/trust/ai-ethics">AI ethics charter</a>
+        <a href="/company/careers">Careers</a>
+      </details>
+      <a href="/contact" class="btn btn--primary btn--block">Book a demo <span class="arrow" aria-hidden="true">→</span></a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed; inset: 0 0 auto 0; z-index: 50;
+    color: var(--text);
+    background-color: transparent;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.25s, border-color 0.25s, color 0.25s;
+  }
+  /* Dark scheme: transparent over the hero, solid once scrolled or a menu is open */
+  .site-header.is-solid:not(.tone-light), :global(.no-js) .site-header {
+    background-color: rgb(8 11 17 / 0.9);
+    border-bottom-color: rgb(255 255 255 / 0.08);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+  /* Light scheme (over light sections): always solid so the nav is readable from the first pixel */
+  .site-header.tone-light {
+    background-color: rgb(255 255 255 / 0.94);
+    border-bottom-color: var(--line);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+
+  .bar { display: flex; align-items: center; gap: 20px; height: var(--header-h); }
+  .brand { flex: none; display: inline-flex; align-items: center; height: 40px; border-radius: var(--radius); }
+  .nav { display: flex; align-items: center; gap: 2px; margin-left: 16px; }
+  .nav-link {
+    position: relative; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px;
+    border-radius: var(--radius); font-size: var(--fs-sm); font-weight: 500; line-height: 1; color: var(--text-2);
+    white-space: nowrap; transition: color 0.18s, background-color 0.18s;
+  }
+  .nav-link:hover, .nav-link[aria-expanded='true'] { color: var(--text); background: color-mix(in srgb, var(--text) 7%, transparent); }
+  .nav-link.is-active { color: var(--text); }
+  .nav-link.is-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: calc((36px - var(--header-h)) / 2); height: 2px; background: var(--cyan); }
+  .chev { width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 0.2s; opacity: 0.8; }
+  [aria-expanded='true'] > .chev { transform: translateY(1px) rotate(-135deg); }
+
+  .nav-item { position: relative; }
+  .menu {
+    position: absolute; top: calc(100% + 14px); left: -8px; min-width: 400px;
+    background: var(--surface); color: var(--text); border: 1px solid var(--line-2); border-radius: var(--radius-lg);
+    padding: 8px; box-shadow: var(--shadow-menu);
+    opacity: 0; visibility: hidden; transform: translateY(-4px);
+    transition: opacity 0.16s, transform 0.2s var(--ease-out), visibility 0s linear 0.2s;
+  }
+  /* Invisible bridge so the pointer can travel from the button to the panel without closing it */
+  .menu::before { content: ''; position: absolute; left: 0; right: 0; top: -15px; height: 15px; }
+  .menu--wide { width: min(800px, calc(100vw - 48px)); left: -180px; }
+  .menu--narrow { min-width: 300px; }
+  .menu--end { left: auto; right: -8px; }
+  [aria-expanded='true'] + .menu { opacity: 1; visibility: visible; transform: none; transition: opacity 0.16s, transform 0.2s var(--ease-out), visibility 0s; }
+
+  .menu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .menu-card { display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: var(--radius); border: 1px solid transparent; transition: background-color 0.18s, border-color 0.18s; }
+  .menu-card:hover, .menu-card[aria-current='page'] { background: var(--surface-2); border-color: var(--line); }
+  .menu-card .badge { justify-self: start; margin-bottom: 4px; }
+  .menu-card strong { font-size: var(--fs-md); font-weight: 600; line-height: 1.3; letter-spacing: -0.005em; }
+  .menu-card .desc { color: var(--muted); font-size: var(--fs-xs); line-height: 1.45; }
+  .menu-card--all { background: var(--surface-2); border-color: var(--line); }
+  .menu-card--all:hover { border-color: var(--line-2); }
+
+  .menu-list { display: grid; gap: 2px; padding: 0; list-style: none; }
+  .menu-list a { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border-radius: var(--radius); transition: background-color 0.18s; }
+  .menu-list a:hover, .menu-list a[aria-current='page'] { background: var(--surface-2); }
+  .menu-list strong { display: block; font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; }
+  .menu-list small { display: block; margin-top: 2px; color: var(--muted); font-size: var(--fs-xs); line-height: 1.4; }
+  /* Segments as separate unbreakable items, so 'Solar & wind' never splits. Each '·' sits in the gap
+     before its item; the first item on every line pushes its '·' past the left edge, where overflow clips
+     it, so no line starts or ends with a separator. */
+  .menu-list small.segs { --seg-gap: 1.2em; display: flex; flex-wrap: wrap; column-gap: var(--seg-gap); overflow: hidden; }
+  .segs > span { position: relative; white-space: nowrap; }
+  .segs > span::before { content: '·'; content: '·' / ''; position: absolute; top: 0; right: 100%; width: var(--seg-gap); text-align: center; opacity: 0.6; }
+  .glyph { flex: none; width: 40px; height: 26px; display: grid; place-items: center; margin-top: 1px; font-size: var(--fs-micro); font-weight: 500; letter-spacing: 0.04em; color: var(--cyan); border: 1px solid var(--line-2); border-radius: var(--radius); }
+  .menu-list--plain a { display: block; }
+
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .burger { display: none; position: relative; width: 40px; height: 40px; border: 1px solid var(--line-2); border-radius: var(--radius); color: var(--text); }
+  .burger span { position: absolute; left: 11px; right: 11px; height: 1.5px; background: currentColor; transition: transform 0.25s var(--ease-out), top 0.25s var(--ease-out); }
+  .burger span:first-child { top: 15px; }
+  .burger span:last-child { top: 23px; }
+  .burger[aria-expanded='true'] span:first-child { top: 19px; transform: rotate(45deg); }
+  .burger[aria-expanded='true'] span:last-child { top: 19px; transform: rotate(-45deg); }
+
+  /* A full-height sheet: the page underneath is covered (and inert, see setMobile), never half-visible. */
+  .mobile-nav { background: var(--bg); border-top: 1px solid var(--line); height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); overflow-y: auto; overscroll-behavior: contain; }
+  .mobile-nav .container { display: grid; align-content: start; padding-block: 8px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .mobile-nav a, .mobile-nav summary { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 2px; border-bottom: 1px solid var(--line); font-size: var(--fs-md); font-weight: 500; color: var(--text); }
+  .mobile-nav a[aria-current='page'] { color: var(--cyan); }
+  .mobile-nav details a { padding-left: 16px; min-height: 44px; font-size: var(--fs-sm); font-weight: 400; color: var(--text-2); }
+  .mobile-nav summary { cursor: pointer; list-style: none; justify-content: space-between; }
+  .mobile-nav summary::-webkit-details-marker { display: none; }
+  .mobile-nav summary::after {
+    content: ''; width: 12px; height: 12px; color: var(--muted);
+    background: linear-gradient(currentColor, currentColor) center / 12px 1.5px no-repeat, linear-gradient(currentColor, currentColor) center / 1.5px 12px no-repeat;
+  }
+  .mobile-nav details[open] summary::after { background-size: 12px 1.5px, 1.5px 0; }
+  .mobile-nav .btn { margin-top: 20px; padding: 0 18px; border-bottom: 1px solid var(--btn-bd); justify-content: center; font-size: var(--fs-sm); }
+  .mobile-nav a.btn { color: var(--btn-fg); }
+  :global(html.nav-locked) { overflow: hidden; }
+
+  @media (max-width: 1180px) {
+    .nav { display: none; }
+    .burger { display: block; }
+  }
+  /* Phones: keep a compact "Book a demo" in the bar (logo ≈ 126px + button ≈ 104px + burger 40px) */
+  @media (max-width: 480px) {
+    .bar { gap: 12px; }
+    .actions { gap: 8px; }
+    .actions .cta { min-height: 40px; padding: 0 12px; }
+    .actions .cta .arrow { display: none; }
+  }
+  @media (max-width: 340px) {
+    .actions .cta { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .menu, [aria-expanded='true'] + .menu { transition: none; }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    const root = document.documentElement;
+    const forced = document.body.dataset.headerTone;
+    const items = [...header.querySelectorAll<HTMLElement>('[data-menu]')];
+    const btnOf = (it: HTMLElement) => it.querySelector<HTMLButtonElement>(':scope > button')!;
+    const isOpen = (it: HTMLElement) => btnOf(it).getAttribute('aria-expanded') === 'true';
+    const burger = header.querySelector<HTMLButtonElement>('[data-burger]')!;
+    const mobile = header.querySelector<HTMLElement>('#mobile-nav')!;
+    let mobileOpen = false;
+
+    /* ---- Scheme: follow the tone of the section under the header ---- */
+    let zones = [...document.querySelectorAll<HTMLElement>('#main > :not(script, style, template, link, noscript), body > footer')];
+    const toneUnderHeader = (): 'light' | 'dark' => {
+      if (forced === 'light' || forced === 'dark') return forced;
+      const y = header.offsetHeight > 0 ? Math.min(header.offsetHeight, 64) / 2 : 32;
+      for (const z of zones) {
+        const r = z.getBoundingClientRect();
+        if (r.top <= y && r.bottom > y) return z.matches('.tone-light, .tone-mist') ? 'light' : 'dark';
+      }
+      return 'dark';
+    };
+    const render = () => {
+      const tone = toneUnderHeader();
+      if (header.dataset.tone !== tone) {
+        header.dataset.tone = tone;
+        header.classList.toggle('tone-light', tone === 'light');
+      }
+      header.classList.toggle('is-solid', window.scrollY > 8 || mobileOpen || items.some(isOpen));
+    };
+    let raf = 0;
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); };
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', () => { zones = [...document.querySelectorAll<HTMLElement>('#main > :not(script, style, template, link, noscript), body > footer')]; schedule(); });
+    render();
+
+    /* ---- Desktop dropdowns ---- */
+    const canHover = matchMedia('(hover: hover) and (pointer: fine)');
+    const setOpen = (it: HTMLElement, open: boolean) => {
+      if (isOpen(it) === open) return;
+      btnOf(it).setAttribute('aria-expanded', String(open));
+      render();
+    };
+    const closeAll = (except?: HTMLElement) => items.forEach((it) => it !== except && setOpen(it, false));
+
+    items.forEach((item) => {
+      const btn = btnOf(item);
+      const menu = item.querySelector<HTMLElement>('.menu')!;
+      let leaveT = 0;
+      let hoverAt = 0;
+      btn.addEventListener('click', (e) => {
+        const open = isOpen(item);
+        // A mouse click just after hover opened the menu keeps it open instead of toggling it shut.
+        if (open && canHover.matches && e.detail > 0 && performance.now() - hoverAt < 600) return;
+        closeAll(item);
+        setOpen(item, !open);
+      });
+      btn.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        closeAll(item);
+        setOpen(item, true);
+        requestAnimationFrame(() => menu.querySelector<HTMLElement>('a')?.focus());
+      });
+      item.addEventListener('mouseenter', () => {
+        if (!canHover.matches) return;
+        clearTimeout(leaveT);
+        if (!isOpen(item)) { hoverAt = performance.now(); closeAll(item); setOpen(item, true); }
+      });
+      item.addEventListener('mouseleave', () => {
+        if (!canHover.matches) return;
+        clearTimeout(leaveT);
+        leaveT = window.setTimeout(() => setOpen(item, false), 160);
+      });
+      // Tabbing out of a dropdown closes it (a click on the panel's blank space does not).
+      item.addEventListener('focusout', (e) => {
+        const to = e.relatedTarget as Node | null;
+        if (to ? !item.contains(to) : !item.matches(':hover')) setOpen(item, false);
+      });
+    });
+    document.addEventListener('click', (e) => { if (!(e.target as Element).closest('[data-menu]')) closeAll(); });
+
+    /* ---- Mobile menu ---- */
+    const setMobile = (open: boolean, returnFocus = false) => {
+      if (mobileOpen === open) return;
+      mobileOpen = open;
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      mobile.hidden = !open;
+      // The sheet covers the page: taps, Tab and assistive tech cannot reach what is underneath.
+      document.querySelectorAll<HTMLElement>('#main, body > footer, .skip-link').forEach((el) => (el.inert = open));
+      if (open) {
+        const sbw = window.innerWidth - root.clientWidth;
+        root.style.paddingRight = sbw > 0 ? `${sbw}px` : '';
+        root.classList.add('nav-locked');
+      } else {
+        root.classList.remove('nav-locked');
+        root.style.paddingRight = '';
+      }
+      render();
+      if (open) mobile.querySelector<HTMLElement>('a, summary')?.focus();
+      else if (returnFocus) burger.focus();
+    };
+    burger.addEventListener('click', () => setMobile(!mobileOpen));
+    mobile.addEventListener('click', (e) => {
+      const t = e.target as Element;
+      const list = mobile.firstElementChild as HTMLElement;
+      if (t.closest('a')) setMobile(false);
+      // A tap on the sheet's empty space under the rows closes it, like Escape (the side gutters do not).
+      else if (t === mobile || (t === list && e.clientY > (list.lastElementChild?.getBoundingClientRect().bottom ?? Infinity))) setMobile(false, true);
+    });
+    matchMedia('(min-width: 1181px)').addEventListener('change', (m) => { if (m.matches) setMobile(false); });
+    window.addEventListener('pageshow', (e) => { if (e.persisted) { setMobile(false); closeAll(); } });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (mobileOpen) { setMobile(false, true); return; }
+        const open = items.find(isOpen);
+        if (open) {
+          // Return focus to the menu button only when focus was inside that dropdown; a menu opened by
+          // hover just closes, so typing in a page field (e.g. dismissing autofill) keeps its focus.
+          const had = open.contains(document.activeElement);
+          setOpen(open, false);
+          if (had) btnOf(open).focus();
+        }
+        return;
+      }
+      // Keep keyboard focus inside the header while the mobile menu covers the page.
+      if (e.key === 'Tab' && mobileOpen) {
+        const f = [...header.querySelectorAll<HTMLElement>('a[href], button, summary')].filter((el) => el.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+  }
+</script>

@@ -1,0 +1,51 @@
+---
+import Picture from '../media/Picture.astro';
+import type { CollectionEntry } from 'astro:content';
+import { readingTime, fmtDate, isoDate } from '../../lib/reading';
+
+interface Props { post: CollectionEntry<'insights'>; variant?: 'default' | 'feature'; delay?: number }
+const { post, variant = 'default', delay = 0 } = Astro.props;
+const d = post.data;
+---
+<a href={`/insights/${post.id}`} class={`pcard insight insight--${variant}`} style={`--d:${delay}s`} data-reveal>
+  <div class="pcard-media">
+    <Picture img={d.hero} alt="" decorative sizes={variant === 'feature' ? '(min-width: 1024px) 60vw, 100vw' : '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw'} />
+    <span class="pcard-tag tone-dark"><span class="badge">{d.category}</span></span>
+  </div>
+  <div class="pcard-body">
+    <span class="meta mono"><time datetime={isoDate(d.date)}>{fmtDate(d.date)}</time> · {readingTime(post.body)} min read</span>
+    <h3>{d.title}</h3>
+    <p>{d.description}</p>
+    <span class="card-foot link-arrow">Read article <span class="arrow" aria-hidden="true">→</span></span>
+  </div>
+</a>
+
+<style>
+  .meta { font-size: var(--fs-micro); color: var(--text-3); letter-spacing: 0.04em; }
+  /* Featured card: the photo keeps a 16:9 frame instead of stretching to the row, and the link sits
+     under the excerpt, so the text column never carries an empty band (every page that uses it). */
+  .insight--feature { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  /* 16:9 sets the row height; an explicit stretch lets the photo grow with a longer excerpt (no gap under
+     it), and width: 100% keeps that taller frame from widening over the text column. */
+  .insight--feature .pcard-media { aspect-ratio: 16 / 9; width: 100%; height: auto; min-height: 0; align-self: stretch; }
+  .insight--feature .pcard-body { justify-content: center; padding: var(--card-pad-lg); gap: 12px; }
+  .insight--feature .card-foot { margin-top: var(--s-2); }
+  .insight--feature h3 { font-size: var(--fs-2xl); line-height: 1.2; letter-spacing: -0.014em; }
+  .insight--feature p { font-size: var(--fs-md); color: var(--text-2); }
+  /* Narrow two-column band: a slightly wider text column and card-sized type keep every post's text
+     within the 16:9 photo height, so the photo is not stretched into a tighter crop. */
+  @media (min-width: 901px) and (max-width: 1180px) {
+    .insight--feature { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    .insight--feature .pcard-body { padding: var(--card-pad); gap: 10px; }
+    .insight--feature h3 { font-size: var(--fs-xl); }
+    .insight--feature p { font-size: var(--fs-sm); }
+  }
+  @media (max-width: 900px) {
+    .insight--feature { grid-template-columns: 1fr; }
+    .insight--feature .pcard-media { min-height: 0; aspect-ratio: 16 / 9; }
+  }
+  @media (max-width: 640px) {
+    .insight--feature .pcard-media { aspect-ratio: 2 / 1; }
+    .insight--feature .pcard-body { padding: var(--card-pad); }
+  }
+</style>

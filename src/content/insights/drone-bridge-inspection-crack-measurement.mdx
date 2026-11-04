@@ -1,0 +1,113 @@
+---
+title: "Drone bridge inspection: measuring cracks you can defend"
+seoTitle: "Drone bridge inspection: measuring cracks"
+description: "Drones get cameras close to a bridge. Crack widths you can defend need capture planning, sampling distance, honest uncertainty and an engineer’s sign-off."
+date: 2026-10-14
+category: Infrastructure
+hero: bridge-piers
+heroAlt: "Concrete road bridge supported by a row of tall piers"
+tags: [Bridge inspection, Drones, Crack measurement, Asset management]
+---
+
+Bridge inspection is still mainly visual. A qualified inspector gets close enough to see the concrete and steel, and getting close is expensive. It can mean under-bridge units, lane closures, rope access or scaffolding.
+
+Drones change the access problem. They put a camera next to a pier cap or under a deck soffit in minutes, with nobody working at height. Regulators have taken note. The US Federal Highway Administration's 2022 update to the National Bridge Inspection Standards was written partly to [incorporate technological advancements including unmanned aircraft systems](https://www.govinfo.gov/content/pkg/FR-2022-05-06/html/2022-09512.htm). The same rule is clear that such technologies supplement inspection personnel rather than replace them, and that a team leader must be on site.
+
+That distinction matters. A drone photo of a crack is not a measurement of the crack. Getting from one to the other is an engineering problem, and it starts before take-off.
+
+## Plan the capture around the question
+
+Work backwards from what the inspection must answer.
+
+1. **List the elements:** deck soffit, girders, bearings, pier caps, piers, abutments, joints.
+2. **List the defects that matter on each:** cracks, spalling, exposed reinforcement, corrosion, efflorescence, leaks.
+3. **Set the smallest crack width you need to *measure*,** not just see, for each element.
+4. **Derive the ground sampling distance** that requires, then the stand-off distance and lens.
+5. **Plan the flight** to hold that distance, keep the camera roughly square to the surface, and give enough image overlap for a 3D reconstruction.
+
+Bridges add their own complications. Satellite positioning degrades under decks. Shadows under a deck in bright sun defeat auto-exposure. Wind funnels between piers. Traffic and rail may need management. FHWA's technical brief on [effective practices for routine bridge inspections using UAS](https://www.fhwa.dot.gov/publications/research/infrastructure/structures/bridge/21083/21083.pdf) is a useful practical reference. Every flight must also comply with your national aviation authority's rules on pilot licensing, airspace and flying near roads and railways.
+
+## Ground sampling distance decides what you can measure
+
+Ground sampling distance (GSD) is the size of one image pixel on the surface being photographed. For a camera square to the surface:
+
+**GSD = (sensor width × distance) ÷ (focal length × image width in pixels)**
+
+Take an illustrative camera with a 13.2 mm-wide sensor, 5,472 pixels across and an 8.8 mm lens:
+
+| Distance to surface | GSD | Crack width spanning about 3 pixels |
+|---|---|---|
+| 1 m | 0.27 mm/pixel | 0.8 mm |
+| 2 m | 0.55 mm/pixel | 1.6 mm |
+| 5 m | 1.37 mm/pixel | 4.1 mm |
+| 10 m | 2.74 mm/pixel | 8.2 mm |
+
+The last column uses a working assumption that you need about three pixels across a crack to estimate its width. Two things follow.
+
+**Detection works below one pixel. Measurement does not.** A 0.2 mm crack at 1.37 mm/pixel can still be visible, because it darkens the pixels it crosses. But the image gives you no basis for saying how wide it is.
+
+**Fine measurement needs focal length, not just proximity.** To measure cracks around 0.3 mm with three pixels across, you need a GSD of about 0.1 mm. With the 8.8 mm lens, that means flying about 36 cm from the concrete. A 10× longer focal length reaches the same GSD from about 3.6 m, which is why zoom payloads matter for crack work.
+
+Two more effects eat into the budget:
+
+- **Motion blur.** A drone drifting at 0.5 m/s during a 1/1000 s exposure smears the image by 0.5 mm. At 0.1 mm GSD, that is five pixels of blur. Faster shutters need more light.
+- **Obliquity.** A surface photographed at an angle is compressed in one direction, so cracks running across that direction measure narrower than they are. Correct for it with the 3D model, or capture square to the surface.
+
+<Figure img="drone-inspection" alt="Quadcopter drone flying inside a large industrial hall" caption="Stand-off distance, focal length and exposure set the measurement limits before any AI is involved." />
+
+## From pixels to a crack width
+
+Once the imagery supports it, the measurement chain is straightforward. Each step adds uncertainty, though, and it should be reported.
+
+1. **Segment** the crack at pixel level.
+2. **Find its centreline** (the skeleton).
+3. **Measure width perpendicular to the centreline** at regular intervals along it.
+4. **Scale** using the GSD from the 3D reconstruction or a measured range, corrected for obliquity.
+5. **Report** maximum width, a high percentile, length, orientation and position on the element, each with a stated uncertainty.
+
+Edge blur, shadows, surface texture and moisture all affect the result. The only real check is ground truth. Have an inspector measure a sample of accessible cracks with a crack-width gauge or comparator card, and compare.
+
+<Callout title="Detection and measurement are different claims" tone="info">
+
+A model can reliably find a crack narrower than a pixel and still have no basis for saying how wide it is. Ask for both figures: the **detection rate** at the GSD you will actually fly, and the **width error** compared with hand measurements on the same cracks.
+
+</Callout>
+
+## Change detection, year to year
+
+The biggest gain from digital inspection is not the first survey. It is being able to compare surveys.
+
+When findings live in PDF reports with hand-drawn sketches, comparing this year with last is a matter of judgement. A geo-referenced **defect register** changes that. Each crack, spall or rust stain gets an identity and a location on the 3D model of the element. Every survey updates it.
+
+Comparisons then become specific: crack length growth, width change, new cracks, and spalled area. They also have pitfalls:
+
+- **Moisture:** wet cracks look darker and wider than dry ones.
+- **Sun angle and season:** these change shadows and contrast.
+- **Different cameras or GSD:** a sharper survey "finds" cracks that were always there.
+- **Repairs, coatings and vegetation:** these hide or change the surface.
+
+The rule we apply is simple. Report growth only when it exceeds the combined measurement uncertainty of the two surveys. Anything smaller is reported as *no measurable change*, not as growth.
+
+<Figure img="concrete-crack" alt="Close-up of a crack running through a concrete surface" caption="Every defect gets a stable identity and location, so next year’s survey can say whether it has changed." />
+
+## Why engineer sign-off matters
+
+AI output is evidence. It is not an assessment.
+
+Whether a crack matters structurally depends on things the image cannot tell you by itself. Where is it relative to the load path? Is it in a tension zone near a support, or a network of shrinkage cracks on a parapet? Does its orientation suggest flexure or shear? Is rust staining a sign that the reinforcement is corroding? What do the structure's history, load rating and previous repairs say?
+
+Drone imagery also has blind spots. It cannot see delamination below an intact surface, which inspectors find by hammer sounding. It cannot see inside box girders it did not enter, or details hidden behind dirt and vegetation.
+
+That is why Infra Structure is built around review. The AI proposes findings with measurements and uncertainty. A qualified engineer accepts, edits or rejects each one, assigns condition ratings under the owner's standard, and signs the report. Responsibility stays where it belongs.
+
+## What to ask before you buy
+
+- **What GSD will the capture achieve on each element,** and how was the flight planned to get it?
+- **What is the smallest crack width you claim to *measure*,** and what is the error against hand measurements?
+- **How are widths corrected for scale and obliquity?**
+- **How are defects tracked across surveys,** and what counts as real change?
+- **Who reviews and signs the report,** and what are their qualifications?
+- **Which elements and defect types does the imagery not cover?**
+- **Under which aviation permissions will the drone operator fly?**
+
+[Infra Structure](/products/infra-structure) is in early access. It detects and measures cracks, spalling, corrosion and seepage from drone, fixed or handheld capture, keeps a geo-referenced defect register, and routes every finding through engineer review. See the [bridge inspection use case](/use-cases/bridge-inspection), or [talk to us](/contact) about planning a survey.

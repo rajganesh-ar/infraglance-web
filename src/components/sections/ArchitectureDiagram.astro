@@ -1,0 +1,52 @@
+---
+const cols = [
+  { k: 'Capture', items: ['IP / CCTV cameras', 'Inspection cameras', 'Thermal', 'Drones & vehicles'], c: 'var(--cyan)' },
+  { k: 'Edge', items: ['Decode', 'Inference', 'Tracking', 'Rules & events'], c: 'var(--blue)', note: 'Works offline' },
+  { k: 'OT link', items: ['OPC-UA', 'Modbus', 'MQTT', 'PLC / SCADA'], c: 'var(--amber)' },
+  { k: 'Glance Hub', items: ['Events & evidence', 'Analytics', 'Workflows', 'Model registry'], c: 'var(--cyan)' },
+  { k: 'Apps', items: ['Guard', 'Inspect', 'Flow', 'Sense', 'Infra'], c: 'var(--teal)' },
+  { k: 'Integrate', items: ['EHS', 'CMMS / SAP PM', 'MES / ERP', 'GIS / BIM'], c: 'var(--green)' },
+];
+---
+<div class="arch" data-arch>
+  <!-- The data bus runs above the columns (not behind them), so the moving packets stay visible. -->
+  <svg class="wires" viewBox="0 0 1200 24" preserveAspectRatio="none" aria-hidden="true">
+    <line class="bus" x1="0" y1="12" x2="1200" y2="12" stroke-width="2" vector-effect="non-scaling-stroke" />
+    {[0, 1, 2, 3, 4, 5].map((i) => <rect class="pkt" x="-14" y="11" width="14" height="2" style={`animation-delay:${i * -0.75}s`} />)}
+  </svg>
+  <ol class="cols" role="list">
+    {cols.map((c, i) => (
+      <li class="col" style={`--accent:${c.c}; --d:${i * 0.06}s`} data-reveal>
+        <span class="step mono">{String(i + 1).padStart(2, '0')}</span>
+        <h3>{c.k}</h3>
+        {c.note && <span class="note mono">{c.note}</span>}
+        <ul role="list">{c.items.map((it) => <li>{it}</li>)}</ul>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .arch { position: relative; padding-top: 24px; }
+  .wires { position: absolute; left: 0; right: 0; top: 0; z-index: 2; width: 100%; height: 24px; pointer-events: none; }
+  .bus { stroke: var(--line-2); }
+  .pkt { fill: var(--cyan); animation: travel 4.5s linear infinite; }
+  @keyframes travel { from { transform: translateX(0); } to { transform: translateX(1214px); } }
+  .cols { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; list-style: none; }
+  .col { position: relative; display: grid; align-content: start; gap: 8px; padding: 16px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); border-top: 2px solid var(--accent); }
+  /* Each column hangs from the bus: a short stem and a node on the line */
+  .col::before { content: ''; position: absolute; top: -14px; left: 18px; width: 1px; height: 12px; background: var(--line-2); }
+  .col::after { content: ''; position: absolute; z-index: 3; top: -16px; left: 15px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+  .step { font-size: var(--fs-micro); letter-spacing: 0.06em; color: var(--text-3); }
+  .col h3 { font-size: var(--fs-md); line-height: 1.3; color: var(--text); }
+  .note { justify-self: start; display: inline-flex; align-items: center; height: 22px; padding: 0 6px; font-size: var(--fs-badge); letter-spacing: 0.04em; color: var(--blue); border: 1px solid color-mix(in srgb, var(--blue) 45%, transparent); border-radius: var(--radius); }
+  .col ul { list-style: none; padding: 0; display: grid; gap: 4px; margin-top: 4px; }
+  .col ul li { font-size: var(--fs-xs); line-height: 1.35; color: var(--text-2); padding: 6px 8px; border-radius: var(--radius); background: var(--surface-2); }
+  @media (max-width: 1000px) {
+    .arch { padding-top: 0; }
+    .cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .wires, .col::before, .col::after { display: none; }
+  }
+  @media (max-width: 560px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (prefers-reduced-motion: reduce) { .pkt { animation: none; opacity: 0; } }
+</style>

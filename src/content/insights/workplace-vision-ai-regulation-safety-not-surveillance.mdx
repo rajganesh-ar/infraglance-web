@@ -1,0 +1,109 @@
+---
+title: "Workplace vision AI and the law: designing for safety, not surveillance"
+seoTitle: "Workplace vision AI: safety, not surveillance"
+description: "GDPR, India’s DPDP Act and the EU AI Act all shape how cameras may watch work. The principles, key dates and design choices that keep safety AI lawful."
+date: 2026-11-03
+category: Regulation
+hero: food-line
+heroAlt: "Workers on a fruit sorting and packing line"
+tags: [GDPR, DPDP Act, EU AI Act, Privacy, Worker consultation]
+---
+
+The model that spots a missing helmet could also be used to rank workers by how often they break rules. Regulators know this. So do the people on the floor.
+
+Whether a system is a safety system or a surveillance system depends mostly on a handful of decisions: what it is for, what it records, who sees the results and what the results are used for. Those decisions are increasingly matters of law, not just good intentions.
+
+<Callout title="Not legal advice" tone="warn">
+
+This article is general information for EHS, operations and IT leaders. It is not legal advice. Laws, regulatory guidance and application dates change. The EU AI Act's own timetable was amended in 2026. Check the current texts and take advice for your jurisdiction and your deployment.
+
+</Callout>
+
+## GDPR: the principles do most of the work
+
+Under the [GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj), footage of identifiable workers is personal data. The Article 5 principles translate directly into engineering requirements:
+
+- **Purpose limitation.** Write the purpose down precisely, for example *"prevent vehicle–pedestrian collisions in Hall 2"*, and stick to it. Using the same footage for discipline or productivity is a new purpose that needs its own assessment.
+- **Data minimisation.** Process on site, keep events rather than continuous video, and blur faces.
+- **Storage limitation.** The European Data Protection Board's [guidelines on video devices](https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-32019-processing-personal-data-through-video_en) say footage should in most cases be deleted after a few days. The longer it is kept, the more justification is needed.
+- **Transparency.** Use notices, signage and worker briefings that say what is detected and what is not.
+
+**Choose the lawful basis carefully.** The EDPB's [guidelines on consent](https://www.edpb.europa.eu/system/files/documents/files/file1/edpb_guidelines_202005_consent_en.pdf) explain that the imbalance of power between employer and employee makes consent unlikely to be freely given. Employers therefore usually rely on another basis, such as a legal obligation under health and safety law or legitimate interests with a documented balancing test.
+
+**Know when footage becomes biometric data.** The same EDPB video guidelines note that footage is not biometric data in itself. It becomes biometric data when it is specifically processed to identify individuals. Facial recognition for identification brings in the stricter Article 9 rules for special categories of data.
+
+**Do a DPIA.** Systematic monitoring of employees will normally require a data protection impact assessment under Article 35, completed before the system goes live.
+
+**Check national employment law.** Article 88 lets member states set more specific rules for employment. In Germany, for example, works councils have co-determination rights over technical devices designed to monitor employees' behaviour or performance ([§87(1) no. 6 BetrVG](https://www.gesetze-im-internet.de/betrvg/__87.html)). In the UK, the ICO's [guidance on monitoring workers](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/monitoring-workers/data-protection-and-monitoring-workers/) expects employers to tell workers about monitoring, to have a clear purpose and to choose the least intrusive means.
+
+## India's DPDP Act
+
+India's [Digital Personal Data Protection Act, 2023](https://www.indiacode.nic.in/bitstream/123456789/22037/2/a2023-22.pdf) applies to digital personal data. That includes video an employer processes digitally. The employer acts as the *data fiduciary*.
+
+Processing must rest either on consent or on one of the "certain legitimate uses" in Section 7. These include processing for employment purposes and for safeguarding the employer from loss or liability. Commentators widely caution that this is not a blanket exemption. The employer's other duties still apply, including reasonable security safeguards, breach notification, and erasure once the purpose has been served.
+
+The [DPDP Rules, 2025](https://www.pib.gov.in/PressReleasePage.aspx?PRID=2190014) were notified in November 2025, with obligations phased in over an 18-month transition. Plan for full compliance before the transition ends, not after.
+
+## EU AI Act: two lines that matter at work
+
+The [EU AI Act](https://eur-lex.europa.eu/eli/reg/2024/1689/oj) (Regulation (EU) 2024/1689) treats workplace AI in two main ways.
+
+**Prohibited practices, in force since 2 February 2025.** Article 5(1)(f) bans AI systems that infer the emotions of people in the workplace, except where the system is intended for medical or safety reasons. Recital 18 makes clear that physical states such as pain or fatigue are not emotions. A fatigue-detection system for vehicle operators is therefore treated differently from one that claims to read frustration or stress from faces. Article 5 also bans biometric categorisation that infers sensitive characteristics, such as political opinions or trade union membership.
+
+**High-risk uses in employment.** Annex III, point 4, lists AI systems intended for decisions affecting work relationships, promotion or termination, for allocating tasks based on individual behaviour or traits, or for monitoring and evaluating the performance and behaviour of workers. Employers deploying a high-risk system must, among other things, ensure human oversight and keep logs. Under Article 26(7), they must also inform workers' representatives and the affected workers before the system is used at the workplace.
+
+**The dates moved.** The Digital Omnibus on AI, [Regulation (EU) 2026/1744](https://eur-lex.europa.eu/eli/reg/2026/1744/oj), postponed the obligations for stand-alone high-risk systems in Annex III from 2 August 2026 to 2 December 2027. The prohibitions were not postponed.
+
+How a system is classified depends on its intended purpose and on how it is actually used:
+
+| Use | Likely AI Act treatment | Design note |
+|---|---|---|
+| PPE and zone-breach detection, reported by zone and shift, no identification | Arguably outside Annex III point 4, because it does not evaluate individuals. Document and review that reasoning | Keep reporting aggregate, with identification off |
+| The same detections fed into individual discipline or performance records | May fall under Annex III point 4, which covers monitoring and evaluating behaviour | High-risk obligations, worker information, human oversight |
+| Inferring workers' emotions from faces or voice | Prohibited unless intended for medical or safety reasons | Do not build it |
+| Fatigue detection for vehicle operators | A physical state, not an emotion, under Recital 18. Still personal data | Narrow purpose, DPIA, transparency |
+| Facial recognition to identify workers | Biometric identification. Special category data under GDPR | Off by default. Only where lawful, necessary and disclosed |
+
+<Figure img="cctv-industrial" alt="Two CCTV cameras mounted on a concrete wall" caption="The same camera can support a safety system or a surveillance system. The design and the documented purpose decide which." />
+
+## Consult the workforce before you install
+
+The legal requirements vary. There are co-determination rights in some countries, collective agreements in others, and AI Act information duties for high-risk systems. The practical case for consultation is the same everywhere: a safety system only works if people trust it. People stop reporting near-misses when they expect blame, and they push back against cameras for the same reason.
+
+A good consultation shows rather than tells:
+
+- **Show sample clips** with faces blurred, as supervisors would actually see them.
+- **List what is detected and what is not.** Say plainly, for example, that the system does not use facial recognition and does not infer emotions.
+- **Explain who sees what,** how long clips are kept, and how alerts are used. Say whether they are for coaching, for corrective action on the environment, or for something else.
+- **Give people a channel** to raise concerns, and fix a date to review the deployment together.
+
+## Design choices that make the difference
+
+| Design choice | What it does | Principle it supports |
+|---|---|---|
+| Processing on site; only events leave | No continuous video in the cloud | Data minimisation, security |
+| Face blurring on the device, before storage or viewing | Supervisors see behaviour, not identities | Minimisation, proportionality |
+| No facial recognition by default | Avoids biometric identification | GDPR Article 9 |
+| Aggregate reporting by zone, station and shift | Fixes the environment, not the person | Purpose limitation; avoids evaluating individuals |
+| Short, configurable retention of evidence clips | Keeps footage only as long as it is needed | Storage limitation |
+| Role-based access with audit logs | Shows who saw what, and when | Integrity, accountability |
+| No emotion inference | Removes a prohibited capability | AI Act Article 5(1)(f) |
+| Human review before any consequence | A person decides, and can override | Fairness, human oversight |
+| Configuration tied to the documented purpose, with changes logged | Prevents quiet changes of purpose | Purpose limitation, accountability |
+
+These are the defaults in our [AI ethics charter](/trust/ai-ethics), not options sold as extras.
+
+<Figure img="team-engineering" alt="Team reviewing a system design together around a table and screen" caption="Walk worker representatives through what the system detects, stores and reports before anything is installed." />
+
+## What to ask before you buy
+
+- **Where is video processed,** and exactly what leaves the site?
+- **Can blurred faces be revealed?** If so, by whom, and is every reveal logged?
+- **Can the system identify individuals?** Is that switched off by default?
+- **Which reports, if any, are produced per person?**
+- **What is the default retention period** for evidence clips, and can we shorten it?
+- **Will you provide DPIA input,** worker notice templates and support for briefings with representatives?
+- **Does any feature infer emotions, sentiment or personality?**
+- **How will you track changes** to AI Act classification and application dates, and tell us about them?
+
+If you are preparing a DPIA or a works council briefing for a safety deployment, read our [AI ethics charter](/trust/ai-ethics) and [talk to us](/contact). We will walk your team and your worker representatives through exactly what the system detects, stores and reports.

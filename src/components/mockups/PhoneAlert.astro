@@ -1,0 +1,220 @@
+---
+/**
+ * Supervisor phone: a push alert arrives, is opened and acknowledged, and
+ * corrective actions are checked off. Same event as CameraFeed (CAM-07).
+ *
+ * Hero frame (server markup): the opened event, acknowledged, with all
+ * corrective actions done. The loop locks the phone, a new push arrives and
+ * the flow plays to the same hero frame.
+ *
+ * size: 'md' = 260 px wide (default), 'sm' = 232 px, laid out at that width
+ * and never scaled with a transform.
+ * demo: show the "Demo data" pill under the device (default true). Pass
+ * demo={false} when the phone is paired with a window that already carries it.
+ */
+import '../../styles/mock-ui.css';
+import Picture from '../media/Picture.astro';
+import Icon from './ui/Icon.astro';
+import AppMark from './ui/AppMark.astro';
+
+interface Props {
+  size?: 'md' | 'sm';
+  demo?: boolean;
+  class?: string;
+}
+const { size = 'md', demo = true, class: cls = '' } = Astro.props;
+const steps = ['Operator stopped and briefed', 'Helmet on, checked on camera', 'Toolbox talk set for Shift B'];
+/* Operator box on the v-warehouse-forklift frame, in % of the frame (same as CameraFeed). */
+const person = 'left:59.4%;top:37.6%;width:7.3%;height:34.8%';
+---
+<figure class={`phone-wrap ui ${cls}`} style="--pillar:var(--guard)" role="img" aria-label="Animated phone: a push alert arrives for a worker without a helmet in warehouse aisle 14, the supervisor opens and acknowledges it, and corrective-action steps are checked off. Demo data.">
+  <div class={`phone ui-device is-${size}`} data-phone aria-hidden="true">
+    <div class="island"></div>
+    <div class="screen">
+      <div class="sbar">
+        <b>14:32</b>
+        <span class="st-r"><Icon name="signal" size={14} /><span>5G</span><Icon name="battery" size={16} /></span>
+      </div>
+
+      <div class="lock" data-lock>
+        <span class="time">14:32</span>
+        <span class="date">Thursday 29 October</span>
+      </div>
+
+      <div class="push" data-push>
+        <div class="push-head">
+          <span class="app-ic"><AppMark size={14} /></span>
+          <span class="push-app">Glance Guard</span>
+          <span class="push-t">now</span>
+        </div>
+        <strong>No helmet · Aisle 14</strong>
+        <span class="push-b">Order-picker operator without helmet for 4.1 s</span>
+      </div>
+
+      <div class="detail" data-detail>
+        <div class="d-head"><span class="ui-pill mono is-bad">Critical</span><span class="ui-id">EVT-20431</span></div>
+        <strong class="d-title">No helmet · Aisle 14</strong>
+        <div class="snap">
+          <div class="ui-media snap-img">
+            <div class="snap-frame">
+              <Picture img="v-warehouse-forklift" decorative position="50% 50%" sizes="600px" />
+              <span class="ui-box is-bad" style={person}></span>
+            </div>
+          </div>
+          <span class="snap-cap"><span class="ui-id">CAM-07 · 14:32:11</span><span class="ui-meta">Faces blurred</span></span>
+        </div>
+        <span class="ui-btn ack is-done" data-ack><Icon name="check" size={14} class="ack-ic" /><span data-ack-t>Acknowledged</span></span>
+        <ul class="steps">
+          {steps.map((s) => <li class="is-on" data-step><span class="chk"><Icon name="check" size={12} /></span><span>{s}</span></li>)}
+        </ul>
+        <span class="ui-btn close">Close event</span>
+      </div>
+    </div>
+  </div>
+  {demo && <figcaption class="ui-pill ui-demo">Demo data</figcaption>}
+</figure>
+
+<style>
+  .phone-wrap { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  /* Same pill as the window title bars, drawn for the section it sits on. */
+  .phone-wrap > .ui-demo { background: transparent; border-color: var(--line-2, var(--ui-line-3)); color: var(--muted, var(--ui-text-3)); }
+
+  .phone {
+    --pw: 260px;
+    --ph: 508px;
+    --lock-top: 88px;
+    --push-top: 196px;
+    position: relative;
+    width: var(--pw);
+    height: var(--ph);
+    flex: none;
+    padding: 10px;
+    border-radius: 40px;
+    background: linear-gradient(160deg, #1d2530, #0b0f14 60%);
+    border: 1px solid #2b3542;
+  }
+  .phone.is-sm { --pw: 232px; --ph: 476px; --lock-top: 76px; --push-top: 172px; border-radius: 36px; }
+
+  .island { position: absolute; z-index: 3; top: 18px; left: 0; right: 0; margin-inline: auto; width: 72px; height: 20px; border-radius: 10px; background: #000; }
+  /* Narrower screen, narrower island: the status icons keep clear space on both sides. */
+  .phone.is-sm .island { width: 60px; }
+  .screen {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 30px;
+    background: linear-gradient(180deg, #13202e 0%, #0a0f15 55%, #080b10 100%);
+  }
+  .phone.is-sm .screen { border-radius: 26px; }
+
+  .sbar { position: absolute; top: 10px; left: 20px; right: 16px; display: flex; align-items: center; justify-content: space-between; height: 20px; color: var(--ui-text-1); }
+  .phone.is-sm .sbar { left: 18px; right: 12px; }
+  .sbar b { font: 600 var(--ui-fs-sm) / 16px var(--ui-font); }
+  .st-r { display: inline-flex; align-items: center; gap: 4px; font: 600 var(--ui-fs-xs) / 16px var(--ui-font); }
+
+  /* Lock screen + push are hidden in the hero frame; the loop brings them in. */
+  .lock { position: absolute; top: var(--lock-top); left: 0; right: 0; display: grid; justify-items: center; gap: 4px; opacity: 0; }
+  .time { font: 400 52px / 56px var(--ui-font); letter-spacing: -0.02em; color: var(--ui-text-1); }
+  .phone.is-sm .time { font-size: 46px; line-height: 50px; }
+  .date { font: 500 var(--ui-fs-md) / 18px var(--ui-font); color: var(--ui-text-2); }
+
+  .push {
+    position: absolute;
+    top: var(--push-top);
+    left: 8px;
+    right: 8px;
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px 12px;
+    border-radius: 8px;
+    background: rgba(28, 36, 47, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    transition: background-color var(--ui-t-fast);
+  }
+  .push.is-press { background: rgba(40, 50, 64, 0.96); }
+  .push-head { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .app-ic { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; background: var(--ui-bg-0); border: 1px solid var(--ui-line-3); }
+  .push-app { font: 500 var(--ui-fs-xs) / 16px var(--ui-font); color: var(--ui-text-2); }
+  .push-t { margin-left: auto; font-size: var(--ui-fs-xs); color: var(--ui-text-3); }
+  .push strong { font: 600 var(--ui-fs-md) / 18px var(--ui-font); color: var(--ui-text-1); }
+  .push-b { font-size: var(--ui-fs-sm); line-height: 16px; color: var(--ui-text-2); }
+
+  .detail { position: absolute; top: 44px; left: 10px; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .d-head { display: flex; align-items: center; justify-content: space-between; }
+  .d-head .ui-id { color: var(--ui-text-3); }
+  .d-title { font: 600 var(--ui-fs-md) / 18px var(--ui-font); color: var(--ui-text-1); }
+  .snap { border-radius: 8px; overflow: hidden; border: 1px solid var(--ui-line-2); background: var(--ui-bg-0); }
+  .snap-img { height: 122px; }
+  .phone.is-sm .snap-img { height: 106px; }
+  /* 2x crop of the 16:9 frame, centred on the operator (box centre 63.05% / 55%). */
+  .snap-frame { position: absolute; width: 200%; height: 200%; left: -76.1%; top: -60%; }
+  .snap-cap { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; white-space: nowrap; border-top: 1px solid var(--ui-line-1); }
+  .snap-cap .ui-id { color: var(--ui-text-2); }
+  .phone.is-sm .snap-cap .ui-meta { display: none; }
+
+  .ack { height: 40px; border-radius: 8px; border: 0; background: var(--ui-accent); color: var(--ui-on-accent); font: 600 var(--ui-fs-md) / 1 var(--ui-font); }
+  .ack.is-press { background: var(--ui-accent-hi); }
+  .ack.is-done { background: var(--ui-ok); color: var(--ui-on-ok); }
+  .ack :global(.ack-ic) { display: none; }
+  .ack.is-done :global(.ack-ic) { display: block; }
+
+  .steps { display: grid; gap: 4px; }
+  .close { flex: none; height: 40px; margin-top: auto; border-radius: 8px; font-size: var(--ui-fs-md); color: var(--ui-text-2); }
+  .phone.is-sm .close { display: none; }
+  .steps li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--ui-line-1);
+    background: var(--ui-bg-2);
+    color: var(--ui-text-3);
+    font-size: var(--ui-fs-sm);
+    line-height: 16px;
+    transition: color var(--ui-t-fast), border-color var(--ui-t-fast);
+  }
+  .chk { flex: none; display: grid; place-items: center; width: 14px; height: 14px; border-radius: var(--ui-r-sm); border: 1px solid var(--ui-line-3); color: transparent; transition: background-color var(--ui-t-fast), border-color var(--ui-t-fast); }
+  .steps li.is-on { color: var(--ui-text-1); border-color: var(--ui-line-2); }
+  .steps li.is-on .chk { background: var(--ui-ok); border-color: var(--ui-ok); color: var(--ui-on-ok); }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-phone]').forEach((root) => {
+    const lock = root.querySelector<HTMLElement>('[data-lock]')!;
+    const push = root.querySelector<HTMLElement>('[data-push]')!;
+    const detail = root.querySelector<HTMLElement>('[data-detail]')!;
+    const ack = root.querySelector<HTMLElement>('[data-ack]')!;
+    const ackT = root.querySelector<HTMLElement>('[data-ack-t]')!;
+    const steps = [...root.querySelectorAll<HTMLElement>('[data-step]')];
+    const DONE = ackT.textContent ?? 'Acknowledged';
+
+    mockLoop(root, (_gsap, tl) => {
+      // 0–2.4 s hero holds (event handled). Phone locks, a new push arrives,
+      // is opened, acknowledged and the actions are checked off again.
+      tl.set(detail, { opacity: 1, y: 0 }, 0)
+        .set([push, lock], { opacity: 0, y: 0 }, 0)
+        .to(detail, { opacity: 0, duration: 0.2, ease: 'power2.in' }, 2.4)
+        .to(lock, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 2.6)
+        .call(() => {
+          ack.classList.remove('is-done', 'is-press');
+          ackT.textContent = 'Acknowledge';
+          push.classList.remove('is-press');
+          steps.forEach((s) => s.classList.remove('is-on'));
+        }, [], 2.65)
+        .fromTo(push, { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, 3.0)
+        .call(() => push.classList.add('is-press'), [], 4.3)
+        .call(() => push.classList.remove('is-press'), [], 4.5)
+        .to([push, lock], { opacity: 0, duration: 0.2, ease: 'power2.in' }, 4.6)
+        .fromTo(detail, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, 4.8)
+        .call(() => ack.classList.add('is-press'), [], 6.0)
+        .call(() => { ack.classList.remove('is-press'); ack.classList.add('is-done'); ackT.textContent = DONE; }, [], 6.2);
+      steps.forEach((s, i) => tl.call(() => s.classList.add('is-on'), [], 6.8 + i * 0.5));
+      tl.to({}, { duration: 0.4 }, 7.8);
+    }, { repeatDelay: 1.2 });
+  });
+</script>

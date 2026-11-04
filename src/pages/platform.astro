@@ -1,0 +1,201 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import Scene from '../components/Scene.astro';
+import HubDashboard from '../components/mockups/HubDashboard.astro';
+import StudioRuleBuilder from '../components/mockups/StudioRuleBuilder.astro';
+import AskChat from '../components/mockups/AskChat.astro';
+import PhoneAlert from '../components/mockups/PhoneAlert.astro';
+import CTASection from '../components/sections/CTASection.astro';
+
+const edge = [
+  { k: 'Edge S', streams: 'up to ~8 streams', use: 'Single zone or inspection station', form: 'Fanless, DIN-rail or desk' },
+  { k: 'Edge M', streams: 'up to ~24 streams', use: 'Plant area or production hall', form: 'Fanless industrial PC, GPU module' },
+  { k: 'Edge L', streams: '32+ streams', use: 'Whole site, line-scan inspection', form: 'Rack server with discrete GPU' },
+  { k: 'Belt Kit', streams: '2–4 streams + thermal', use: 'Bulk conveyors in dust and heat', form: 'IP66 enclosure, rugged camera' },
+  { k: 'Glance Pod', streams: '2 cameras', use: 'Construction & sites without CCTV', form: 'Solar + battery mast, 4G/5G' },
+];
+const integrations = [
+  ['Video', 'RTSP · ONVIF · Milestone · Genetec'],
+  ['Industrial', 'OPC-UA · Modbus TCP · MQTT · Profinet/EtherNet-IP via gateway'],
+  ['Maintenance', 'SAP PM · IBM Maximo · webhooks'],
+  ['Production & quality', 'MES · ERP · QMS · reject actuators'],
+  ['Safety', 'EHS platforms · permit-to-work systems'],
+  ['Notification', 'Microsoft Teams · WhatsApp · SMS · email · sirens & strobes'],
+  ['Infrastructure', 'GIS · BIM · asset management systems'],
+  ['Identity', 'SAML / OIDC single sign-on · role-based access'],
+];
+const flow = ['Cameras & drones', 'Glance Edge', 'Glance Hub', 'Apps & integrations'];
+---
+<BaseLayout title="Platform" description="Glance Platform: edge-first, camera-agnostic vision AI with Glance Hub, Glance Edge, Glance Studio, Glance Ask and an open API.">
+  <PageHero eyebrow="The Glance Platform" title="One platform from <span class='gradient-text'>pixel to work order.</span>" lead="Glance Edge runs the AI on your site. Glance Hub turns detections into events, evidence and decisions. Studio, Ask and the API let your teams and partners build on it." image="robot-cell" size="md" crumbs={[{ href: '/platform', label: 'Platform' }]}>
+    <div class="btn-row"><a href="/contact" class="btn btn--primary">Book a demo <span class="arrow" aria-hidden="true">→</span></a><a href="#api" class="btn btn--ghost">API &amp; SDK</a></div>
+  </PageHero>
+
+  <!-- 3D data-flow scene: light daylight scene in a mist band -->
+  <section class="net-sec tone-mist" aria-label="How data flows through the platform">
+    <Scene name="edge-network" note={false} caption="Animated network: cameras and drones send data packets to Glance Edge boxes, which send events to the Glance Hub core and out to the Guard, Inspect, Flow, Sense and Infra apps." class="net" />
+    <div class="container container--wide net-head" aria-hidden="true">
+      <span class="eyebrow">Data flow · illustrative 3D</span>
+      <ol class="net-flow mono" role="list">{flow.map((f) => <li>{f}</li>)}</ol>
+    </div>
+  </section>
+
+  <section class="section tone-light" id="hub">
+    <div class="container container--wide split split--rev">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Glance Hub</span>
+        <h2>The control room for every site.</h2>
+        <p class="lead">Events with evidence, analytics, workflows, the model registry and fleet management for every edge box — on-prem or in your private cloud.</p>
+        <ul class="check-list">
+          <li>Track-level events with duration, severity and evidence clips</li>
+          <li>Corrective-action workflows and acknowledgements</li>
+          <li>Accuracy report card per camera, per month</li>
+          <li>Over-the-air model updates with staged rollout and automatic rollback</li>
+          <li>Multi-site, role-based access and audit logs</li>
+        </ul>
+      </div>
+      <div data-reveal style="--d:0.1s"><HubDashboard /></div>
+    </div>
+  </section>
+
+  <section class="section tone-mist" id="edge">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Glance Edge</span>
+        <h2>AI that runs where the cameras are.</h2>
+        <p class="lead">Decoding, inference, tracking and rules all happen on site. If the internet drops, detection and local alarms keep working; events sync when it returns.</p>
+      </div>
+      <div class="table-wrap" data-reveal>
+        <table class="data edge-t">
+          <thead><tr><th scope="col">Hardware</th><th scope="col">Capacity</th><th scope="col">Best for</th><th scope="col">Form factor</th></tr></thead>
+          <tbody>{edge.map((e) => <tr><td><b>{e.k}</b></td><td class="mono" data-label="Capacity">{e.streams}</td><td data-label="Best for">{e.use}</td><td data-label="Form factor">{e.form}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p class="muted note">Stream capacity depends on resolution and which models run. We size hardware during the feasibility study. Edge boxes run on NVIDIA Jetson, x86 + GPU or low-power AI accelerators.</p>
+    </div>
+  </section>
+
+  <section class="section tone-light" id="studio">
+    <div class="container container--wide split">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Glance Studio</span>
+        <h2>New rules in minutes&nbsp;— no code.</h2>
+        <p class="lead">Draw zones, choose PPE, link machine states, label footage and retrain models without a data-science team. Integrators use Studio to deliver Infraglance under their own service.</p>
+        <ul class="check-list"><li>Zones in real-world coordinates</li><li>PPE matrix by zone, shift, task and permit</li><li>Labelling with active learning from operator reviews</li><li>Test on recorded footage before deploying</li></ul>
+      </div>
+      <div data-reveal style="--d:0.1s"><StudioRuleBuilder /></div>
+    </div>
+  </section>
+
+  <section class="section tone-mist" id="ask">
+    <div class="container container--wide split split--rev">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Glance Ask</span>
+        <h2>Plain-language questions over every event.</h2>
+        <p class="lead">Ask about trends, shifts, zones and lines, and get answers backed by evidence clips and charts. Weekly safety and quality summaries are written for you.</p>
+        <p class="muted small">Answers are generated only from your own Infraglance data, with links back to the underlying events.</p>
+      </div>
+      <div data-reveal style="--d:0.1s"><AskChat /></div>
+    </div>
+  </section>
+
+  <section class="section tone-light" id="nudge">
+    <div class="container container--wide split split--rev nudge">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Glance Nudge &amp; mobile</span>
+        <h2>Warn people at the point of work.</h2>
+        <p class="lead">Speakers, strobes and LED signs announce the rule — “Helmet required in Bay 3” — without naming anyone. Supervisors acknowledge and close out actions on the mobile app.</p>
+        <ul class="check-list">
+          <li>Speakers with pre-recorded, site-language messages</li>
+          <li>Strobes and beacons via I/O relay</li>
+          <li>LED signs at aisle ends and zone entries</li>
+          <li>Mobile acknowledgement and corrective-action tracking</li>
+        </ul>
+      </div>
+      <div data-reveal style="--d:0.1s"><PhoneAlert /></div>
+    </div>
+  </section>
+
+  <section class="section tone-dark" id="api">
+    <div class="container container--wide split">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">API &amp; SDK</span>
+        <h2>Open by design.</h2>
+        <p class="lead">REST and webhooks for every event, a streaming API for real-time consumers, and an SDK for OEMs and integrators who embed or white-label the platform.</p>
+      </div>
+      <figure class="code-fig" data-reveal style="--d:0.1s">
+        <pre class="code"><code><span class="c">// Webhook payload — event.created (example)</span>
+&#123;
+  <span class="k">"id"</span>: <span class="s">"evt_20431"</span>,
+  <span class="k">"app"</span>: <span class="s">"guard.zone"</span>,
+  <span class="k">"site"</span>: <span class="s">"plant-2"</span>, <span class="k">"camera"</span>: <span class="s">"cam-12"</span>,
+  <span class="k">"severity"</span>: <span class="s">"critical"</span>,
+  <span class="k">"started_at"</span>: <span class="s">"2026-10-29T09:41:03Z"</span>,
+  <span class="k">"duration_s"</span>: <span class="n">6.2</span>,
+  <span class="k">"rule"</span>: <span class="s">"robot-cell-2.restricted"</span>,
+  <span class="k">"confidence"</span>: <span class="n">0.96</span>,
+  <span class="k">"evidence"</span>: &#123; <span class="k">"clip"</span>: <span class="s">"…/evt_20431.mp4"</span>, <span class="k">"faces_blurred"</span>: <span class="n">true</span> &#125;
+&#125;</code></pre>
+        <figcaption class="mono">Example payload · demo data</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Integrations</span>
+        <h2>Fits the systems you already run.</h2>
+      </div>
+      <div class="ints">
+        {integrations.map(([k, v], i) => <div class="int" data-reveal style={`--d:${(i % 4) * 0.04}s`}><span class="mono">{k}</span><p>{v}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <CTASection title="See the platform on your own footage." image="cctv-industrial" />
+</BaseLayout>
+
+<style>
+  .net-sec { position: relative; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .net-sec :global(.net) { height: min(60vh, 520px); }
+  .net-head { position: absolute; inset: var(--s-5) 0 auto; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-6); pointer-events: none; }
+  .net-flow { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); margin: 0; padding: 0; list-style: none; font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--text-2); }
+  .net-flow li { display: inline-flex; align-items: center; gap: var(--s-2); }
+  .net-flow li + li::before { content: '→'; color: var(--cyan); }
+
+  .note { margin-top: var(--s-4); font-size: var(--fs-sm); max-width: 80ch; }
+  .small { font-size: var(--fs-sm); }
+  /* Nudge: the phone gets a column its own width, so it lines up with the left edge like the other mockups. */
+  @media (min-width: 1025px) { .nudge.split--rev { grid-template-columns: auto minmax(0, 1fr); column-gap: clamp(3rem, 1rem + 5vw, 6rem); align-items: center; } }
+
+  /* Phones: each edge box becomes a labelled block instead of a sideways-scrolling table. */
+  @media (max-width: 640px) {
+    .edge-t { min-width: 0; }
+    .edge-t thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .edge-t tr { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: var(--s-1) var(--s-3); padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .edge-t tr:last-child { border-bottom: 0; }
+    .edge-t td { padding: 0; border: 0; }
+    .edge-t td:first-child { grid-column: 1 / -1; color: var(--text); }
+    .edge-t td[data-label] { display: contents; }
+    .edge-t td[data-label]::before { content: attr(data-label); font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); padding-top: 2px; }
+  }
+
+  .code-fig { margin: 0; display: grid; gap: var(--s-2); }
+  .code { margin: 0; padding: var(--s-6); border-radius: var(--radius-lg); background: #0b1016; border: 1px solid var(--line-2); overflow-x: auto; font: var(--fs-code)/1.7 var(--font-mono); color: var(--text-2); }
+  .code .c { color: var(--muted); } .code .k { color: var(--cyan); } .code .s { color: #a5d6a7; } .code .n { color: var(--amber); }
+  .code-fig figcaption { font-size: var(--fs-micro); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .ints { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-3); }
+  .int { padding: var(--s-5); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: var(--s-1); align-content: start; }
+  .int span { font-size: var(--fs-micro); color: var(--cyan); text-transform: uppercase; letter-spacing: 0.1em; }
+  .int p { font-size: var(--fs-sm); color: var(--text-2); }
+  @media (max-width: 960px) { .ints { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) {
+    .ints { grid-template-columns: 1fr; }
+    /* The whole model fits the width here, so a shorter band keeps it filling the frame below the head. */
+    .net-sec :global(.net) { height: min(50vh, 320px); }
+    .net-flow { display: none; }
+  }
+</style>

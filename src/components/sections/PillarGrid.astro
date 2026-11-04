@@ -1,0 +1,74 @@
+---
+import Picture from '../media/Picture.astro';
+import { pillars } from '../../data/pillars';
+import { productsByPillar } from '../../data/products';
+---
+<div class="pillars">
+  {pillars.map((p, i) => (
+    <a href={`/solutions/${p.slug}`} class={`pcard pillar ${i < 2 ? 'pillar--lg' : ''}`} style={`--accent:${p.color}; --d:${i * 0.05}s`} data-reveal>
+      <div class="pcard-media">
+        <Picture img={p.photo} alt="" sizes={i < 2 ? '(min-width: 1024px) 50vw, (min-width: 641px) 50vw, 100vw' : '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw'} decorative />
+        <span class="pcard-tag tone-dark" style={`--accent:${p.color}`}><span class="badge"><span class="dot"></span>{p.area}</span></span>
+      </div>
+      <div class="pcard-body">
+        <div class="head"><h3>{p.name}</h3><span class="mono count">{productsByPillar(p.slug).length} products</span></div>
+        <p>{p.short}</p>
+        <ul class="caps" role="list">{p.capabilities.slice(0, 4).map((c) => <li>{c}</li>)}</ul>
+        <span class="card-foot link-arrow">Explore {p.name.replace('Glance ', '')} <span class="arrow" aria-hidden="true">→</span></span>
+      </div>
+    </a>
+  ))}
+  <a href="/engineering" class="custom tone-dark" data-reveal style="--d:0.25s">
+    <div class="custom-copy">
+      <span class="badge">Infraglance Engineering</span>
+      <h3>Something nobody sells yet?</h3>
+      <p>Our engineers build custom models, imaging setups and integrations on the same platform, from a paid feasibility study to production.</p>
+      <span class="link-arrow">Custom engineering <span class="arrow" aria-hidden="true">→</span></span>
+    </div>
+    <div class="custom-media"><Picture img="castings" alt="" decorative sizes="(min-width: 1024px) 50vw, 100vw" class="pic--bare" /></div>
+  </a>
+</div>
+
+<style>
+  .pillars { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--gap); }
+  .pillar { grid-column: span 2; }
+  .pillar--lg { grid-column: span 3; }
+  .pillar--lg .pcard-media { aspect-ratio: 2 / 1; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .head h3 { font-size: var(--fs-xl); }
+  .count { font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--text-3); white-space: nowrap; }
+  .caps { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .caps li { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; font-size: var(--fs-xs); line-height: 1; color: var(--text-2); border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
+
+  .custom { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); min-height: 280px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; transition: border-color 0.2s, opacity 0.7s var(--ease-out) var(--d, 0s), translate 0.7s var(--ease-out) var(--d, 0s); }
+  .custom:hover { border-color: color-mix(in srgb, var(--cyan) 50%, var(--line)); }
+  .custom-copy { display: grid; gap: 12px; align-content: center; justify-items: start; padding: var(--card-pad-lg); }
+  .custom-copy h3 { font-size: var(--fs-2xl); line-height: 1.2; letter-spacing: -0.014em; }
+  .custom-copy p { color: var(--text-2); font-size: var(--fs-md); max-width: 46ch; }
+  .custom-copy .link-arrow { margin-top: 4px; color: var(--cyan); }
+  .custom-media { position: relative; overflow: hidden; }
+  .custom-media :global(.pic), .custom-media :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .custom-media :global(img) { transition: transform var(--dur-img) var(--ease-out); }
+  .custom:hover .custom-media :global(img) { transform: scale(1.03); }
+  .custom-media::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, var(--bg), transparent 30%); pointer-events: none; }
+
+  @media (max-width: 1024px) {
+    .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pillar, .pillar--lg { grid-column: span 1; }
+    .pillar--lg .pcard-media { aspect-ratio: 16 / 10; }
+  }
+  /* 2-up: the fifth pillar spans the row as a horizontal card instead of sitting alone next to a gap */
+  @media (max-width: 1024px) and (min-width: 641px) {
+    .pillar:nth-child(5) { grid-column: 1 / -1; flex-direction: row; }
+    .pillar:nth-child(5) .pcard-media { flex: 0 0 50%; aspect-ratio: auto; min-height: 260px; }
+  }
+  @media (max-width: 760px) {
+    .custom { grid-template-columns: 1fr; }
+    .custom-media { aspect-ratio: 16 / 9; order: -1; }
+    .custom-media::before { background: linear-gradient(0deg, var(--bg), transparent 40%); }
+  }
+  @media (max-width: 640px) {
+    .pillars { grid-template-columns: 1fr; }
+    .pillar--lg .pcard-media { aspect-ratio: 2 / 1; }
+  }
+</style>

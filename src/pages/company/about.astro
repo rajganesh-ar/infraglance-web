@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { nb, nbDeep } from '../../data/helpers';
+
+const values = nbDeep([
+  { k: 'Engineering first', d: 'We are a team of senior engineers. We prototype on real data before we promise anything.' },
+  { k: 'Proof over claims', d: 'Accuracy is measured on your footage and reported monthly. If it is not working, you will hear it from us first.' },
+  { k: 'Built for the floor', d: 'Dust, heat, vibration, bad light and no network. If it does not work there, it does not ship.' },
+  { k: 'Safety, not surveillance', d: 'We build tools that protect people and products — not tools that rank them.' },
+]);
+const teams = [
+  { k: 'Infraglance Labs', d: 'Computer-vision research: industrial base models, anomaly detection, vision-language distillation and 3D measurement.' },
+  { k: 'Platform & edge', d: 'Glance Hub, Glance Edge, video pipelines, fleet management and security.' },
+  { k: 'Solutions & delivery', d: 'Solutions architects, imaging and optics engineers, PLC/OT integration and field deployment.' },
+  { k: 'Domain experts', d: 'EHS, quality and Six Sigma, and structural engineering for infrastructure sign-off.' },
+];
+---
+<BaseLayout title="About" description="Infraglance is a vision-AI company for industry and infrastructure, built by senior computer-vision, edge and industrial automation engineers.">
+  <PageHero eyebrow="About Infraglance" title="Safer, more reliable, <span class='gradient-text'>higher-quality sites.</span>" lead={nb("Our aim is to make every site and asset safer, more reliable and higher-quality. Infraglance builds the vision layer for industry and infrastructure — a platform and products that turn cameras, drones and sensors into decisions, and the engineering team to solve what no product does yet.")} image="factory-hall-wide" size="md" crumbs={[{ href: '/company/about', label: 'About' }]} />
+
+  <section class="section section--tight tone-light">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Principles</span>
+        <h2>How we work.</h2>
+      </div>
+      <div class="grid grid-4">{values.map((v, i) => <div class="card" data-reveal style={`--d:${i * 0.05}s`}><span class="mono n">0{i + 1}</span><h3>{v.k}</h3><p>{v.d}</p></div>)}</div>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">The team</span>
+        <h2>Engineers who have stood on the floor.</h2>
+        <p class="lead">Strong developers alone aren’t enough for industrial customers. Our teams combine computer vision and platform engineering with imaging, automation and domain expertise.</p>
+        <a href="/company/careers" class="link-arrow">Join us <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="grid grid-2">{teams.map((t, i) => <div class="card" data-reveal style={`--d:${(i % 2) * 0.05}s`}><h3>{t.k}</h3><p>{t.d}</p></div>)}</div>
+    </div>
+  </section>
+
+  <CTASection image="steel-plant" secondary={{ href: '/company/careers', label: 'Open roles' }} />
+</BaseLayout>
+
+<style>
+  .n { font-size: var(--fs-xs); color: var(--cyan); }
+</style>

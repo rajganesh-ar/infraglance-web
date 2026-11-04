@@ -1,0 +1,367 @@
+---
+import Scene from '../Scene.astro';
+
+const chapters = [
+  {
+    n: '01', key: 'guard', color: 'var(--guard)', pillar: 'Glance Guard', area: 'Safety',
+    title: 'Who is near the press, and are they protected?',
+    text: 'People are tracked across cameras and checked against the PPE rule for their zone, shift and task. A violation becomes one event with evidence, and the warning sounds where the work happens.',
+    points: ['Hard hat and vest worn, not just present', 'Press zone armed only while the press can move', 'Forklift-to-person distance as a leading indicator'],
+    href: '/solutions/guard',
+  },
+  {
+    n: '02', key: 'inspect', color: 'var(--inspect)', pillar: 'Glance Inspect', area: 'Quality',
+    title: 'Every part imaged, then passed or pushed off.',
+    text: 'A calibrated tunnel images each part. Anomaly maps trained on good parts and ΔE colour measurement feed one decision, and the pusher acts on it.',
+    points: ['Trained on good parts only', 'ΔE2000 against your master sample', 'Pass, review or reject, weighted by cost'],
+    href: '/solutions/inspect',
+  },
+  {
+    n: '03', key: 'flow', color: 'var(--flow)', pillar: 'Glance Flow', area: 'Conveyors',
+    title: 'Belt drift on video, idler heat on thermal.',
+    text: 'Drift, spillage, blockages and foreign objects are seen on video, hot idlers are confirmed with thermal, and both are fused with the drive signals from your PLC.',
+    points: ['Rip, drift and spillage detection', 'Thermal idler monitoring', 'Load and throughput estimated from video'],
+    href: '/solutions/flow',
+  },
+  {
+    n: '04', key: 'sense', color: 'var(--sense)', pillar: 'Glance Sense', area: 'Plant condition',
+    title: 'One view: the leak, the hot motor and the gauge.',
+    text: 'Each camera learns what normal looks like by shift and time of day. Vapour, spills and hot spots stand out, and analog gauges are read into your historian.',
+    points: ['Leak, vapour and spill detection', 'Thermal hot spots on motors and panels', 'Analog gauge reading'],
+    href: '/solutions/sense',
+  },
+  {
+    n: '05', key: 'infra', color: 'var(--infra)', pillar: 'Glance Infra', area: 'Assets',
+    title: 'The same crack, measured again a year later.',
+    text: 'Drones fly a planned route around the structure. Cracks, spalling and corrosion are measured and compared with the last survey, then signed off by a qualified engineer.',
+    points: ['Crack width from calibrated imagery', 'Change since the last survey', 'Engineer-reviewed defect register'],
+    href: '/solutions/infra',
+  },
+];
+// Scroll units: edge hold, then (move + hold) per chapter, then a move to the outro and an edge hold.
+const HOLD = 0.8;
+const MOVE = 1;
+const EDGE = 0.6;
+const UNIT_VH = 40;
+const TOTAL = EDGE + (chapters.length + 1) * MOVE + chapters.length * HOLD + EDGE;
+const JH = `${(TOTAL * UNIT_VH + 100).toFixed(1)}vh`;
+const total = String(chapters.length).padStart(2, '0');
+---
+<section class="journey tone-mist" data-journey data-hold={HOLD} data-move={MOVE} data-edge={EDGE} data-chapters={chapters.length} style={`--jh:${JH}`} aria-label="A tour of an Infraglance site">
+  <div class="stage">
+    <Scene name="journey" class="journey-scene" note={false} accent="var(--cyan)" caption="A 3D model of one industrial site in daylight with five stations: a press bay with workers, a hazard zone and a forklift; a quality inspection tunnel on a conveyor; a bulk ore conveyor with a hot idler; a pipe rack with a vapour leak, a gauge and a hot motor; and a steel truss bridge surveyed by a drone." />
+    <div class="veil" aria-hidden="true"></div>
+
+    <div class="container container--wide hud">
+      <article class="panel panel--intro is-on" data-panel="0">
+        <span class="eyebrow">One site · five ways to see it</span>
+        <h2>Scroll through one&nbsp;site, <span class="gradient-text">seen five ways.</span></h2>
+        <p class="lead">Safety, quality, conveyors, plant condition and infrastructure on the same platform, the same edge boxes and the same team.</p>
+        <span class="hint mono" aria-hidden="true">Scroll to start</span>
+      </article>
+
+      {chapters.map((c, i) => (
+        <article class="panel" data-panel={i + 1} style={`--accent:${c.color}`} aria-labelledby={`jc-${c.key}`}>
+          <header class="panel-head">
+            <span class="idx mono" aria-hidden="true">{c.n}<span class="of">/{total}</span></span>
+            <span class="eyebrow">{c.pillar} · {c.area}</span>
+          </header>
+          <h2 id={`jc-${c.key}`}>{c.title}</h2>
+          <p>{c.text}</p>
+          <ul class="check-list">{c.points.map((p) => <li>{p}</li>)}</ul>
+          <a href={c.href} class="link-arrow">Explore {c.pillar.replace('Glance ', '')} <span class="arrow" aria-hidden="true">→</span></a>
+        </article>
+      ))}
+
+      <article class="panel panel--outro" data-panel={chapters.length + 1}>
+        <span class="eyebrow">Glance Platform</span>
+        <h2>Start with one problem. <span class="gradient-text">Add the rest on the same cameras.</span></h2>
+        <p class="lead">Every pillar runs on the same Glance Edge boxes and the same Hub, so each new use case reuses what you already have.</p>
+        <div class="btn-row"><a href="/contact" class="btn btn--primary">Book a demo <span class="arrow" aria-hidden="true">→</span></a><a href="/platform" class="btn btn--ghost">See the platform</a></div>
+      </article>
+
+      <nav class="rail" aria-label="Journey chapters">
+        <ol role="list">
+          {chapters.map((c, i) => (
+            <li><button type="button" data-goto={i + 1} style={`--accent:${c.color}`} aria-label={`${c.n} ${c.area}`}><span class="mono" aria-hidden="true">{c.n}</span><span class="rail-t" aria-hidden="true">{c.area}</span></button></li>
+          ))}
+        </ol>
+      </nav>
+    </div>
+    <p class="demo-tag mono" aria-hidden="true">Illustrative 3D scene · demo data</p>
+    <div class="progress" aria-hidden="true"><i data-progress></i></div>
+  </div>
+</section>
+
+<style>
+  .journey { position: relative; background: var(--bg); }
+  @media (prefers-reduced-motion: no-preference) { .journey { height: var(--jh); } }
+  /* Phones and small tablets: a shorter pin (about 340vh); chapters re-space from the element height. */
+  @media (max-width: 900px) and (prefers-reduced-motion: no-preference) { .journey { height: calc(var(--jh) * 0.62); } }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  .stage :global(.journey-scene) { position: absolute; inset: 0; --scene-fade-top: 9%; --scene-fade-bottom: 0%; }
+  /* Soft fades top and bottom so the header and progress bar sit on the section colour. */
+  .veil {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 88%, transparent) 0, transparent calc(var(--header-h, 64px) + 48px), transparent 90%, color-mix(in srgb, var(--bg) 75%, transparent) 100%);
+  }
+  .hud { position: relative; z-index: 3; height: 100%; pointer-events: none; }
+
+  .panel {
+    position: absolute; top: 50%; width: min(460px, 38vw); display: grid; gap: var(--s-3, 12px);
+    padding: var(--s-6, 24px); color: var(--text);
+    background: rgba(255, 255, 255, 0.95); -webkit-backdrop-filter: blur(10px) saturate(1.1); backdrop-filter: blur(10px) saturate(1.1);
+    border: 1px solid var(--line); border-radius: var(--radius-lg, 4px);
+    box-shadow: 0 1px 2px rgba(8, 17, 29, 0.06), 0 18px 40px -18px rgba(8, 17, 29, 0.28);
+    opacity: 0; transform: translateY(calc(-50% + 14px)); transition: opacity 0.45s var(--ease-out), transform 0.65s var(--ease-out);
+  }
+  .panel::before { content: ''; position: absolute; inset: -1px -1px auto; height: 2px; background: var(--accent, var(--cyan)); border-radius: var(--radius-lg, 4px) var(--radius-lg, 4px) 0 0; }
+  .panel.is-on { opacity: 1; transform: translateY(-50%); }
+  .panel.is-on :is(a, button) { pointer-events: auto; }
+  .panel-head { display: flex; align-items: center; gap: var(--s-3, 12px); }
+  .idx { font-size: var(--fs-micro, 0.6875rem); font-weight: 600; letter-spacing: 0.04em; color: var(--accent); padding: 3px 6px; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: var(--radius, 2px); }
+  .idx .of { color: var(--muted); font-weight: 500; }
+  .panel h2 { font-size: var(--fs-3xl); font-weight: 600; line-height: 1.12; letter-spacing: -0.015em; text-wrap: balance; }
+  .panel p { color: var(--text-2); font-size: var(--fs-md); line-height: 1.55; max-width: 46ch; }
+  .panel .check-list { font-size: var(--fs-sm); gap: 6px; }
+  .panel .link-arrow { font-size: var(--fs-sm); font-weight: 500; color: var(--accent); }
+  .panel--intro, .panel--outro { width: min(540px, 44vw); }
+  .panel--intro::before, .panel--outro::before { background: linear-gradient(90deg, var(--guard), var(--inspect), var(--flow), var(--sense), var(--infra)); }
+  .hint { font-size: var(--fs-micro, 0.6875rem); letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+
+  .rail {
+    position: absolute; right: var(--gutter); top: 50%; translate: 0 -50%; pointer-events: auto;
+    padding: 6px; background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border: 1px solid var(--line); border-radius: var(--radius-lg, 4px); box-shadow: 0 10px 24px -16px rgba(8, 17, 29, 0.3);
+  }
+  .rail ol { display: grid; gap: 2px; }
+  .rail button {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 12px 7px 10px; text-align: left;
+    font-size: var(--fs-xs); font-weight: 500; color: var(--muted);
+    border-left: 2px solid transparent; border-radius: var(--radius, 2px); transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+  }
+  .rail button .mono { font-size: var(--fs-micro, 0.6875rem); font-weight: 600; letter-spacing: 0.04em; }
+  .rail button:hover { color: var(--text); background: rgba(8, 17, 29, 0.04); }
+  .rail button.is-on { color: var(--text); background: color-mix(in srgb, var(--accent) 9%, #fff); border-left-color: var(--accent); }
+  .rail button.is-on .mono { color: var(--accent); }
+  .rail button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* A small white chip, like the pillar scenes' note: legible over whatever the 3D puts behind it. */
+  .demo-tag {
+    position: absolute; left: var(--gutter); bottom: 14px; z-index: 3; margin: 0;
+    font-size: var(--fs-micro, 0.6875rem); line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2);
+    background: rgba(255, 255, 255, 0.88); border: 1px solid var(--line); border-radius: var(--radius, 2px); padding: 5px 7px;
+  }
+  .progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(8, 17, 29, 0.08); z-index: 3; }
+  .progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--guard), var(--inspect), var(--flow), var(--sense), var(--infra)); transform-origin: left; transform: scaleX(0); }
+
+  @media (max-width: 1180px) {
+    .rail-t { display: none; }
+    .rail button { padding: 7px 9px; }
+    .panel { width: min(420px, 42vw); }
+  }
+  @media (max-height: 760px) and (min-width: 901px) {
+    .panel .check-list { display: none; }
+  }
+  @media (max-width: 900px) {
+    .panel, .panel--intro, .panel--outro {
+      top: auto; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: var(--gutter); right: var(--gutter); width: auto;
+      padding: var(--s-4, 16px); gap: var(--s-2, 8px); transform: translateY(14px);
+    }
+    .panel.is-on { transform: none; }
+    .panel h2 { font-size: var(--fs-2xl); }
+    .panel p { font-size: var(--fs-sm); }
+    .panel .check-list, .hint { display: none; }
+    .rail { top: calc(var(--header-h, 64px) + 10px); translate: none; padding: 4px; }
+    .rail ol { grid-auto-flow: column; gap: 2px; }
+    .rail button { min-width: 40px; min-height: 40px; justify-content: center; padding: 6px 8px; border-left: 0; border-bottom: 2px solid transparent; }
+    .rail button.is-on { border-bottom-color: var(--accent); }
+    .demo-tag { left: auto; right: var(--gutter); bottom: auto; top: calc(var(--header-h, 64px) + 66px); padding: 4px 6px; }
+  }
+
+  /* Stacked, scene-free layout: reduced motion, no JS, or no WebGL (.is-static). */
+  @media (prefers-reduced-motion: reduce) {
+    .journey { height: auto; }
+    .stage { position: relative; height: auto; overflow: visible; padding-block: var(--section-y); }
+    .stage :global(.journey-scene), .veil, .rail, .progress, .demo-tag, .hint { display: none; }
+    .hud { height: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--gap); }
+    .panel, .panel--intro, .panel--outro { position: relative; inset: auto; width: auto; opacity: 1; transform: none; transition: none; }
+    .panel--intro, .panel--outro { grid-column: 1 / -1; }
+    .panel :is(a, button) { pointer-events: auto; }
+  }
+  :global(.no-js) .journey, .journey.is-static { height: auto; }
+  :global(.no-js) .journey .stage, .journey.is-static .stage { position: relative; height: auto; overflow: visible; padding-block: var(--section-y); }
+  :global(.no-js) .journey :is(.veil, .rail, .progress, .demo-tag, .hint),
+  .journey.is-static :is(.veil, .rail, .progress, .demo-tag, .hint),
+  :global(.no-js) .journey .stage :global(.journey-scene),
+  .journey.is-static .stage :global(.journey-scene) { display: none; }
+  :global(.no-js) .journey .hud, .journey.is-static .hud { height: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--gap); }
+  :global(.no-js) .journey .panel, .journey.is-static .panel { position: relative; inset: auto; width: auto; opacity: 1; transform: none; transition: none; }
+  :global(.no-js) .journey :is(.panel--intro, .panel--outro), .journey.is-static :is(.panel--intro, .panel--outro) { grid-column: 1 / -1; }
+  :global(.no-js) .journey .panel :is(a, button), .journey.is-static .panel :is(a, button) { pointer-events: auto; }
+</style>
+
+<script>
+  import type { SceneApi } from '../../three/registry';
+
+  type SceneEl = HTMLElement & { sceneApi?: SceneApi };
+  const root = document.querySelector<HTMLElement>('[data-journey]');
+  if (root && !matchMedia('(prefers-reduced-motion: reduce)').matches) init(root);
+
+  function init(root: HTMLElement) {
+    const sceneEl = root.querySelector<SceneEl>('[data-scene]')!;
+    if (sceneEl.classList.contains('is-static')) return void root.classList.add('is-static');
+    const ac = new AbortController();
+    const on = { passive: true, signal: ac.signal } as AddEventListenerOptions;
+
+    const HOLD = parseFloat(root.dataset.hold!);
+    const MOVE = parseFloat(root.dataset.move!);
+    const EDGE = parseFloat(root.dataset.edge!);
+    const KEYS = parseInt(root.dataset.chapters!) + 2; // overview, chapters…, outro
+    const segs: { key: number; start: number; len: number; move: boolean }[] = [];
+    let u = 0;
+    segs.push({ key: 0, start: 0, len: EDGE, move: false });
+    u += EDGE;
+    for (let k = 1; k < KEYS; k++) {
+      segs.push({ key: k, start: u, len: MOVE, move: true });
+      u += MOVE;
+      const h = k === KEYS - 1 ? EDGE : HOLD;
+      segs.push({ key: k, start: u, len: h, move: false });
+      u += h;
+    }
+    const TOTAL = u;
+
+    const stage = root.querySelector<HTMLElement>('.stage')!;
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+    const chapterPanels = panels.slice(1, -1);
+    const railEl = root.querySelector<HTMLElement>('.rail')!;
+    const tag = root.querySelector<HTMLElement>('.demo-tag')!;
+    const rail = [...root.querySelectorAll<HTMLButtonElement>('[data-goto]')];
+    const bar = root.querySelector<HTMLElement>('[data-progress]')!;
+    const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+    const scrollable = () => Math.max(1, root.offsetHeight - innerHeight);
+    const progressUnits = () => Math.max(0, Math.min(1, -root.getBoundingClientRect().top / scrollable())) * TOTAL;
+
+    const unitToKey = (pu: number) => {
+      for (const s of segs) {
+        if (pu < s.start + s.len) return s.move ? s.key - 1 + ease(Math.max(0, (pu - s.start) / s.len)) : s.key;
+      }
+      return KEYS - 1;
+    };
+    /** Scroll position of a chapter's hold (its start, or its end when arriving from below). */
+    const holdTop = (key: number, edge: 'start' | 'end' = 'start') => {
+      const s = segs.find((x) => x.key === key && !x.move)!;
+      const at = edge === 'start' ? s.start + Math.min(0.06, s.len * 0.1) : s.start + s.len * 0.9;
+      return root.getBoundingClientRect().top + scrollY + (at / TOTAL) * scrollable();
+    };
+
+    // Tell the scene which part of the canvas the panel and rail leave free, so it frames the subject there.
+    const headerH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64;
+    const pushSafe = () => {
+      const api = sceneEl.sceneApi;
+      if (!api?.setSafeArea) return;
+      const s = stage.getBoundingClientRect();
+      const rr = railEl.getBoundingClientRect();
+      if (innerWidth > 900) {
+        const right = Math.max(...chapterPanels.map((p) => p.getBoundingClientRect().right));
+        api.setSafeArea({ left: right - s.left + 16, top: headerH() + 8, right: rr.left - s.left - 32, bottom: s.height - 30 });
+      } else {
+        // Below the rail and the demo tag under it (plus a gap), above the tallest chapter panel.
+        const tallest = Math.max(...chapterPanels.map((p) => p.getBoundingClientRect().height));
+        const top = Math.max(rr.bottom, tag.getBoundingClientRect().bottom) - s.top + 12;
+        api.setSafeArea({ left: 6, top, right: s.width - 6, bottom: s.height - tallest - 30 });
+      }
+    };
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const pu = progressUnits();
+      const k = unitToKey(pu);
+      sceneEl.sceneApi?.setProgress?.(k);
+      const active = Math.round(k);
+      const settled = Math.abs(k - active) < 0.28;
+      panels.forEach((el, i) => el.classList.toggle('is-on', settled && i === active));
+      rail.forEach((b) => {
+        const cur = parseInt(b.dataset.goto!) === active;
+        b.classList.toggle('is-on', cur);
+        // An empty aria-current means false: name the token.
+        if (cur) b.setAttribute('aria-current', 'step');
+        else b.removeAttribute('aria-current');
+      });
+      bar.style.transform = `scaleX(${(pu / TOTAL).toFixed(4)})`;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    addEventListener('scroll', onScroll, on);
+    let resizeRaf = 0;
+    addEventListener('resize', () => {
+      onScroll();
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(pushSafe);
+    }, on);
+    document.fonts?.ready.then(pushSafe);
+
+    sceneEl.addEventListener('scene:ready', () => {
+      root.classList.add('is-live');
+      pushSafe();
+      sceneEl.sceneApi?.jump?.(unitToKey(progressUnits()));
+      update();
+    }, { signal: ac.signal });
+    sceneEl.addEventListener('scene:lost', () => root.classList.remove('is-live'), { signal: ac.signal });
+    sceneEl.addEventListener('scene:static', () => {
+      ac.abort();
+      root.classList.remove('is-live');
+      root.classList.add('is-static');
+    }, { once: true });
+
+    rail.forEach((b) => b.addEventListener('click', () => scrollTo({ top: holdTop(parseInt(b.dataset.goto!)), behavior: 'smooth' }), { signal: ac.signal }));
+    // Keyboard: tabbing into a chapter's link brings the tour to that chapter.
+    panels.forEach((el, i) => el.addEventListener('focusin', () => {
+      if (!el.classList.contains('is-on')) scrollTo({ top: holdTop(i), behavior: 'auto' });
+    }, { signal: ac.signal }));
+
+    // Gentle settle: after the reader stops mid-transition, finish it in the direction
+    // they were scrolling. Never during a touch, and never against a new scroll.
+    let lastY = scrollY;
+    let dir = 0;
+    let snapping = false;
+    let touching = false;
+    let idle = 0;
+    const settle = () => {
+      if (snapping) return void (snapping = false);
+      if (touching) return;
+      const r = root.getBoundingClientRect();
+      if (r.top > 0 || r.bottom < innerHeight) return;
+      const pu = progressUnits();
+      const s = segs.find((x) => pu >= x.start && pu < x.start + x.len);
+      if (!s || !s.move) return;
+      const f = (pu - s.start) / s.len;
+      const forward = dir > 0 ? f > 0.2 : dir < 0 ? f > 0.8 : f >= 0.5;
+      const top = forward ? holdTop(s.key, 'start') : holdTop(s.key - 1, 'end');
+      if (Math.abs(top - scrollY) < 4) return;
+      snapping = true;
+      scrollTo({ top, behavior: 'smooth' });
+    };
+    addEventListener('scroll', () => {
+      const y = scrollY;
+      if (!snapping && Math.abs(y - lastY) > 1) dir = Math.sign(y - lastY);
+      lastY = y;
+      clearTimeout(idle);
+      idle = window.setTimeout(settle, 180);
+    }, on);
+    addEventListener('touchstart', () => void (touching = true), on);
+    addEventListener('touchend', () => {
+      touching = false;
+      clearTimeout(idle);
+      idle = window.setTimeout(settle, 260);
+    }, on);
+    addEventListener('wheel', () => void (snapping = false), on);
+
+    update();
+  }
+</script>

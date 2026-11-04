@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import { allCredits } from '../lib/media';
+import credits3d from '../data/credits-3d.json';
+import { nb } from '../data/helpers';
+
+const credits = allCredits().sort((a, b) => a.type.localeCompare(b.type) || a.key.localeCompare(b.key));
+const photos = credits.filter((c) => c.type === 'photo');
+const videos = credits.filter((c) => c.type === 'video');
+const people3d = credits3d;
+---
+<BaseLayout title="Image & video credits" description="Credits and licences for the stock photography, video and 3D assets used on the Infraglance website.">
+  <PageHero eyebrow="Credits" title="Image &amp; video credits" lead="Photos and video on this site are free-licence stock media, colour-graded for the site. We thank the photographers and filmmakers below. Product mockups and 3D scenes are our own work and use illustrative demo data; the animated 3D people and the sky lighting are open-licence assets, credited below." crumbs={[{ href: '/credits', label: 'Credits' }]} />
+  <section class="section tone-light">
+    <div class="container container--wide">
+      {[{ h: 'Video', list: videos }, { h: 'Photos', list: photos }, { h: '3D people and lighting', list: people3d }].map(({ h, list }) => list.length > 0 && (
+        <div class="block">
+          <h2>{h} <span class="mono">{list.length}</span></h2>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Shows</th><th>Author</th><th>Source</th><th>Licence</th></tr></thead>
+              <tbody>
+                {list.map((c) => (
+                  <tr>
+                    <td>{nb(c.title)}</td>
+                    <td>{c.author}</td>
+                    <td><a href={c.url} rel="noopener nofollow" class="lnk">{c.source}</a></td>
+                    <td>{c.licenseUrl ? <a href={c.licenseUrl} rel="noopener nofollow" class="lnk">{c.license}</a> : c.license}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      {credits.length === 0 && <p class="muted">Credits are generated from the media manifest when media is added.</p>}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .block + .block { margin-top: 56px; }
+  h2 { font-size: var(--fs-2xl); margin-bottom: 20px; }
+  h2 .mono { font-size: 0.5em; color: var(--muted); vertical-align: middle; }
+  .lnk { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
+</style>

@@ -1,0 +1,44 @@
+# Type-check and build on every push to main and every pull request.
+# Needs no secrets: deploys are done by Cloudflare Workers Builds (see README → Deploy), which
+# also stops a release build that lacks PUBLIC_TURNSTILE_SITE_KEY or a real D1 database_id.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type-check and build
+        run: npm run ci
+
+      - name: Check Workers static-asset limits
+        run: |
+          files=$(find dist -type f | wc -l)
+          echo "dist files: $files (Workers Free plan limit: 20,000)"
+          if [ "$files" -ge 20000 ]; then echo "::error::dist has $files files"; exit 1; fi
+          big=$(find dist -type f -size +25M)
+          if [ -n "$big" ]; then echo "::error::Files over the 25 MiB per-asset limit: $big"; exit 1; fi

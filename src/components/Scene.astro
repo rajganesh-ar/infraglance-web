@@ -1,0 +1,215 @@
+---
+/**
+ * Lazy three.js island. Shows a light CSS poster until the scene scrolls near
+ * the viewport, then mounts it during idle time. Reduced motion, Save-Data,
+ * ?nowebgl, no WebGL2 or a failed mount keep the poster (`.is-static`, plus a
+ * `scene:static` event). Events on the element: scene:ready (detail = SceneApi),
+ * scene:static, scene:lost, scene:restored; internally scene:stage (a stage was
+ * created, so a failed mount can be torn down) and scene:error (a frame threw).
+ * Mounts never overlap: a context restored mid-mount retires that mount first.
+ * Page chrome laid over the canvas (.scene-head, .net-head, [data-scene-overlay])
+ * is measured by the stage; scenes frame their subject and labels below it.
+ *
+ * The canvas takes its background from the nearest painted ancestor, so put
+ * scenes in a light section (.tone-mist) for an invisible canvas edge.
+ */
+interface Props {
+  name: string;
+  caption: string;
+  accent?: string;
+  class?: string;
+  eager?: boolean;
+  /** Small honesty tag in the corner; false hides it (e.g. when the host shows its own). */
+  note?: string | false;
+}
+const { name, caption, accent = 'var(--cyan)', class: cls = '', eager = false, note = 'Illustrative scene · demo data' } = Astro.props;
+---
+<div class={`scene ${cls}`} data-scene={name} data-eager={eager ? '' : undefined} style={`--accent:${accent}`}>
+  <div class="scene-poster" aria-hidden="true">
+    <div class="poster-floor"></div>
+    <div class="poster-zone"></div>
+    <div class="poster-shadow"></div>
+  </div>
+  {note && <span class="scene-note" aria-hidden="true">{note}</span>}
+  <p class="sr-only">{caption}</p>
+</div>
+
+<style>
+  .scene { position: relative; overflow: hidden; isolation: isolate; }
+  .scene-poster { position: absolute; inset: 0; transition: opacity 0.9s var(--ease-out); pointer-events: none; }
+  /* Light "yard floor" poster: hairline 6 m joints in perspective, fading into the section colour. */
+  .poster-floor {
+    position: absolute; inset: 18% -30% -10%; transform: perspective(700px) rotateX(62deg); transform-origin: 50% 100%;
+    background-image:
+      linear-gradient(to right, rgba(8, 17, 29, 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(8, 17, 29, 0.07) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0.6) 45%, transparent 85%);
+  }
+  .poster-zone {
+    position: absolute; left: 50%; top: 62%; width: min(44%, 420px); aspect-ratio: 1.6; translate: -50% -50%;
+    transform: perspective(700px) rotateX(62deg);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: 2px;
+  }
+  .poster-shadow { position: absolute; left: 50%; top: 66%; width: 50%; height: 18%; translate: -50% -50%; background: radial-gradient(closest-side, rgba(8, 17, 29, 0.08), transparent); }
+  .scene.is-live .scene-poster { opacity: 0; }
+  /* The canvas background equals the section colour; feathering the top and bottom hides the fogged far floor's edge. */
+  .scene :global(.scene-canvas) {
+    position: absolute; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; transition: opacity 0.9s var(--ease-out);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--scene-fade-top, 14%), #000 calc(100% - var(--scene-fade-bottom, 6%)), transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 var(--scene-fade-top, 14%), #000 calc(100% - var(--scene-fade-bottom, 6%)), transparent 100%);
+  }
+  .scene.is-live :global(.scene-canvas) { opacity: 1; }
+  .scene-note {
+    position: absolute; right: 12px; top: 12px; z-index: 3; pointer-events: none;
+    font: 500 var(--fs-micro, 0.6875rem) / 1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase;
+    color: #3d4b5c; background: rgba(255, 255, 255, 0.86); border: 1px solid rgba(8, 17, 29, 0.1);
+    border-radius: var(--radius, 2px); padding: 5px 7px;
+  }
+
+  /* 3D labels (created by src/three/core/labels.ts): white chip, hairline, status dot. */
+  .scene :global(.scene-labels) { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+  .scene :global(.scene-label) {
+    --tone: #0b7f99;
+    position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 8px 4px 7px; border-radius: 2px; white-space: nowrap;
+    font: 500 11px/14px var(--font-mono); letter-spacing: 0; text-transform: none;
+    color: #0b1220; background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(8, 17, 29, 0.14);
+    box-shadow: 0 1px 2px rgba(8, 17, 29, 0.08), 0 6px 14px -6px rgba(8, 17, 29, 0.24);
+    transition: opacity 0.25s;
+  }
+  .scene :global(.scene-label .dot) { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--tone); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 18%, transparent); }
+  /* Leader to the anchor: straight down, angled when the chip sits beside the thing it names, or up from the
+     chip's top edge when it hangs below it (labels.ts sets --lead-top: 0 and an angle near 180°). */
+  .scene :global(.scene-label::after) {
+    content: ''; position: absolute; left: var(--lead-x, 50%); top: var(--lead-top, 100%); width: 1px; height: var(--lead, 10px);
+    background: rgba(8, 17, 29, 0.38); transform: rotate(var(--lead-a, 0deg)); transform-origin: 50% 0;
+  }
+  .scene :global(.scene-label.tone-ok) { --tone: #15803d; }
+  .scene :global(.scene-label.tone-warn) { --tone: #b45309; }
+  .scene :global(.scene-label.tone-bad) { --tone: #c62828; }
+  .scene :global(.scene-label.tone-bad) { border-color: rgba(198, 40, 40, 0.45); }
+  .scene :global(.scene-label.tone-info) { --tone: #0b7f99; }
+  @media (max-width: 640px) {
+    .scene :global(.scene-label) { padding: 3px 6px 3px 5px; gap: 5px; }
+    .scene-note { top: 8px; right: 8px; }
+  }
+</style>
+
+<script>
+  import { peopleScenes, preloadPeople, scenes, webglAvailable, type SceneApi } from '../three/registry';
+  import { prefersReducedMotion } from '../lib/motion';
+
+  type SceneEl = HTMLElement & { sceneApi?: SceneApi };
+  const params = new URLSearchParams(location.search);
+  const saveData = !!(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+  const disabled = prefersReducedMotion() || params.has('nowebgl') || saveData;
+  const idle = (fn: () => void) =>
+    'requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 1200 }) : setTimeout(fn, 60);
+
+  const markStatic = (el: SceneEl) => {
+    el.classList.remove('is-live');
+    el.classList.add('is-static');
+    el.dispatchEvent(new CustomEvent('scene:static'));
+  };
+
+  document.querySelectorAll<SceneEl>('[data-scene]').forEach((el) => {
+    const name = el.dataset.scene!;
+    const load = scenes[name];
+    if (disabled || !load) return markStatic(el);
+    let started = false;
+    let losses = 0;
+    /** Bumped to retire a mount in flight; a retired mount destroys what it built. */
+    let gen = 0;
+    /** The mount in flight, if any: mounts never overlap (one build, one GL context at a time). */
+    let pending: Promise<void> | null = null;
+    /** Stages created by the mount in flight (createStage announces itself with scene:stage). */
+    let building: Set<{ destroy(): void }> | null = null;
+    el.addEventListener('scene:stage', (e) => building?.add((e as CustomEvent).detail));
+
+    const teardown = (stages: Set<{ destroy(): void }>) => {
+      stages.forEach((s) => {
+        try {
+          s.destroy();
+        } catch {
+          /* already gone */
+        }
+      });
+      stages.clear();
+      el.querySelectorAll('.scene-canvas, .scene-labels').forEach((n) => n.remove());
+    };
+    const fail = (err: unknown, what = 'failed to start') => {
+      console.warn(`[scene] ${what}`, name, err);
+      try {
+        el.sceneApi?.destroy();
+      } catch {
+        /* ignore */
+      }
+      el.sceneApi = undefined;
+      el.querySelectorAll('.scene-canvas, .scene-labels').forEach((n) => n.remove());
+      markStatic(el);
+    };
+
+    const run = async () => {
+      const my = ++gen;
+      const mine = (building = new Set());
+      try {
+        const mod = await load();
+        const api = await mod.mount(el);
+        building = null;
+        if (my !== gen || el.classList.contains('is-static')) {
+          api.destroy(); // retired by a context restore (or the element went static) while it was building
+          mine.clear();
+          return;
+        }
+        mine.clear(); // the api owns its stage from here
+        el.sceneApi = api;
+        requestAnimationFrame(() => el.classList.add('is-live'));
+        el.dispatchEvent(new CustomEvent('scene:ready', { detail: api }));
+      } catch (err) {
+        building = null;
+        teardown(mine); // stop the render loop, observers and context of a half-built stage
+        if (my === gen) fail(err);
+      }
+    };
+    const mount = () => (pending = run().finally(() => (pending = null)));
+
+    const start = async () => {
+      if (started || el.sceneApi) return;
+      started = true;
+      io.disconnect();
+      if (!webglAvailable()) return markStatic(el);
+      // Scenes with people: fetch the avatars while the scene builds (cast.load() reuses the same promise).
+      if (peopleScenes.has(name)) preloadPeople();
+      await mount();
+    };
+
+    // Context loss: the stage pauses and drops .is-live (poster shows); remount on restore, at most twice.
+    el.addEventListener('scene:restored', async () => {
+      if (el.classList.contains('is-static')) return;
+      if (pending) {
+        gen++; // retire the mount in flight; it settles soon after the restore and destroys itself
+        await pending;
+      }
+      if (pending) return; // another restore already started the fresh mount
+      el.sceneApi?.destroy();
+      el.sceneApi = undefined;
+      if (++losses > 2) {
+        el.querySelectorAll('.scene-canvas, .scene-labels').forEach((n) => n.remove());
+        return markStatic(el);
+      }
+      await mount();
+    });
+    // A frame that throws: the stage has stopped itself; fall back to the poster.
+    el.addEventListener('scene:error', () => {
+      gen++;
+      fail('a frame threw (see above)', 'stopped');
+    });
+
+    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && idle(start), { rootMargin: '50% 0px' });
+    if ('eager' in el.dataset) idle(start);
+    else io.observe(el);
+  });
+</script>

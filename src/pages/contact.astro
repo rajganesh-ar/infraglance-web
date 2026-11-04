@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { site } from '../data/site';
+import { nb } from '../data/helpers';
+
+const next = [
+  { t: '30-minute call', d: 'Your sites, cameras, and the problem that hurts most.' },
+  { t: 'Live demo', d: 'Remote or in our Experience Lab, on examples like yours.' },
+  { t: 'Feasibility study', d: '1–2 weeks on your own footage or samples, with expected accuracy.' },
+];
+---
+<BaseLayout title="Book a demo" description="Book a demo or a paid feasibility study with Infraglance. Tell us about your sites, cameras and the problem you want to solve.">
+  <PageHero eyebrow="Book a demo" title="Let’s look at <span class='gradient-text'>your</span> footage." lead={nb("Tell us what you need to see. A solutions engineer — not a sales script — will reply within one business day.")} crumbs={[{ href: '/contact', label: 'Book a demo' }]} />
+
+  <section class="section tone-light contact">
+    <div class="container container--wide cols">
+      <div class="intro">
+        <span class="eyebrow">What happens next</span>
+        <ol class="next" role="list">
+          {next.map((n, i) => <li><span class="mono">0{i + 1}</span><div><b>{n.t}</b><p>{n.d}</p></div></li>)}
+        </ol>
+        <p class="muted mail">Prefer email? <a href={`mailto:${site.salesEmail}`}>{site.salesEmail}</a></p>
+      </div>
+      <div class="panel"><ContactForm /></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .cols { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: start; }
+  .intro { display: grid; gap: var(--s-5); position: sticky; top: calc(var(--header-h) + var(--s-6)); }
+  .next { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+  .next li { display: grid; grid-template-columns: 32px 1fr; gap: var(--s-3); padding: var(--s-4) var(--s-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .next .mono { color: var(--cyan); font-size: var(--fs-xs); padding-top: 3px; }
+  .next b { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; }
+  .next p { color: var(--muted); font-size: var(--fs-sm); margin-top: 2px; }
+  .mail { font-size: var(--fs-sm); }
+  .mail a { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
+  /* Turnstile needs ≥300px inside the panel: 16–17px padding keeps it inside at 375px. */
+  .panel { padding: clamp(1rem, 0.5rem + 2.4vw, 2.5rem); border-radius: var(--radius-lg); border: 1px solid var(--line-2); background: var(--surface); box-shadow: var(--shadow-lg); }
+  @media (max-width: 900px) {
+    .cols { grid-template-columns: minmax(0, 1fr); }
+    .intro { position: static; order: 2; }
+  }
+</style>

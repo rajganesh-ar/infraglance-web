@@ -1,0 +1,366 @@
+---
+/**
+ * Demo-request form. Posts to /api/contact.
+ *
+ * - With JavaScript: fetch + JSON, inline validation, focus management, busy guard.
+ * - Without JavaScript (or if this module fails to load): a normal POST. The API answers
+ *   with a 303 to /contact?sent=1#sent or /contact?error=1#form-error, and the :target
+ *   rules below show the matching state, so no personal data ever ends up in a URL.
+ * - Turnstile is rendered explicitly so its theme follows the section tone (color-scheme).
+ */
+import { pillars } from '../data/pillars';
+import { industries } from '../data/industries';
+import { site } from '../data/site';
+
+// Cloudflare's published always-pass TEST site key. It is used only when
+// PUBLIC_TURNSTILE_SITE_KEY is not set (astro dev, local builds). Release builds
+// (Workers Builds, `npm run deploy`) stop in astro.config.mjs instead of shipping it.
+const TEST_SITE_KEY = '1x00000000000000000000AA';
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() || TEST_SITE_KEY;
+const isTestKey = siteKey === TEST_SITE_KEY;
+---
+<div class="cform" data-cform>
+  <div class="done" id="sent" data-done>
+    <span class="tick" aria-hidden="true">
+      <svg viewBox="0 0 20 20" width="20" height="20"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" /></svg>
+    </span>
+    <h2 tabindex="-1">Thank you. We’ll reply within one business day.</h2>
+    <p>A solutions engineer will reply with a few questions about your sites and suggest times for a call.</p>
+  </div>
+
+  <p class="notice" id="form-error" tabindex="-1" data-notice>
+    <strong>Your request was not sent.</strong>
+    Please try again. The form needs JavaScript for its spam check. You can also email
+    <a href={`mailto:${site.salesEmail}`}>{site.salesEmail}</a>.
+  </p>
+
+  <form class="form" method="post" action="/api/contact" novalidate data-contact data-sales={site.salesEmail}>
+    <noscript>
+      <p class="notice notice--info">This form needs JavaScript for its spam check. Without it, email <a href={`mailto:${site.salesEmail}`}>{site.salesEmail}</a>.</p>
+    </noscript>
+
+    <div class="row2">
+      <div class="form-field">
+        <label class="form-label" for="lead-name">Full name</label>
+        <input class="control" id="lead-name" name="name" required autocomplete="name" maxlength="120" aria-describedby="lead-name-err" />
+        <p class="err" id="lead-name-err" data-err></p>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="lead-email">Work email</label>
+        <input class="control" id="lead-email" name="email" type="email" required autocomplete="email" inputmode="email" maxlength="200" pattern="[^@\s]+@[^@\s]+\.[^@\s]{2,}" spellcheck="false" aria-describedby="lead-email-err" />
+        <p class="err" id="lead-email-err" data-err></p>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="form-field">
+        <label class="form-label" for="lead-company">Company</label>
+        <input class="control" id="lead-company" name="company" required autocomplete="organization" maxlength="160" aria-describedby="lead-company-err" />
+        <p class="err" id="lead-company-err" data-err></p>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="lead-role">Role <span class="opt">Optional</span></label>
+        <input class="control" id="lead-role" name="role" autocomplete="organization-title" maxlength="120" />
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="lead-industry">Industry <span class="opt">Optional</span></label>
+      <select class="control" id="lead-industry" name="industry">
+        <option value="">Select an industry</option>
+        {industries.map((i) => <option value={i.slug}>{i.name}</option>)}
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <fieldset class="form-field">
+      <legend class="form-label">Interested in <span class="opt">Optional</span></legend>
+      <div class="checks">
+        {pillars.map((p) => (
+          <label class="check" style={`--accent:${p.color}`}><input type="checkbox" name="interests" value={p.slug} /><span>{p.name.replace('Glance ', '')}</span></label>
+        ))}
+        <label class="check"><input type="checkbox" name="interests" value="custom" /><span>Custom engineering</span></label>
+      </div>
+    </fieldset>
+
+    <div class="form-field">
+      <label class="form-label" for="lead-message">What would you like to see? <span class="opt">Optional</span></label>
+      <textarea class="control" id="lead-message" name="message" rows="4" maxlength="4000" placeholder="For example: PPE compliance on 40 existing cameras, colour inspection on a moulding line, conveyor monitoring at a cement plant."></textarea>
+    </div>
+
+    <input type="hidden" name="topic" />
+    <div class="hp" aria-hidden="true"><label>Leave this field empty<input name="hp_url" tabindex="-1" autocomplete="off" /></label></div>
+
+    <div class="ts" data-ts data-sitekey={siteKey} data-test-key={isTestKey ? '' : undefined}></div>
+
+    <div class="foot">
+      <button class="btn btn--primary submit" type="submit">Send request <span class="arrow" aria-hidden="true">→</span></button>
+      <p class="fine">We use your details only to answer this request. See the <a href="/privacy">privacy notice</a>.</p>
+    </div>
+    <p class="form-status" role="status" aria-live="polite" data-status></p>
+  </form>
+</div>
+
+<script is:inline>
+  // Turnstile explicit render: the widget theme follows the computed color-scheme of its section.
+  window.igTurnstileReady = function () {
+    document.querySelectorAll('[data-ts]').forEach(function (el) {
+      var st = el.getAttribute('data-ts-state');
+      if ((st && st !== 'blocked') || !window.turnstile) return; // 'blocked' = slow load that arrived late
+      el.setAttribute('data-ts-state', 'pending');
+      var scheme = getComputedStyle(el).colorScheme || '';
+      window.turnstile.render(el, {
+        sitekey: el.getAttribute('data-sitekey'),
+        action: 'contact',
+        theme: scheme.indexOf('dark') > -1 ? 'dark' : 'light',
+        size: 'flexible',
+        callback: function () { el.setAttribute('data-ts-state', 'ok'); },
+        'expired-callback': function () { el.setAttribute('data-ts-state', 'expired'); },
+        'error-callback': function () { el.setAttribute('data-ts-state', 'error'); },
+      });
+    });
+  };
+</script>
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=igTurnstileReady" async defer></script>
+
+<style>
+  .cform { position: relative; }
+  .form { display: grid; gap: var(--s-5); }
+  .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-5) var(--s-4); }
+  fieldset.form-field { border: 0; padding: 0; margin: 0; min-width: 0; }
+  legend.form-label { padding: 0; margin-bottom: 6px; }
+  .opt { margin-left: 6px; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
+  .checks { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+  .err { font-size: var(--fs-xs); line-height: 1.4; color: var(--red); }
+  .err:empty { display: none; }
+  .control[aria-invalid='true']:focus { outline-color: var(--red); }
+
+  /* Visually removed honeypot (bots fill it, people never see it). */
+  .hp { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+
+  /*
+   * Turnstile "flexible" widget: 100% wide (min 300px), 65px tall. Until it paints, the slot shows a
+   * quiet status line of the same size (no jump, and never an empty gap that reads as a missing
+   * field). The placeholder is pure CSS on :empty, so it disappears as soon as the widget renders.
+   */
+  .ts { min-height: 65px; }
+  .ts:empty {
+    display: flex; align-items: center; gap: 10px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2);
+    color: var(--muted); font-size: var(--fs-xs); line-height: 1.4;
+  }
+  .ts:empty::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: ts-pulse 1s ease-in-out infinite alternate; }
+  .ts:empty::after { content: 'Spam check loading…'; }
+  .ts[data-ts-state='blocked']:empty { color: var(--text-2); border-left: 3px solid var(--red); }
+  .ts[data-ts-state='blocked']:empty::before { display: none; }
+  .ts[data-ts-state='blocked']:empty::after { content: 'The spam check could not load (often a content blocker). Reload the page to send the form, or email us.'; }
+  /* Without JavaScript the widget can never load; the <noscript> notice above says so instead. */
+  :global(html.no-js) .ts { display: none; }
+  @keyframes ts-pulse { from { opacity: 0.7; } to { opacity: 0.15; } }
+  @media (prefers-reduced-motion: reduce) { .ts:empty::before { animation: none; opacity: 0.5; } }
+
+  .foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5); }
+  .submit { flex: none; }
+  .fine { flex: 1 1 16rem; font-size: var(--fs-xs); line-height: 1.5; color: var(--muted); }
+  .fine a, .notice a { color: var(--cyan); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Live-region message line. Not ".status": that is the global product-status pill (<Status/>). */
+  .form-status { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-2); overflow-wrap: anywhere; }
+  .form-status:empty { display: none; }
+  .form-status.is-err { color: var(--red); }
+
+  /* Error / info notices (also shown without JS via :target) */
+  .notice {
+    display: none; margin-bottom: var(--s-5); padding: var(--s-3) var(--s-4);
+    border: 1px solid color-mix(in srgb, var(--red) 45%, transparent); border-left-width: 3px; border-radius: var(--radius);
+    background: color-mix(in srgb, var(--red) 6%, var(--surface)); color: var(--text-2);
+    font-size: var(--fs-sm); line-height: 1.55;
+  }
+  .notice strong { color: var(--text); font-weight: 600; }
+  .notice:focus { outline: none; }
+  .notice:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .notice:target, .notice.is-on { display: block; }
+  .notice--info { display: block; margin: 0; border-color: var(--line-2); border-left-color: var(--cyan); background: var(--surface-2); }
+
+  /* Success state: replaces the form (JS adds .is-on; the no-JS redirect lands on #sent). */
+  .done { display: none; gap: var(--s-3); padding: var(--s-6) 0; }
+  .done:target, .done.is-on { display: grid; }
+  .done:target ~ .form, .done.is-on ~ .form, .done:target ~ .notice, .done.is-on ~ .notice { display: none; }
+  .tick { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: var(--primary-fg); }
+  .done h2 { font-size: var(--fs-2xl); line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; max-width: 26ch; }
+  .done h2:focus { outline: none; }
+  .done h2:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+  .done p { max-width: 52ch; color: var(--muted); font-size: var(--fs-md); line-height: 1.6; }
+
+  @media (max-width: 560px) {
+    .form { gap: var(--s-4); }
+    .row2 { grid-template-columns: 1fr; gap: var(--s-4); }
+    .foot { align-items: stretch; }
+    .submit { width: 100%; }
+  }
+</style>
+
+<script>
+  type TurnstileApi = { reset(target?: string | HTMLElement): void };
+  type ApiReply = { ok?: boolean; error?: string; fields?: string[] };
+
+  const root = document.querySelector<HTMLElement>('[data-cform]');
+  const form = root?.querySelector<HTMLFormElement>('form[data-contact]');
+
+  if (root && form) {
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const done = root.querySelector<HTMLElement>('[data-done]')!;
+    const notice = root.querySelector<HTMLElement>('[data-notice]')!;
+    const ts = form.querySelector<HTMLElement>('[data-ts]');
+    const sales = form.dataset.sales ?? '';
+    const turnstile = () => (window as unknown as { turnstile?: TurnstileApi }).turnstile;
+
+    // If the Turnstile script never arrives (blocked or offline), say so in the slot instead of
+    // leaving "Spam check loading…" up for ever.
+    if (ts) {
+      window.setTimeout(() => {
+        if (!turnstile() && !ts.firstElementChild) ts.dataset.tsState = 'blocked';
+      }, 12000);
+    }
+
+    const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+    const REQUIRED = ['name', 'email', 'company'] as const;
+    const EMPTY: Record<string, string> = {
+      name: 'Enter your full name.',
+      email: 'Enter your work email.',
+      company: 'Enter your company name.',
+    };
+    const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement | null;
+    const isRequired = (el: EventTarget | null): el is HTMLInputElement =>
+      el instanceof HTMLInputElement && (REQUIRED as readonly string[]).includes(el.name);
+
+    // ---- URL state (after a no-JS / fallback post) and ?topic= prefill --------------------
+    const params = new URLSearchParams(location.search);
+    const topic = params.get('topic');
+    const topicEl = field('topic');
+    if (topic && topicEl) topicEl.value = topic.slice(0, 40);
+    const landed = params.has('sent') ? done : params.has('error') ? notice : null;
+    if (landed) {
+      landed.classList.add('is-on');
+      (landed === done ? done.querySelector<HTMLElement>('h2') : notice)?.focus({ preventScroll: true });
+    }
+    if (params.has('sent') || params.has('error')) {
+      params.delete('sent');
+      params.delete('error');
+      const q = params.toString();
+      history.replaceState(history.state, '', location.pathname + (q ? `?${q}` : ''));
+    }
+
+    // ---- Validation -------------------------------------------------------------------------
+    const setStatus = (text: string, isErr = false) => {
+      status.textContent = text;
+      status.classList.toggle('is-err', isErr);
+    };
+    const setFieldError = (el: HTMLInputElement, msg: string) => {
+      const err = document.getElementById(`${el.id}-err`);
+      if (msg) el.setAttribute('aria-invalid', 'true');
+      else el.removeAttribute('aria-invalid');
+      if (err) err.textContent = msg;
+    };
+    const messageFor = (el: HTMLInputElement) => {
+      const v = el.value.trim();
+      if (!v) return EMPTY[el.name] ?? 'This field is required.';
+      if (el.name === 'email' && !EMAIL.test(v)) return 'Enter a valid email address, for example name@company.com.';
+      return '';
+    };
+    const validate = (el: HTMLInputElement) => {
+      const msg = messageFor(el);
+      setFieldError(el, msg);
+      return !msg;
+    };
+
+    let attempted = false;
+    // Clear an error as soon as the field becomes valid.
+    form.addEventListener('input', (e) => {
+      if (isRequired(e.target) && e.target.hasAttribute('aria-invalid')) validate(e.target);
+    });
+    // Validate on leaving a field once the user has typed in it, or after a first submit.
+    form.addEventListener('focusout', (e) => {
+      if (isRequired(e.target) && (attempted || e.target.value.trim() !== '')) validate(e.target);
+    });
+
+    // ---- Submit ------------------------------------------------------------------------------
+    let busy = false;
+    const setBusy = (on: boolean) => {
+      busy = on;
+      for (const [el, attr] of [[form, 'aria-busy'], [btn, 'aria-disabled']] as const) {
+        if (on) el.setAttribute(attr, 'true');
+        else el.removeAttribute(attr);
+      }
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (busy) return;
+      attempted = true;
+      notice.classList.remove('is-on');
+      setStatus('');
+
+      const invalid = REQUIRED.map(field).filter((el): el is HTMLInputElement => !!el && !validate(el));
+      if (invalid.length) {
+        setStatus(invalid.length === 1 ? 'Please correct the highlighted field.' : `Please correct the ${invalid.length} highlighted fields.`, true);
+        invalid[0].focus();
+        return;
+      }
+
+      const fd = new FormData(form);
+      const token = String(fd.get('cf-turnstile-response') ?? '');
+      if (!token) {
+        const state = ts?.dataset.tsState;
+        setStatus(
+          !turnstile() || state === 'error'
+            ? `The spam check could not load. Reload the page, or email ${sales}.`
+            : 'The spam check is still running. Wait a moment, then send again.',
+          true,
+        );
+        return;
+      }
+
+      const text = (k: string) => {
+        const v = fd.get(k);
+        return typeof v === 'string' ? v : '';
+      };
+      const body = {
+        name: text('name'), email: text('email'), company: text('company'), role: text('role'),
+        industry: text('industry'), interests: fd.getAll('interests').filter((v): v is string => typeof v === 'string'),
+        message: text('message'), topic: text('topic'), hp_url: text('hp_url'), token,
+      };
+
+      setBusy(true);
+      setStatus('Sending…');
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = (await res.json().catch(() => ({}))) as ApiReply;
+        if (!res.ok || !data.ok) {
+          for (const name of data.fields ?? []) {
+            const el = field(name);
+            if (el && isRequired(el)) setFieldError(el, messageFor(el) || 'Please check this field.');
+          }
+          throw new Error(data.error || `Something went wrong. Please try again, or email ${sales}.`);
+        }
+        setStatus('');
+        form.reset();
+        done.classList.add('is-on');
+        done.querySelector<HTMLElement>('h2')?.focus();
+      } catch (err) {
+        setStatus(err instanceof TypeError ? `Network error. Check your connection and try again, or email ${sales}.` : (err as Error).message, true);
+        form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+        // Turnstile tokens are single-use: get a fresh one for the next attempt.
+        if (ts) turnstile()?.reset(ts);
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+</script>

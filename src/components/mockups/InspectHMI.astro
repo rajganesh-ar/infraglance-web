@@ -1,0 +1,314 @@
+---
+/**
+ * Glance Inspect HMI: machined flanges index along a belt under the camera
+ * and are stamped pass / review / reject while the colour-difference and
+ * anomaly-score readouts update.
+ *
+ * Hero frame (server markup, no-JS, reduced motion): three flanges on the
+ * belt, the reject under the camera. The loop indexes all five parts once,
+ * so it ends exactly where it started; counters keep counting up.
+ */
+import MockWindow from './MockWindow.astro';
+
+const parts = [
+  { r: 'Review', c: 'warn', de: 2.1, s: 0.34, tint: true },
+  { r: 'Pass', c: 'ok', de: 0.6, s: 0.08 },
+  { r: 'Reject', c: 'bad', de: 0.9, s: 0.91, flaw: true },
+  { r: 'Pass', c: 'ok', de: 0.7, s: 0.11 },
+  { r: 'Pass', c: 'ok', de: 0.5, s: 0.06 },
+];
+/* Part i starts in slot i; slot CENTER is under the camera. */
+const CENTER = 2;
+const hero = parts[CENTER];
+const counts = { ins: 1209, rej: 10, rev: 15 };
+const fmt = (n: number) => n.toLocaleString('en-GB');
+const LIMIT = 1.5;
+const THR = 0.6;
+const arcOff = (de: number) => +(100 - Math.min(100, (de / 3) * 100)).toFixed(1);
+---
+<MockWindow app="Glance Inspect" context={['Line 4', 'Recipe FLG-220']} pillar="var(--inspect)" label="Animated inspection HMI: machined flanges index along a conveyor under the camera and are stamped pass, review or reject, while colour-difference and anomaly-score readouts update." class="hmi">
+  <div class="hw" data-hmi data-limit={LIMIT} data-thr={THR} data-center={CENTER}>
+    <div class="lane">
+      <div class="belt" data-belt></div>
+      <div class="glow" data-glow></div>
+      <div class={`cam is-${hero.c}`} data-cam><span class="ui-hud cam-t">Cam 2 · D65 ring</span></div>
+      {parts.map((p, i) => (
+        <div class={`part ${i >= CENTER ? 'is-on' : ''}`} style={`--k:${i - CENTER}`} data-part data-c={p.c} data-pde={p.de} data-ps={p.s}>
+          <div class={`fl ${p.tint ? 'is-tint' : ''}`}>
+            <div class="hub"><div class="bore"></div></div>
+            {p.flaw && <i class="flaw"></i>}
+          </div>
+          {p.flaw && <span class="ui-box is-bad defect"></span>}
+          <span class={`ui-pill mono stamp is-${p.c}`}>{p.r}</span>
+        </div>
+      ))}
+      <span class="ui-hud is-plain belt-hud">Belt 0.4 m/s</span>
+    </div>
+
+    <div class="side">
+      <div class={`ui-panel gauge ${hero.de > LIMIT ? 'is-warn' : ''}`} data-gauge>
+        <div class="ui-panel-h"><span class="ui-panel-t">Colour difference</span><span class="ui-meta">Limit {LIMIT}</span></div>
+        <div class="dial">
+          <svg viewBox="0 0 120 66" width="152" height="84" aria-hidden="true">
+            <path d="M8 62 A52 52 0 0 1 112 62" class="arc-t" />
+            <path data-arc d="M8 62 A52 52 0 0 1 112 62" class="arc" pathLength="100" stroke-dasharray="100" stroke-dashoffset={arcOff(hero.de)} />
+          </svg>
+          <div class="dial-v"><b class="ui-kpi-v" data-de-out>{hero.de.toFixed(1)}</b><span class="ui-label">ΔE2000</span></div>
+        </div>
+      </div>
+
+      <div class="ui-panel score">
+        <div class="s-h"><span class="ui-label">Anomaly score</span><b data-s-out>{hero.s.toFixed(2)}</b></div>
+        <div class={`ui-meter ${hero.s > THR ? 'is-bad' : 'is-ok'}`} data-meter>
+          <i data-sbar style={`--w:${Math.round(hero.s * 100)}%`}></i>
+          <span class="ui-meter-mark" style={`left:${THR * 100}%`}></span>
+        </div>
+        <span class="ui-meta">Threshold {THR.toFixed(2)}</span>
+      </div>
+
+      <div class="counts">
+        <div class="ui-panel"><span class="ui-label">Inspected</span><b data-cnt="ins">{fmt(counts.ins)}</b></div>
+        <div class="ui-panel"><span class="ui-label">Rejected</span><b class="is-bad" data-cnt="rej">{counts.rej}</b></div>
+        <div class="ui-panel"><span class="ui-label">Review</span><b class="is-warn" data-cnt="rev">{counts.rev}</b></div>
+      </div>
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .hw { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+
+  /* ── Lane: top-down view of the inspection station ─────────────────── */
+  .lane {
+    --pw: 88px;
+    --step: calc((100% + var(--pw)) / 4 + 12px);
+    position: relative;
+    min-height: 268px;
+    overflow: hidden;
+    border-right: 1px solid var(--ui-line-1);
+    background: linear-gradient(180deg, #0b0f14, #080b10 30%, #080b10 70%, #0b0f14);
+  }
+  /* Belt: 144 px between the rails, so a part (88 px) and its verdict stamp
+     below it (+48 to +68 px from the lane centre) both sit on the belt. */
+  .belt {
+    position: absolute; left: 0; right: 0; top: calc(50% - 72px); height: 144px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 64px),
+      linear-gradient(180deg, #1b222b, #141a21 14%, #12171d 50%, #141a21 86%, #1b222b);
+  }
+  /* Side guide rails (brushed steel). */
+  .belt::before, .belt::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 9px;
+    background: linear-gradient(180deg, #5c6774, #3a444f 35%, #252d36 70%, #161c23);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  }
+  .belt::before { top: -9px; }
+  .belt::after { bottom: -9px; transform: scaleY(-1); }
+
+  /* Ring-light pool on the belt under the camera. */
+  .glow {
+    position: absolute; left: calc(50% - 90px); top: calc(50% - 72px); width: 180px; height: 144px;
+    background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(210, 235, 255, 0.14), rgba(210, 235, 255, 0.05) 55%, transparent 75%);
+    opacity: 0.7; pointer-events: none;
+  }
+
+  /* Camera field of view: corner brackets, colour follows the last verdict. */
+  .cam {
+    --c: var(--ui-accent);
+    --l: 14px;
+    position: absolute; z-index: 3; left: calc(50% - 60px); top: calc(50% - 60px); width: 120px; height: 120px;
+    background:
+      linear-gradient(var(--c) 0 0) 0 0 / var(--l) 2px no-repeat, linear-gradient(var(--c) 0 0) 0 0 / 2px var(--l) no-repeat,
+      linear-gradient(var(--c) 0 0) 100% 0 / var(--l) 2px no-repeat, linear-gradient(var(--c) 0 0) 100% 0 / 2px var(--l) no-repeat,
+      linear-gradient(var(--c) 0 0) 0 100% / var(--l) 2px no-repeat, linear-gradient(var(--c) 0 0) 0 100% / 2px var(--l) no-repeat,
+      linear-gradient(var(--c) 0 0) 100% 100% / var(--l) 2px no-repeat, linear-gradient(var(--c) 0 0) 100% 100% / 2px var(--l) no-repeat;
+    pointer-events: none;
+  }
+  .cam.is-ok { --c: var(--ui-ok); }
+  .cam.is-warn { --c: var(--ui-warn); }
+  .cam.is-bad { --c: var(--ui-bad); }
+  .cam-t { left: 0; right: 0; top: -26px; margin-inline: auto; width: max-content; }
+  .belt-hud { z-index: 4; left: 8px; bottom: 8px; color: var(--ui-text-2); }
+
+  /* ── Part: rendered machined flange ─────────────────────────────────── */
+  .part {
+    position: absolute; z-index: 2;
+    top: calc(50% - var(--pw) / 2);
+    left: calc(50% - var(--pw) / 2 + var(--k) * var(--step));
+    width: var(--pw); height: var(--pw);
+  }
+  .fl {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 210deg, #7d8996, #d9e0e8 7%, #95a1ae 16%, #6a7683 27%, #b9c3cd 38%, #808c99 50%, #dde4eb 61%, #8e9aa7 72%, #677380 84%, #a7b1bc 93%, #7d8996);
+    box-shadow: 0 9px 14px -4px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(8, 11, 16, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 0 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  /* Four bolt holes on the pitch circle. */
+  .fl::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 15%, #070a0e 0 4px, #2a323c 4.5px, rgba(255, 255, 255, 0.5) 5.2px, transparent 6px),
+      radial-gradient(circle at 85% 50%, #070a0e 0 4px, #2a323c 4.5px, rgba(255, 255, 255, 0.5) 5.2px, transparent 6px),
+      radial-gradient(circle at 50% 85%, #070a0e 0 4px, #2a323c 4.5px, rgba(255, 255, 255, 0.5) 5.2px, transparent 6px),
+      radial-gradient(circle at 15% 50%, #070a0e 0 4px, #2a323c 4.5px, rgba(255, 255, 255, 0.5) 5.2px, transparent 6px);
+  }
+  /* Heat tint: the colour deviation the ΔE check catches. */
+  .fl.is-tint::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 64% 34%, rgba(214, 150, 72, 0.55), rgba(170, 110, 60, 0.25) 38%, transparent 62%);
+    mix-blend-mode: color;
+  }
+  .hub {
+    position: absolute; inset: 20px; border-radius: 50%;
+    background: conic-gradient(from 30deg, #8692a0, #e6ecf1 9%, #9aa6b2 21%, #6c7885 34%, #c4cdd6 47%, #84909d 59%, #e0e6ec 71%, #8995a2 83%, #707c89 93%, #8692a0);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  }
+  .bore {
+    position: absolute; inset: 11px; border-radius: 50%;
+    background: radial-gradient(circle, #030508 0 50%, #10161d 62%, #333d48 74%, #b4bec9 86%, #5a6571 100%);
+  }
+  /* Scratch: bright edge with a dark core, as it reads under a ring light. */
+  .flaw {
+    position: absolute; left: 13px; top: 27px; width: 24px; height: 2px; border-radius: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95) 18%, rgba(20, 24, 30, 0.9) 55%, rgba(255, 255, 255, 0.7) 80%, transparent);
+    transform: rotate(32deg);
+  }
+  .defect { left: 7px; top: 17px; width: 34px; height: 26px; opacity: 0; }
+  .stamp { position: absolute; top: calc(100% + 4px); left: 0; right: 0; margin-inline: auto; width: max-content; opacity: 0; }
+  /* Opaque base under the status tint, so the belt texture never shows through the text. */
+  .part .stamp.is-ok { background: linear-gradient(var(--ui-ok-bg), var(--ui-ok-bg)) var(--ui-bg-1); }
+  .part .stamp.is-warn { background: linear-gradient(var(--ui-warn-bg), var(--ui-warn-bg)) var(--ui-bg-1); }
+  .part .stamp.is-bad { background: linear-gradient(var(--ui-bad-bg), var(--ui-bad-bg)) var(--ui-bg-1); }
+  .part.is-on .stamp, .part.is-on .defect { opacity: 1; }
+
+  /* ── Side readouts ──────────────────────────────────────────────────── */
+  .side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; align-content: start; min-width: 0; }
+  .dial { position: relative; display: grid; justify-items: center; }
+  .dial svg { display: block; }
+  .arc-t { fill: none; stroke: var(--ui-bg-3); stroke-width: 8; }
+  .arc { fill: none; stroke: var(--ui-accent); stroke-width: 8; stroke-linecap: butt; transition: stroke var(--ui-t-fast); }
+  .gauge.is-warn .arc { stroke: var(--ui-warn); }
+  .dial-v { position: absolute; left: 0; right: 0; bottom: 0; display: grid; justify-items: center; }
+  .gauge.is-warn [data-de-out] { color: var(--ui-warn-text); }
+
+  .score { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .s-h { display: flex; align-items: baseline; justify-content: space-between; }
+  .s-h b { font: 600 var(--ui-fs-lg) / 20px var(--ui-font); }
+
+  .counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .counts .ui-panel { padding: 8px; }
+  .counts .ui-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .counts b { display: block; font: 600 var(--ui-fs-lg) / 20px var(--ui-font); }
+  .counts b.is-bad { color: var(--ui-bad-text); }
+  .counts b.is-warn { color: var(--ui-warn-text); }
+
+  /* Small split columns: give the readouts a little more of the width. */
+  @container ui (max-width: 680px) {
+    .hw { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  }
+  @container ui (max-width: 600px) {
+    .hw { grid-template-columns: minmax(0, 1fr); }
+    .lane { min-height: 232px; border-right: 0; border-bottom: 1px solid var(--ui-line-1); }
+  }
+</style>
+
+<script>
+  import { mockLoop, px } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-hmi]').forEach((root) => {
+    const lane = root.querySelector<HTMLElement>('.lane')!;
+    const belt = root.querySelector<HTMLElement>('[data-belt]')!;
+    const glow = root.querySelector<HTMLElement>('[data-glow]')!;
+    const cam = root.querySelector<HTMLElement>('[data-cam]')!;
+    const parts = [...root.querySelectorAll<HTMLElement>('[data-part]')];
+    const gauge = root.querySelector<HTMLElement>('[data-gauge]')!;
+    const arc = root.querySelector<SVGPathElement>('[data-arc]')!;
+    // Readouts carry their own attributes so they can never match a part.
+    const deEl = root.querySelector<HTMLElement>('[data-de-out]')!;
+    const sEl = root.querySelector<HTMLElement>('[data-s-out]')!;
+    const meter = root.querySelector<HTMLElement>('[data-meter]')!;
+    const sBar = root.querySelector<HTMLElement>('[data-sbar]')!;
+    const cnt = (k: string) => root.querySelector<HTMLElement>(`[data-cnt="${k}"]`)!;
+    const LIMIT = parseFloat(root.dataset.limit ?? '1.5') || 1.5;
+    const THR = parseFloat(root.dataset.thr ?? '0.6') || 0.6;
+    const CENTER = parseInt(root.dataset.center ?? '2', 10) || 0;
+    const N = parts.length;
+    const PW = 88;
+    const fmt = (n: number) => n.toLocaleString('en-GB');
+    const num = (el: HTMLElement) => parseInt((el.textContent ?? '').replace(/\D/g, ''), 10) || 0;
+    const W = () => lane.clientWidth;
+    const step = () => (W() + PW) / 4 + 12;
+    const slotX = (k: number) => W() / 2 - PW / 2 + (k - CENTER) * step();
+
+    mockLoop(root, (gsap, tl) => {
+      // Counters continue from the rendered values and never reset.
+      const counts = { ins: num(cnt('ins')), rej: num(cnt('rej')), rev: num(cnt('rev')) };
+      const o = { p: 0, de: parseFloat(deEl.textContent ?? '') || 0 };
+      let travelled = 0;
+      let last = 0;
+      const stamps = parts.map((p) => p.querySelector<HTMLElement>('.stamp')!);
+      const defects = parts.map((p) => p.querySelector<HTMLElement>('.defect'));
+
+      // Hand positioning over from CSS (left) to transforms at the same pixels.
+      const render = () => {
+        const dp = o.p - last;
+        if (dp > 0) travelled += dp;
+        last = o.p;
+        parts.forEach((el, i) => { el.style.transform = `translate3d(${px(slotX((i + o.p) % N))}px,0,0)`; });
+        belt.style.backgroundPositionX = `${px(travelled * step())}px`;
+      };
+      parts.forEach((el) => { el.style.left = '0px'; });
+      render();
+      tl.eventCallback('onUpdate', render);
+
+      // Even rhythm across the loop seam: each cycle is MOVE + DWELL, and the
+      // first move waits LEAD so the hero frame holds when it comes into view.
+      const MOVE = 0.9;
+      const DWELL = 1.1;
+      const LEAD = 0.6;
+      tl.to({}, { duration: 0 }, N * (MOVE + DWELL));
+      // Hero values for everything whose first tween is a fromTo (rewound at each repeat).
+      tl.set(glow, { opacity: 0.7 }, 0);
+      stamps.forEach((st, i) => tl.set(st, { opacity: i >= CENTER ? 1 : 0, y: 0 }, 0));
+      defects.forEach((d, i) => { if (d) tl.set(d, { opacity: i >= CENTER ? 1 : 0 }, 0); });
+      for (let k = 0; k < N; k++) {
+        const t0 = LEAD + k * (MOVE + DWELL);
+        const at = t0 + MOVE;
+        const i = (((CENTER - (k + 1)) % N) + N) % N; // arrives under the camera
+        const w = (((N - 1 - k) % N) + N) % N; // wraps from the right edge to the left
+        const el = parts[i];
+        const de = parseFloat(el.dataset.pde ?? '') || 0;
+        const s = parseFloat(el.dataset.ps ?? '') || 0;
+        const c = el.dataset.c ?? 'ok';
+        const hide = [stamps[w], defects[w]].filter(Boolean) as HTMLElement[];
+
+        tl.set(hide, { opacity: 0 }, t0)
+          .fromTo(o, { p: k }, { p: k + 1, duration: MOVE, ease: 'power2.inOut', immediateRender: false }, t0)
+          .fromTo(glow, { opacity: 1 }, { opacity: 0.7, duration: 0.5, ease: 'power2.out', immediateRender: false }, at)
+          .fromTo(stamps[i], { opacity: 0, y: -4 }, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, at + 0.1);
+        if (defects[i]) tl.fromTo(defects[i], { opacity: 0 }, { opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, at + 0.05);
+        tl.to(arc, { attr: { 'stroke-dashoffset': 100 - Math.min(100, (de / 3) * 100) }, duration: 0.5, ease: 'power2.out' }, at)
+          .to(o, { de, duration: 0.5, ease: 'power2.out', onUpdate: () => { deEl.textContent = o.de.toFixed(1); } }, at)
+          .to(sBar, { width: `${Math.round(s * 100)}%`, duration: 0.5, ease: 'power2.out' }, at)
+          .call(() => {
+            cam.classList.remove('is-ok', 'is-warn', 'is-bad');
+            cam.classList.add(`is-${c}`);
+            gauge.classList.toggle('is-warn', de > LIMIT);
+            meter.classList.toggle('is-bad', s > THR);
+            meter.classList.toggle('is-ok', s <= THR);
+            sEl.textContent = s.toFixed(2);
+            counts.ins++;
+            if (c === 'bad') counts.rej++;
+            if (c === 'warn') counts.rev++;
+            cnt('ins').textContent = fmt(counts.ins);
+            cnt('rej').textContent = String(counts.rej);
+            cnt('rev').textContent = String(counts.rev);
+          }, [], at);
+      }
+      // From here on GSAP owns stamp/defect opacity (same values as the hero markup).
+      parts.forEach((p) => p.classList.remove('is-on'));
+      stamps.forEach((st, i) => gsap.set(st, { opacity: (i >= CENTER ? 1 : 0) }));
+      defects.forEach((d, i) => { if (d) gsap.set(d, { opacity: (i >= CENTER ? 1 : 0) }); });
+    }, { repeatDelay: 0 });
+  });
+</script>

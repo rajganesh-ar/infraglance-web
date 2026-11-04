@@ -1,0 +1,283 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import Scene from '../../components/Scene.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import CameraFeed from '../../components/mockups/CameraFeed.astro';
+import PhoneAlert from '../../components/mockups/PhoneAlert.astro';
+import InspectHMI from '../../components/mockups/InspectHMI.astro';
+import FlowTimeline from '../../components/mockups/FlowTimeline.astro';
+import HubDashboard from '../../components/mockups/HubDashboard.astro';
+import InfraReport from '../../components/mockups/InfraReport.astro';
+import { pillars, type Pillar } from '../../data/pillars';
+import { productsByPillar } from '../../data/products';
+import { industries } from '../../data/industries';
+import { usecases } from '../../data/usecases';
+import { gridFor, nb, freshImage, mockImages, ctaPoolFor, nbDeep } from '../../data/helpers';
+import Status from '../../components/ui/Status.astro';
+import UseCaseCard from '../../components/cards/UseCaseCard.astro';
+import InsightCard from '../../components/cards/InsightCard.astro';
+import { getCollection } from 'astro:content';
+
+export function getStaticPaths() {
+  return pillars.map((p) => ({ params: { pillar: p.slug }, props: { p } }));
+}
+const { p } = Astro.props as { p: Pillar };
+const items = productsByPillar(p.slug);
+const inds = industries.filter((i) => i.pillars.includes(p.slug));
+const cases = usecases.filter((u) => u.pillar === p.slug);
+
+// Media the page already shows above the reading list: the hero clip, the app mockup and the use-case cards.
+const onPage = new Set<string>([p.video || p.photo, ...(mockImages[p.slug] ?? []), ...cases.map((c) => c.hero)]);
+
+// Hand-picked reading per pillar (by article id, in order of preference), padded to three with the latest
+// others. An article whose hero photo is already on the page is skipped, so no photo appears twice.
+const readMap: Record<string, string[]> = {
+  guard: ['helmet-in-frame-is-not-compliance', 'forklift-pedestrian-near-misses-leading-indicator', 'workplace-vision-ai-regulation-safety-not-surveillance', 'vision-ai-business-case-ehs-finance'],
+  inspect: ['colour-inspection-on-the-factory-floor', 'anomaly-detection-good-parts-only', 'vision-ai-business-case-ehs-finance'],
+  flow: ['conveyor-belt-monitoring-with-vision', 'edge-vs-cloud-industrial-video-analytics', 'vision-ai-business-case-ehs-finance'],
+  sense: ['digitising-analog-gauges-brownfield-plants', 'edge-vs-cloud-industrial-video-analytics', 'vision-ai-business-case-ehs-finance'],
+  infra: ['drone-bridge-inspection-crack-measurement', 'edge-vs-cloud-industrial-video-analytics', 'vision-ai-business-case-ehs-finance'],
+};
+const allPosts = (await getCollection('insights')).sort((a, b) => +b.data.date - +a.data.date);
+const picked = (readMap[p.slug] ?? []).map((id) => allPosts.find((x) => x.id === id)).filter((x): x is NonNullable<typeof x> => Boolean(x));
+const reads = [...picked, ...allPosts.filter((x) => !picked.includes(x))].filter((x) => !onPage.has(x.data.hero)).slice(0, 3);
+reads.forEach((r) => onPage.add(r.data.hero));
+
+const copy: Record<string, { eyebrow: string; title: string; text: string; cta: string }> = nbDeep({
+  guard: { eyebrow: 'From camera to action', title: 'Detected on the edge. Acknowledged on the floor.', text: 'A violation becomes one event with evidence. The point-of-work warning fires, the supervisor acknowledges it on their phone and the corrective action is tracked to closure.', cta: 'Let’s look at safety on your site.' },
+  inspect: { eyebrow: 'At the station', title: 'Pass, review or reject\u00a0— at line speed.', text: 'Each part is measured against the recipe for its SKU. Borderline parts go to an operator review queue, and every decision is stored with its image for traceability.', cta: 'Let’s look at quality on your line.' },
+  flow: { eyebrow: 'On the line', title: 'See where the minutes go.', text: 'Throughput, micro-stops and bottlenecks by station and shift — the losses that never make it into a manual OEE report.', cta: 'Let’s look at your conveyors and lines.' },
+  sense: { eyebrow: 'In the Hub', title: 'Every deviation, with the evidence.', text: 'Leaks, hot spots, gauge readings and housekeeping scores land in the same Hub as safety and quality events, linked to maintenance work orders.', cta: 'Let’s look at your plant’s condition.' },
+  infra: { eyebrow: 'In the report', title: 'A defect register you can compare year to year.', text: 'Every defect is geo-referenced, measured and compared with the previous survey, then reviewed and signed by a qualified engineer.', cta: 'Let’s look at your assets.' },
+});
+const mc = copy[p.slug];
+const ctaImage = freshImage([cases[0]?.gallery[1]?.img, ...ctaPoolFor(p.slug)], onPage);
+// Honest primary action: a pillar with nothing generally available yet offers early access, not a demo.
+const primary = items.some((it) => it.phase === 'Available')
+  ? { href: '/contact', label: 'Book a demo' }
+  : { href: `/contact?topic=early-access-${p.slug}`, label: 'Join early access' };
+// Industry segments as separate items, so a line never starts with a stray separator.
+const segs = (s: string) => s.split(' · ');
+---
+<BaseLayout title={`${p.name} — ${p.area}`} description={p.meta}>
+  <PageHero eyebrow={`${p.name} · ${p.area}`} title={p.headline} lead={nb(p.intro)} accent={p.color} image={p.photo} video={p.video} size="md" crumbs={[{ href: '/solutions', label: 'Solutions' }, { href: '/solutions/' + p.slug, label: p.name }]}>
+    <div class="btn-row"><a href={primary.href} class="btn btn--primary">{primary.label} <span class="arrow" aria-hidden="true">→</span></a><a href="#products" class="btn btn--ghost">See {items.length} products</a></div>
+  </PageHero>
+
+  <!-- 3D scene: light daylight scene in a mist band -->
+  <section class="scene-sec tone-mist" style={`--accent:${p.color}`}>
+    <Scene name={p.scene} note={false} caption={p.sceneCaption} accent={p.color} class="pillar-scene" />
+    <div class="container container--wide scene-head">
+      <span class="eyebrow">Illustrative 3D</span>
+      <span class="cap" aria-hidden="true">{p.sceneCaption}</span>
+      {p.slug === 'inspect' && (
+        <div class="modes" role="group" aria-label="Inspection view" data-modes hidden>
+          <button type="button" class="mode is-on" data-mode="defect" aria-pressed="true">Anomaly map</button>
+          <button type="button" class="mode" data-mode="color" aria-pressed="false">Colour ΔE map</button>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section tone-light" style={`--accent:${p.color}`}>
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">What the market misses</span>
+        <h2>The gaps we built {p.name.replace('Glance ', '')} to close.</h2>
+      </div>
+      <div class="gaps">
+        {p.gaps.map((g, i) => (
+          <div class="gap" data-reveal style={`--d:${i * 0.06}s`}>
+            <div class="g-prob"><span class="mono lbl">Today</span><p>{g.problem}</p></div>
+            <div class="g-arrow" aria-hidden="true">→</div>
+            <div class="g-fix"><span class="mono lbl accent">With {p.name.replace('Glance ', '')}</span><p>{g.fix}</p></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist" style={`--accent:${p.color}`}>
+    <div class:list={['container container--wide split', { 'split--duo': p.slug === 'guard' }]}>
+      <div class="stack" data-reveal>
+        <span class="eyebrow">{mc.eyebrow}</span>
+        <h2>{mc.title}</h2>
+        <p class="lead">{mc.text}</p>
+        <div class="caps">
+          <span class="mono caps-h">Capabilities</span>
+          <div class="chips">{p.capabilities.map((c) => <span class="chip">{c}</span>)}</div>
+        </div>
+      </div>
+      <div data-reveal class="mock-col" style="--d:0.1s">
+        {p.slug === 'guard' && <div class="duo"><CameraFeed /><PhoneAlert size="sm" /></div>}
+        {p.slug === 'inspect' && <InspectHMI />}
+        {p.slug === 'flow' && <FlowTimeline />}
+        {p.slug === 'sense' && <HubDashboard variant="sense" />}
+        {p.slug === 'infra' && <InfraReport />}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-light" id="products" style={`--accent:${p.color}`}>
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Products</span>
+          <h2>{p.name} products.</h2>
+        </div>
+        <a href="/products" class="btn btn--ghost">Full catalogue <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class={gridFor(items.length)}>
+        {items.map((it, i) => (
+          <a href={`/products/${it.slug}`} class="card" data-reveal style={`--d:${(i % 4) * 0.04}s`}>
+            <Status phase={it.phase} />
+            <h3>{it.name}</h3>
+            <p>{it.tagline}</p>
+            <span class="card-foot link-arrow">View product <span class="arrow" aria-hidden="true">→</span></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist" style={`--accent:${p.color}`}>
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Who it’s for</span>
+        <h2>Built with the people who own the outcome.</h2>
+        <ul class="check-list">{p.buyers.map((b) => <li>{b}</li>)}</ul>
+      </div>
+      <ul class="inds" role="list">
+        {inds.map((i, n) => (
+          <li data-reveal style={`--d:${n * 0.04}s`}>
+            <a href={`/industries/${i.slug}`} class="ind">
+              <span class="mono glyph">{i.glyph}</span>
+              <span class="ind-body">
+                <span class="ind-name">{i.name}</span>
+                <span class="segs">{segs(i.segments).map((s) => <span>{s}</span>)}</span>
+              </span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  {cases.length > 0 && (
+    <section class="section tone-light" style={`--accent:${p.color}`}>
+      <div class="container container--wide">
+        <div class="section-head section-head--row" data-reveal>
+          <div class="stack">
+            <span class="eyebrow">Use cases</span>
+            <h2>{p.name} in practice.</h2>
+          </div>
+          <a href="/use-cases" class="btn btn--ghost">All use cases <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="grid-bal">{cases.map((u, i) => <UseCaseCard u={u} delay={(i % 3) * 0.05} />)}</div>
+      </div>
+    </section>
+  )}
+
+  {reads.length > 0 && (
+    <section class="section tone-mist">
+      <div class="container container--wide">
+        <div class="section-head section-head--row" data-reveal>
+          <div class="stack">
+            <span class="eyebrow">Insights</span>
+            <h2>Read more from our engineers.</h2>
+          </div>
+          <a href="/insights" class="btn btn--ghost">All insights <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="grid-bal">{reads.map((x, i) => <InsightCard post={x} delay={i * 0.05} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <CTASection title={mc.cta} image={ctaImage} primary={primary} />
+</BaseLayout>
+
+<style>
+  .scene-sec { position: relative; border-block: 1px solid var(--line); background: var(--bg); }
+  .scene-sec :global(.pillar-scene) { height: min(60vh, 520px); }
+  .scene-head { position: absolute; inset: var(--s-5) 0 auto; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); pointer-events: none; }
+  .scene-head .cap { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--muted); }
+  .modes { pointer-events: auto; margin-left: auto; display: flex; gap: var(--s-1); padding: var(--s-1); border-radius: var(--radius-lg); background: rgba(255, 255, 255, 0.92); border: 1px solid var(--line-2); box-shadow: 0 4px 14px -6px rgba(8, 17, 29, 0.2); }
+  .modes[hidden] { display: none; }
+  .mode { display: inline-flex; align-items: center; height: 32px; padding: 0 var(--s-3); border-radius: var(--radius); font-size: var(--fs-sm); font-weight: 500; color: var(--text-2); transition: background 0.2s, color 0.2s; }
+  .mode:hover { color: var(--text); }
+  .mode.is-on { background: var(--cyan-dim); color: var(--cyan); }
+
+  .gaps { display: grid; gap: var(--s-3); }
+  .gap { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: stretch; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .gap > div { padding: var(--s-5) var(--s-6); }
+  .g-prob { background: var(--bg-2); }
+  .g-fix { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface)); }
+  .gap > .g-arrow { display: grid; place-items: center; padding: 0; color: var(--accent); background: var(--surface); border-inline: 1px solid var(--line); }
+  .lbl { display: block; font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin-bottom: var(--s-1); }
+  .g-prob p { color: var(--text-2); }
+  .g-fix p { color: var(--text); }
+
+  .caps { display: grid; gap: var(--s-2); margin-top: var(--s-2); }
+  .caps-h { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  /* Guard: the camera feed and the phone read as one pair — feed large, phone beside it,
+     both centred on the same axis. The feed's title bar carries the Demo data label for both. */
+  @media (min-width: 1025px) { .split--duo { grid-template-columns: minmax(0, 0.76fr) minmax(0, 1.24fr); column-gap: clamp(2rem, 1rem + 2.5vw, 3rem); } }
+  .duo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-4); }
+  .duo :global(.phone-wrap) { filter: drop-shadow(0 20px 36px rgb(8 17 29 / 0.22)); }
+  .duo :global(.phone-wrap .ui-demo) { display: none; }
+  /* Side by side, the phone is drawn slightly smaller so it stands about as tall as the feed beside it. */
+  @media (min-width: 1101px) { .duo :global(.phone-wrap) { zoom: 0.88; } }
+  @media (min-width: 1101px) and (max-width: 1359px) { .duo :global(.phone-wrap) { zoom: 0.84; } }
+
+  .card :global(.status) { align-self: flex-start; }
+  .glyph { font-size: var(--fs-micro); letter-spacing: 0.08em; color: var(--muted); }
+
+  /* Industries: one row per industry, the same on every pillar page whatever the count. */
+  .inds { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+  .ind { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: var(--s-4); padding: var(--s-4) var(--s-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); transition: border-color 0.2s, background-color 0.2s; }
+  .ind:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  .ind-body { display: grid; gap: 2px; min-width: 0; }
+  .ind-name { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600; line-height: 1.3; color: var(--text); }
+  /* The separator sits in the gap before each item and is clipped at the left edge, so no line starts or ends with '·'. */
+  .segs { --seg-gap: calc(var(--s-2) * 2 + 0.3em); display: flex; flex-wrap: wrap; column-gap: var(--seg-gap); overflow: hidden; font-size: var(--fs-sm); line-height: 1.55; color: var(--muted); }
+  .segs > span { position: relative; white-space: nowrap; }
+  .segs > span::before { content: '·'; content: '·' / ''; position: absolute; top: 0; right: 100%; width: var(--seg-gap); text-align: center; opacity: 0.6; }
+  .ind .arrow { color: var(--accent); transition: transform 0.2s; }
+  .ind:hover .arrow { transform: translateX(3px); }
+
+  @media (max-width: 1100px) {
+    .duo { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--s-6); }
+  }
+  @media (max-width: 760px) {
+    .gap { grid-template-columns: 1fr; }
+    .gap > .g-arrow { display: none; }
+    .scene-sec :global(.pillar-scene) { height: auto; aspect-ratio: 6 / 5; }
+    .scene-head .cap { display: none; }
+  }
+</style>
+
+<script>
+  import type { SceneApi } from '../../three/registry';
+
+  const group = document.querySelector<HTMLElement>('[data-modes]');
+  const modes = [...document.querySelectorAll<HTMLButtonElement>('[data-mode]')];
+  const sceneEl = document.querySelector<HTMLElement & { sceneApi?: SceneApi }>('[data-scene="defect-part"]');
+
+  if (group && sceneEl && modes.length) {
+    let mode = 'defect';
+    const apply = () => sceneEl.sceneApi?.setMode?.(mode);
+    // The toggle only means something once the 3D view is running; static posters keep it hidden.
+    const reveal = () => { group.hidden = false; apply(); };
+    if (sceneEl.sceneApi) reveal();
+    sceneEl.addEventListener('scene:ready', reveal);
+    modes.forEach((b) =>
+      b.addEventListener('click', () => {
+        mode = b.dataset.mode || 'defect';
+        modes.forEach((m) => { m.classList.toggle('is-on', m === b); m.setAttribute('aria-pressed', String(m === b)); });
+        apply();
+      }),
+    );
+  }
+</script>

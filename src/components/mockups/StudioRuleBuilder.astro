@@ -1,0 +1,154 @@
+---
+/**
+ * Glance Studio rule builder: a walkway zone on a camera frame, required PPE
+ * and a deployment to three edge boxes.
+ *
+ * Hero frame (server markup): zone drawn, PPE selected, rule live on all
+ * three boxes. The loop edits the zone (the old outline stays as a ghost while
+ * the cursor re-places each vertex) and redeploys, ending on the hero frame.
+ */
+import MockWindow from './MockWindow.astro';
+import Picture from '../media/Picture.astro';
+import Icon from './ui/Icon.astro';
+
+/* Walkway along Line 16, measured on the factory-hall-wide frame (3:2), % of frame.
+   The near edge follows the white floor line, so every vertex (and its 8 px
+   handle) stays clear of the frame edge at any canvas size. */
+const pts: [number, number][] = [[25.5, 65.5], [73.5, 88], [70, 93], [26, 74.5]];
+const vb = (p: [number, number]) => [+(p[0] * 1.5).toFixed(2), p[1]];
+const edges = pts.map((p, i) => [vb(p), vb(pts[(i + 1) % pts.length])]);
+const poly = pts.map((p) => vb(p).join(',')).join(' ');
+const ppe = ['Helmet', 'Safety glasses', 'Hi-vis', 'Safety shoes', 'Ear protection'];
+const ON = 4;
+---
+<MockWindow app="Glance Studio" context={['Rules', 'CAM-04 · Line 16']} label="Animated Glance Studio: a zone polygon along a production-line walkway is edited on a camera frame, PPE requirements are shown, and the rule is redeployed to three edge boxes with a progress bar." class="studio">
+  <div class="st" data-studio>
+    <div class="ui-media canvas">
+      <div class="ui-cover">
+        <div class="ui-cover-frame frame" data-frame>
+          <Picture img="factory-hall-wide" decorative position="50% 50%" sizes="(min-width: 1024px) 560px, 100vw" />
+          <svg viewBox="0 0 150 100" preserveAspectRatio="none" aria-hidden="true">
+            <polygon class="ghost" data-ghost points={poly} />
+            <polygon class="fill" data-fill points={poly} />
+            {edges.map(([a, b]) => <line class="edge" data-edge x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} data-x2={b[0]} data-y2={b[1]} />)}
+          </svg>
+          {pts.map(([x, y]) => <span class="pt" data-pt style={`left:${x}%;top:${y}%`}></span>)}
+          <span class="ui-hud is-info zname" data-zname style={`left:${pts[0][0]}%;top:${pts[0][1]}%`}>Zone · Line 16 walkway</span>
+          <span class="cursor" data-cursor style="left:92%;top:20%"><Icon name="cursor" size={16} /></span>
+        </div>
+        <span class="ui-hud cam">CAM-04 · Frame 14:05:12</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="field"><span class="ui-label">Rule</span><b>PPE required in zone</b></div>
+      <div class="field">
+        <span class="ui-label">Required PPE</span>
+        <div class="chips">
+          {ppe.map((c, i) => <span class={`ui-chip ${i < ON ? 'is-on' : ''}`}><Icon name="check" size={12} />{c}</span>)}
+        </div>
+      </div>
+      <div class="field"><span class="ui-label">Active when</span><span class="val">Line 16 running <span class="ui-pill mono tag">L16.RUN</span></span></div>
+      <div class="field"><span class="ui-label">Alert after</span><span class="val">3 s persistence · Nudge + Teams</span></div>
+      <div class="deploy is-done" data-deploy>
+        <div class="d-row">
+          <span class="d-state"><span class="ui-dot is-ok"></span><span data-dstate>Live on EDGE-01, 02, 03</span></span>
+          <b data-dpct>100%</b>
+        </div>
+        <div class="ui-meter is-ok" data-dmeter><i data-dbar style="--w:100%"></i></div>
+      </div>
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .st { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+
+  .canvas { min-height: 300px; border-right: 1px solid var(--ui-line-1); }
+  .frame { --ar: 1.5; --fx: 0.5; }
+  .ghost { fill: none; stroke: var(--ui-text-1); stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; opacity: 0; }
+  .fill { fill: rgba(34, 211, 238, 0.14); }
+  .edge { stroke: var(--ui-accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+  .pt { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--ui-bg-0); border: 2px solid var(--ui-accent); }
+  .zname { margin-top: -28px; }
+  .cursor { position: absolute; margin: -2px 0 0 -3px; opacity: 0; color: var(--ui-text-1); filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)); }
+  .cam { left: 8px; bottom: 8px; }
+
+  .panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; align-content: start; min-width: 0; }
+  .field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .field b { font-weight: 500; color: var(--ui-text-1); }
+  .val { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--ui-text-2); }
+  .tag { color: var(--ui-text-2); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .deploy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 4px; padding: 10px 12px 12px; border-radius: var(--ui-r); border: 1px solid var(--ui-line-2); background: var(--ui-bg-2); transition: border-color var(--ui-t-fast); }
+  .deploy.is-done { border-color: var(--ui-ok-line); }
+  .d-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .d-state { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--ui-text-1); }
+  .d-state span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .d-state .ui-dot { display: none; }
+  .deploy.is-done .d-state .ui-dot { display: inline-block; }
+  .deploy.is-done [data-dstate] { color: var(--ui-ok-text); }
+
+  @container ui (max-width: 560px) {
+    .st { grid-template-columns: minmax(0, 1fr); }
+    .canvas { min-height: 0; aspect-ratio: 3 / 2; border-right: 0; border-bottom: 1px solid var(--ui-line-1); }
+  }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-studio]').forEach((root) => {
+    const ptsEls = [...root.querySelectorAll<HTMLElement>('[data-pt]')];
+    const edges = [...root.querySelectorAll<SVGLineElement>('[data-edge]')];
+    const ghost = root.querySelector<SVGPolygonElement>('[data-ghost]')!;
+    const fill = root.querySelector<SVGPolygonElement>('[data-fill]')!;
+    const zname = root.querySelector<HTMLElement>('[data-zname]')!;
+    const cursor = root.querySelector<HTMLElement>('[data-cursor]')!;
+    const deploy = root.querySelector<HTMLElement>('[data-deploy]')!;
+    const meter = root.querySelector<HTMLElement>('[data-dmeter]')!;
+    const bar = root.querySelector<HTMLElement>('[data-dbar]')!;
+    const state = root.querySelector<HTMLElement>('[data-dstate]')!;
+    const pct = root.querySelector<HTMLElement>('[data-dpct]')!;
+    const DONE = state.textContent ?? '';
+    const FULL = pct.textContent ?? '';
+
+    mockLoop(root, (_gsap, tl) => {
+      const o = { p: 0 };
+      // 0–1.6 s hero holds. Edit: the zone drops to a ghost outline and the
+      // cursor re-places each vertex over it.
+      tl.to(cursor, { opacity: 1, duration: 0.2, ease: 'power2.out' }, 1.6)
+        .to(ghost, { opacity: 0.55, duration: 0.2, ease: 'power2.out' }, 1.6)
+        .to([fill, zname], { opacity: 0.25, duration: 0.2, ease: 'power2.out' }, 1.6)
+        .to(ptsEls, { opacity: 0.35, duration: 0.2, ease: 'power2.out' }, 1.6)
+        .call(() => {
+          deploy.classList.remove('is-done');
+          meter.classList.remove('is-ok');
+          state.textContent = 'Draft · not deployed';
+          pct.textContent = '';
+        }, [], 1.7);
+      edges.forEach((e) => tl.set(e, { opacity: 0, attr: { x2: e.getAttribute('x1') ?? '0', y2: e.getAttribute('y1') ?? '0' } }, 1.8));
+      tl.set(bar, { width: '0%' }, 1.8);
+
+      ptsEls.forEach((p, i) => {
+        const at = 1.9 + i * 0.55;
+        tl.to(cursor, { left: p.style.left, top: p.style.top, duration: 0.45, ease: 'power2.inOut' }, at)
+          .to(p, { opacity: 1, duration: 0.15, ease: 'power2.out' }, at + 0.45);
+        // The edge leaving this point follows the cursor to the next point.
+        const e = edges[i];
+        tl.set(e, { opacity: 1 }, at + 0.45)
+          .to(e, { attr: { x2: e.dataset.x2 ?? '0', y2: e.dataset.y2 ?? '0' }, duration: 0.45, ease: 'power2.inOut' }, at + 0.55);
+      });
+      tl.to([fill, zname], { opacity: 1, duration: 0.25, ease: 'power2.out' }, 4.3)
+        .to(ghost, { opacity: 0, duration: 0.2, ease: 'power2.in' }, 4.3)
+        .to(cursor, { opacity: 0, duration: 0.2, ease: 'power2.in' }, 4.5)
+        .to(cursor, { left: '92%', top: '20%', duration: 0 }, 4.8)
+        .call(() => { state.textContent = 'Deploying to 3 edge boxes…'; pct.textContent = '0%'; }, [], 4.8)
+        .to(bar, { width: '100%', duration: 1.6, ease: 'power1.inOut' }, 4.8)
+        .fromTo(o, { p: 0 }, { p: 100, duration: 1.6, ease: 'power1.inOut', immediateRender: false, onUpdate: () => { pct.textContent = `${Math.round(o.p)}%`; } }, 4.8)
+        .call(() => { deploy.classList.add('is-done'); meter.classList.add('is-ok'); state.textContent = DONE; pct.textContent = FULL; }, [], 6.5)
+        .to({}, { duration: 0.4 }, 6.6);
+    });
+  });
+</script>

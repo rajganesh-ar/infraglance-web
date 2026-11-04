@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import { nb, nbDeep } from '../data/helpers';
+import Picture from '../components/media/Picture.astro';
+import MethodTimeline from '../components/sections/MethodTimeline.astro';
+import CTASection from '../components/sections/CTASection.astro';
+
+const levels = nbDeep([
+  { k: 'Configure', t: 'Days', d: 'New rules, zones, PPE matrices and recipes on existing models, set up in Glance Studio.', price: 'Included or small fee' },
+  { k: 'Extend', t: '2–4 weeks', d: 'Existing models fine-tuned to your gear, uniforms, parts, lighting and camera angles.', price: 'Fixed fee' },
+  { k: 'Build', t: '6–12 weeks', d: 'A new model and pipeline for a use case nobody ships yet — validated on your data.', price: 'Milestone payments' },
+  { k: 'Integrate & deploy', t: 'Varies', d: 'MES, ERP, SCADA, EHS and VMS integrations; on-prem and air-gapped installs; hazardous-area enclosures.', price: 'Project fee + annual support' },
+]);
+const ideas = [
+  { s: 'Cleanrooms & hygiene', d: 'Gowning checks at cleanroom entry and hand-wash verification at hygiene stations.' },
+  { s: 'Pharma fill-finish', d: 'Particles and cosmetic defects in vials and syringes, under purpose-built lighting.' },
+  { s: 'Steel & foundries', d: 'Ladle tracking, and molten-metal splash and spark detection around pouring.' },
+  { s: 'Glass & optics', d: 'Inclusions, bubbles and coating defects on transparent and reflective parts.' },
+  { s: 'Cold chain', d: 'Pallets left outside the cold zone, with dwell-time alerts for temperature-sensitive goods.' },
+  { s: 'Recycling & sorting', d: 'Material-stream composition and contamination on sorting belts.' },
+  { s: 'Wind energy', d: 'Blade surface inspection from drone imagery: leading-edge erosion, cracks and lightning damage.' },
+  { s: 'Telecom towers', d: 'Climbing-safety compliance from helmet-camera footage.' },
+];
+const imaging = ['Area-scan and line-scan cameras', '3D laser profiling & stereo', 'Radiometric thermal', 'Multispectral & hyperspectral', 'Telecentric optics for measurement', 'Dome, coaxial, back- and structured lighting', 'Drone and vehicle capture', 'ATEX / IECEx enclosures via partners'];
+---
+<BaseLayout title="Custom engineering" description="Infraglance Engineering builds custom vision AI — models, imaging and integrations — on the Glance Platform, from paid feasibility study to production.">
+  <PageHero eyebrow="Infraglance Engineering" title="When <span style='white-space:nowrap'>off-the-shelf</span> <span class='gradient-text'>isn’t enough.</span>" lead={nb("A senior team of computer-vision, imaging, edge and automation engineers. We build what your problem needs — on the same platform as our products, so it is supported, monitored and improved for years.")} image="cnc-parts" size="md" crumbs={[{ href: '/engineering', label: 'Custom engineering' }]}>
+    <div class="btn-row"><a href="/contact?topic=feasibility" class="btn btn--primary">Start a feasibility study <span class="arrow" aria-hidden="true">→</span></a><a href="#method" class="btn btn--ghost">How a project runs</a></div>
+  </PageHero>
+
+  <section class="section section--tight tone-light">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Four levels of custom work</span>
+        <h2>From a new rule to a new product.</h2>
+      </div>
+      <div class="grid grid-4">
+        {levels.map((l, i) => (
+          <div class="card lvl" data-reveal style={`--d:${i * 0.06}s`}>
+            <div class="lvl-top"><span class="mono n">L{i + 1}</span><span class="mono t">{l.t}</span></div>
+            <h3>{l.k}</h3>
+            <p>{l.d}</p>
+            <span class="card-foot mono price">{l.price}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist" id="method">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">The Glance Method</span>
+        <h2>Six phases. Measured at every step.</h2>
+        <p class="lead">Every engagement starts with a paid feasibility study on your own footage or samples, so you know expected accuracy and value before committing to a build.</p>
+      </div>
+      <MethodTimeline />
+    </div>
+  </section>
+
+  <section class="section tone-light">
+    <div class="container container--wide split imaging">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Imaging &amp; hardware</span>
+        <h2>Light first, then models.</h2>
+        <p class="lead">Most inspection problems are solved by light, not models. Our imaging engineers choose the camera, optics and lighting that make defects visible in the first place&nbsp;— then the AI makes the decision.</p>
+        <div class="chips">{imaging.map((x) => <span class="chip">{x}</span>)}</div>
+      </div>
+      <figure class="shot" data-reveal style="--d:0.1s">
+        <Picture img="quality-inspector" alt="Hands measuring a metal part with a digital caliper" sizes="(min-width: 1024px) 50vw, 100vw" />
+      </figure>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Ideas we build</span>
+        <h2>Custom solutions by industry.</h2>
+        <p class="lead">Problems no catalogue product covers yet&nbsp;— each one starts with a feasibility study on your data.</p>
+      </div>
+      <div class="grid grid-4">
+        {ideas.map((x, i) => <div class="card" data-reveal style={`--d:${(i % 4) * 0.04}s`}><h3>{x.s}</h3><p>{x.d}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-light">
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">Fair terms</span>
+        <h2>Clear ownership. No lock-in surprises.</h2>
+      </div>
+      <ul class="check-list" data-reveal style="--d:0.1s">
+        <li>You own your footage, images and data. Always.</li>
+        <li>Infraglance owns the platform and models, so they stay supported and improved.</li>
+        <li>General model improvements return to the product only with your consent.</li>
+        <li>Optional 12-month exclusivity for features built only for you.</li>
+        <li>Every model ships with a validation report and agreed accuracy limits.</li>
+      </ul>
+    </div>
+  </section>
+
+  <CTASection image="robot-cell" title="Tell us what you need to see." primary={{ href: '/contact?topic=feasibility', label: 'Start a feasibility study' }} />
+</BaseLayout>
+
+<style>
+  .lvl { gap: var(--s-3); }
+  .lvl-top { display: flex; justify-content: space-between; align-items: center; }
+  .lvl .n { color: var(--cyan); font-size: var(--fs-xs); }
+  .lvl .t { font-size: var(--fs-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .lvl .price { font-size: var(--fs-xs); color: var(--text-2); border-top: 1px solid var(--line); padding-top: var(--s-3); }
+  .imaging { align-items: center; }
+  .imaging .chips { margin-top: var(--s-2); }
+  .shot { margin: 0; }
+  .shot :global(.pic) { aspect-ratio: 3 / 2; border-radius: var(--radius); }
+</style>

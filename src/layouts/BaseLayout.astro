@@ -1,0 +1,103 @@
+---
+import '@fontsource-variable/ibm-plex-sans';
+import '@fontsource-variable/ibm-plex-sans/wght-italic.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource/ibm-plex-mono/600.css';
+import plexLatin from '@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2?url';
+import '../styles/global.css';
+import Header from '../components/nav/Header.astro';
+import Footer from '../components/nav/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  jsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+  /**
+   * Header colour scheme. 'auto' (default) follows the section under the header:
+   * transparent over a dark hero, solid light over light sections. Force 'light' or
+   * 'dark' for pages whose first section is unusual.
+   */
+  headerTone?: 'auto' | 'light' | 'dark';
+}
+const { title, description = site.description, image = '/og/default.png', jsonLd = [], noindex = false, headerTone = 'auto' } = Astro.props;
+const fullTitle = title === site.name ? `${site.name} — ${site.tagline}` : `${title} | ${site.name}`;
+// Internal links are slash-less (/platform), so canonical/og URLs are too (root stays '/').
+const canonical = new URL(Astro.url.pathname.replace(/(.)\/+$/, '$1'), Astro.site ?? site.url).href;
+const ogImage = new URL(image, Astro.site ?? site.url).href;
+
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  url: site.url,
+  logo: `${site.url}/favicon.svg`,
+  email: site.email,
+  description: site.description,
+  sameAs: [site.linkedin],
+};
+const cfBeacon = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
+---
+<!doctype html>
+<html lang="en-GB" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#05070b" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={plexLatin} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={JSON.stringify([org, ...jsonLd])} />
+    <script is:inline>
+      document.documentElement.classList.remove('no-js');
+      // If the motion module never runs (blocked, stale chunk, error), show the content anyway.
+      setTimeout(function () { if (!window.__igMotion) document.documentElement.classList.add('reveal-fallback'); }, 2500);
+    </script>
+  </head>
+  <body data-header-tone={headerTone}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <script is:inline>
+      // Set the header scheme before first paint, from the first section's tone (Header's script keeps it in sync on scroll).
+      (function () {
+        var h = document.querySelector('[data-header]');
+        if (!h) return;
+        var t = document.body.getAttribute('data-header-tone');
+        if (t !== 'light' && t !== 'dark') {
+          var f = document.querySelector('#main > :not(script, style, template, link, noscript)');
+          t = f && f.matches('.tone-light, .tone-mist') ? 'light' : 'dark';
+        }
+        h.setAttribute('data-tone', t);
+        h.classList.toggle('tone-light', t === 'light');
+      })();
+    </script>
+    <Footer />
+
+    <script>
+      import { initMotion } from '../lib/motion';
+      initMotion();
+    </script>
+    {cfBeacon && (
+      <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: cfBeacon })}></script>
+    )}
+  </body>
+</html>

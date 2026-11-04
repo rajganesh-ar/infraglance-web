@@ -1,0 +1,34 @@
+# Dependencies and build output
+node_modules/
+dist/
+.astro/
+
+# Cloudflare local state (includes the local D1 database with test leads)
+.wrangler/
+
+# Secrets and local environment. .dev.vars.example / .env.example are templates and are committed.
+.dev.vars*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+
+# Raw stock media and 3D sources: large, and the stock licences do not allow redistributing the
+# collection. Back this folder up separately; the build only needs public/ and src/data/.
+assets/raw/
+
+# Scratch scripts
+scripts/_*_tmp.mjs
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editors, tools, OS
+.claude/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

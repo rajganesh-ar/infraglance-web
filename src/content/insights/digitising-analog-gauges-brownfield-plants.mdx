@@ -1,0 +1,111 @@
+---
+title: "Digitising analog gauges in brownfield plants, and when not to"
+seoTitle: "Digitising analog gauges in brownfield plants"
+description: "Cameras can read the dial gauges operators pass on rounds. How gauge reading works, how accurate it can be, and when to fit a real transmitter instead."
+date: 2026-10-27
+category: Operations
+hero: chemical-plant-night
+heroAlt: "Chemical process plant lit up at night"
+tags: [Gauge reading, Brownfield, Digitalisation, Condition monitoring]
+---
+
+Walk through any plant that is more than twenty years old and you will pass hundreds of local gauges: pressure dials, temperature dials, sight glasses, rotameters and mechanical counters. Almost none of them are connected to anything.
+
+They are read on operator rounds, perhaps once a shift, and written on a clipboard or tapped into a handheld. Between rounds, nobody knows what they say.
+
+Replacing them with transmitters usually means new tappings, cable runs, hot-work permits and a shutdown window. Reading them with a camera needs none of that. It is a good answer for many gauges and the wrong answer for some. This article covers how to tell the difference.
+
+## How a camera reads a dial
+
+A gauge-reading pipeline does six things:
+
+1. **Localise the gauge.** Find the gauge face in the frame, which may be a wide view of a pipe rack with a dozen gauges in it.
+2. **Rectify the view.** A round dial seen at an angle appears as an ellipse. Fit the ellipse and warp the image to a front-on view.
+3. **Find the scale.** Locate the minimum and maximum ticks and the arc between them. At setup, read the printed numbers and units once to confirm the range.
+4. **Find the needle.** Segment the pointer and fit a line through the pivot. Do not confuse it with its shadow or with a drag pointer that marks the maximum.
+5. **Convert angle to value** using the calibration for that gauge.
+6. **Filter and flag.** Combine several frames, reject frames that are occluded or washed out by glare, and attach a quality flag to every reading.
+
+The last step is the one most often skipped. A reading without a quality flag invites people to trust a number taken through a reflection.
+
+<Figure img="pressure-gauge" alt="Analog pressure gauge with bar and psi scales on process pipework" caption="A dual-scale dial on process pipework. Even when one camera sees several gauges, each one needs its own calibration." />
+
+## Calibration and the accuracy budget
+
+**Calibrate every gauge separately.** At minimum, record the needle angle at two known values, usually the ends of the scale. Several points across the scale are better. Non-linear scales need a lookup table. Examples include square-root flow scales and compound gauges with different graduations either side of zero.
+
+**Pixels set a limit on the reading.** At the needle tip, one pixel corresponds to roughly 57.3 ÷ *r* degrees, where *r* is the needle length in image pixels. Here is what that means on a 0–10 bar gauge with a 270° scale:
+
+| Needle length in the image | One pixel at the tip | Equivalent on a 0–10 bar, 270° dial |
+|---|---|---|
+| 15 px | ≈ 3.8° | ≈ 0.14 bar |
+| 50 px | ≈ 1.1° | ≈ 0.04 bar |
+| 100 px | ≈ 0.6° | ≈ 0.02 bar |
+
+These are rough single-pixel figures. Fitting a line along the whole needle does better than this, and glare and parallax do worse. The lesson is that a gauge which is only a handful of pixels across in a wide CCTV view will not give a useful number.
+
+**The camera cannot beat the gauge.** Bourdon-tube gauges are made to accuracy classes defined in [EN 837-1](https://knowledge.bsigroup.com/products/pressure-gauges-bourdon-tube-pressure-gauges-dimensions-metrology-requirements-and-testing). Each class is expressed as a percentage of span. A class 1.6 gauge on a 0–10 bar range is specified only to within ±0.16 bar. A perfect camera reading of that gauge is still only as good as the gauge. The camera also reads what the dial *shows*, which may be wrong if the gauge is out of calibration, damaged or stuck.
+
+**Parallax is real.** The needle sits slightly above the dial face, so a view from the side moves its apparent position. Keep the viewing angle modest, or correct for the offset during calibration.
+
+**Validate against something independent.** Over a few weeks, compare camera readings with careful manual readings or a temporary reference transmitter. Report the bias and the spread for each gauge.
+
+## Practical problems on the floor
+
+Most reading errors come from the environment, not the model:
+
+- **Glare** from the gauge glass or nearby lights. A polarising filter or a small change in camera position often fixes it.
+- **Condensation, dirty glass and discoloured fill** in liquid-filled gauges.
+- **Vibration,** which makes the needle flutter. Average over several frames, or report minimum and maximum instead of a single value.
+- **Night lighting.** Infrared illumination can wash out the reflections on glass.
+- **PTZ repeatability.** A pan-tilt-zoom camera returning to a preset is never exactly where it was, so the gauge must be localised again on every visit.
+- **People and equipment** blocking the view.
+
+<Figure img="steam-valve" alt="Steam drifting around pipework and ducts in a steel plant" caption="Steam, condensation and glare cause more misreadings than the model does, which is why every reading carries a quality flag." />
+
+## How often do you need a reading?
+
+Match the reading interval to the purpose and to how fast the process moves:
+
+| Purpose | Reading approach |
+|---|---|
+| Replace the manual rounds log | A reading every few minutes is already far denser than one per shift |
+| Maintenance trends, such as a filter's pressure drop rising over weeks | Minutes to hours is plenty |
+| Alert on an excursion | A fixed camera reading every few seconds. The alert is still advisory |
+| Fast transients, such as surges or pump trips | Not suitable for a camera. Use a transmitter |
+
+A PTZ camera can tour many gauges in sequence, but every gauge added to the tour stretches the time between readings. Where a gauge cluster needs frequent readings, a small fixed camera close to the cluster is usually better than one long PTZ tour.
+
+Send readings to the historian with a timestamp and a quality flag (good, uncertain or bad), as a field transmitter would. When a reading fails, mark it bad. Never silently repeat the last good value.
+
+<Callout title="Camera readings are monitoring data, not instrumentation" tone="warn">
+
+A value read from a camera image is not designed, assessed or certified as part of a safety instrumented system or a control loop. Never use it to trip, interlock or control a process. Use it to see, trend and prioritise.
+
+</Callout>
+
+## When to install a real sensor instead
+
+Camera reading is the right tool when a gauge is useful to watch, the process is slow, and a transmitter would be disruptive to install. Fit a transmitter instead when:
+
+- **The measurement is part of a safety function,** such as a trip, an interlock or a permissive.
+- **It feeds closed-loop control.**
+- **It is used for custody transfer, billing or regulatory reporting** that requires a certified instrument.
+- **The process changes faster** than a camera can sensibly sample.
+- **You need accuracy tighter** than the gauge's class or the camera's pixel budget can give.
+- **A tapping and cable route already exist nearby,** so a transmitter is cheaper than the camera installation.
+- **The area is hazardous,** and a camera would need a certified enclosure anyway. Compare the full cost of both options.
+
+The two approaches also work well in sequence. Use cameras across a wide area for a few months to find out which points actually matter: the ones that move, wander towards their limits, or line up with past failures. Then put those points first in the queue for transmitters at the next shutdown.
+
+## What to ask before you buy
+
+- **How large must each gauge be in the image** for the accuracy we need, and does our camera layout achieve that?
+- **How is each gauge calibrated,** and how are non-linear scales handled?
+- **What bias and spread were measured** against independent readings, gauge by gauge?
+- **How are glare, occlusion and PTZ drift detected,** and what quality flag do they produce?
+- **How often will each gauge be read** in the proposed camera layout?
+- **How do readings reach our historian or SCADA,** and how are bad readings marked?
+- **Which of our points would you advise us *not* to read with a camera?**
+
+[Sense Gauge](/products/sense-gauge) reads dial gauges, sight glasses and digital meters from existing or added cameras. It handles localisation, needle-angle estimation and calibration for each gauge, and sends readings to the historian. See the [analog gauge reading use case](/use-cases/analog-gauge-reading), or [send us a few photos of your gauges](/contact) and we will tell you which ones a camera can read reliably.

@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { compliance } from '../../data/site';
+import { nb } from '../../data/helpers';
+
+const practices = [
+  { k: 'Edge-first data flow', d: 'Video is processed on site. Only events, short evidence clips and metadata leave the site by default; retention is configurable per customer.' },
+  { k: 'Privacy by design', d: 'Faces blurred on the edge device. No facial recognition or identification unless contractually required and lawfully based.' },
+  { k: 'Encryption', d: 'TLS 1.2+ in transit between edge and Hub; encryption at rest for event stores and evidence.' },
+  { k: 'Access control', d: 'Single sign-on (SAML / OIDC), role-based access, least privilege and audit logs of every evidence view and export.' },
+  { k: 'OT network safety', d: 'Read-only connections to PLC/SCADA by default, deployed in a segmented zone per the customer’s OT architecture.' },
+  { k: 'Secure development', d: 'Code review, dependency scanning, signed edge updates with staged rollout and automatic rollback.' },
+];
+const statusClass = (s: string) => (s === 'In progress' ? 'prog' : s === 'Built into the platform' ? 'ok' : '');
+---
+<BaseLayout title="Security & compliance" description="How Infraglance protects video, data and industrial networks, and our certification roadmap.">
+  <PageHero eyebrow="Trust · Security" title="Built for sites where <span class='gradient-text'>security is safety.</span>" lead={nb("Our security practices and our certification roadmap — published openly. We show certifications as achieved only once they are.")} image="cctv-industrial" crumbs={[{ href: '/trust/security', label: 'Security & compliance' }]} />
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Practices</span>
+        <h2>How we protect video, data and OT networks.</h2>
+      </div>
+      <div class="grid grid-3">
+        {practices.map((p, i) => <div class="card" data-reveal style={`--d:${(i % 3) * 0.05}s`}><h3>{p.k}</h3><p>{p.d}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Roadmap</span>
+        <h2>Certification &amp; compliance roadmap</h2>
+        <p class="lead">Status as of today. Nothing below is shown as certified until an accredited body has issued the certificate.</p>
+      </div>
+      <div class="table-wrap" data-reveal>
+        <table class="data comp">
+          <thead><tr><th scope="col">Area</th><th scope="col">Standard</th><th scope="col">Status</th></tr></thead>
+          <tbody>{compliance.map((c) => <tr><td>{c.area}</td><td><b>{c.standard}</b></td><td><span class={`st ${statusClass(c.status)}`}>{c.status}</span></td></tr>)}</tbody>
+        </table>
+      </div>
+      <p class="muted note">Need our security questionnaire, data processing agreement or architecture documentation? <a href="/contact?topic=security">Request the security pack</a>.</p>
+    </div>
+  </section>
+
+  <CTASection image="substation" title="Questions from your security team?" lead="We’ll walk your IT and OT security teams through the architecture, data flows and our certification roadmap." primary={{ href: '/contact?topic=security', label: 'Request the security pack' }} secondary={{ href: '/trust/ai-ethics', label: 'AI ethics charter' }} />
+</BaseLayout>
+
+<style>
+  .st { display: inline-flex; align-items: center; height: 22px; padding: 0 var(--s-2); border-radius: var(--radius); border: 1px solid var(--line-2); font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.02em; color: var(--text-2); white-space: nowrap; }
+  .st.prog { color: var(--cyan); border-color: color-mix(in srgb, var(--cyan) 40%, transparent); background: color-mix(in srgb, var(--cyan) 8%, transparent); }
+  .st.ok { color: var(--green); border-color: color-mix(in srgb, var(--green) 40%, transparent); background: color-mix(in srgb, var(--green) 8%, transparent); }
+  .note { margin-top: var(--s-4); font-size: var(--fs-sm); }
+
+  /* Phones: one block per standard (standard, area, status) instead of a sideways-scrolling table. */
+  @media (max-width: 640px) {
+    .comp { min-width: 0; }
+    .comp thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .comp tr { display: grid; gap: var(--s-1); padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .comp tr:last-child { border-bottom: 0; }
+    .comp td { padding: 0; border: 0; }
+    .comp td:nth-child(2) { order: -1; color: var(--text); }
+    .comp td:nth-child(3) { margin-top: var(--s-1); }
+  }
+  .note a { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
+  .note a:hover { color: var(--text); }
+</style>

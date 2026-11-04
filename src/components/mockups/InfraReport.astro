@@ -1,0 +1,184 @@
+---
+/**
+ * Glance Infra inspection report: a traced, measured crack on a pier photo,
+ * the defect register and the engineer sign-off.
+ *
+ * Measurement figures follow the site's own crack-measurement article and the
+ * photo itself: the close-up capture is 0.1 mm/px (zoom payload), so the
+ * frame is 300 × 200 mm, the fern in the crack is about 11 cm, and the widest
+ * part of the crack (measured on the photo, ~35 px across) is 3.5 mm, far
+ * above the ≥ 3 px needed to measure. Every width carries an uncertainty, and
+ * change is only reported when it exceeds the combined uncertainty of the two
+ * surveys (otherwise "no measurable change").
+ *
+ * Hero frame (server markup): traced, measured, registered and signed. The
+ * loop re-runs the measurement over the existing result and re-signs it.
+ */
+import MockWindow from './MockWindow.astro';
+import Picture from '../media/Picture.astro';
+import Icon from './ui/Icon.astro';
+
+const GSD = 0.1; // mm per pixel on the 3000 px close-up frame
+const rows = [
+  { id: 'D-014', type: 'Crack', loc: 'Pier P2 · south face', size: '3.5 mm × 1.8 m', sev: 'bad', chg: '+0.4 mm vs 2025', cc: 'bad' },
+  { id: 'D-015', type: 'Vegetation', loc: 'Pier P2 · in D-014', size: '11 × 11 cm', sev: 'warn', chg: 'New', cc: 'warn' },
+  { id: 'D-016', type: 'Spalling', loc: 'Deck soffit · bay 6', size: '0.31 m²', sev: 'warn', chg: 'New', cc: 'warn' },
+  { id: 'D-017', type: 'Crack', loc: 'Pier P1 · east face', size: '0.35 mm × 0.6 m', sev: 'ok', chg: 'No measurable change', cc: 'ok' },
+];
+
+/* Crack traced on the concrete-crack photo (3:2), points in % of the frame.
+   The overlay uses a 150 × 100 viewBox so it scales uniformly with the photo. */
+const crack = [
+  [41.6, 0], [42.4, 1.7], [44.7, 4], [45.8, 6.7], [46.4, 10], [46.2, 13.3], [46.7, 16], [48, 17.7], [48.7, 20],
+  [48.9, 24], [48.4, 28], [48.2, 32], [48.7, 37.3], [49.1, 41.3], [50.2, 44], [51.1, 46.7], [51.5, 50.7], [52, 53.3],
+  [54.5, 55.5], [57.5, 58], [60, 61.5], [62.2, 63.8], [64.4, 66.5], [66.7, 68.7], [68.9, 69.5], [71.1, 68.7],
+  [73.3, 68.2], [75.6, 66.7], [77.8, 67.2], [80, 68.2], [84.4, 68.7], [88.9, 68.5], [91.1, 67.3], [93.3, 65.3],
+  [95.6, 62.3], [97.8, 60.8], [100, 60],
+];
+const d = 'M' + crack.map(([x, y]) => `${+(x * 1.5).toFixed(2)},${y}`).join(' L');
+const veg = { x: 20, y: 31, w: 35, h: 55 }; // D-015, % of frame (≈ 105 × 110 mm at 0.1 mm/px)
+/* Width gauge across the crack where it was measured (x 74 %, edges 67.3–69.0 % of the frame height,
+   ~35 px on the 3000 px frame), inside the part of the frame every crop keeps in view. */
+const gauge = { x: 74 * 1.5, y1: 67.3, y2: 69.0 };
+/* Scale bar: 50 mm at 0.1 mm/px on a 3000 px frame = 500 px = 16.7 % of the frame width. */
+const BAR_MM = 50;
+const barFrac = +(BAR_MM / GSD / 3000).toFixed(4);
+---
+<MockWindow app="Glance Infra" context={['Bridge B-112', 'Survey 2026-10']} pillar="var(--infra)" label="Infrastructure inspection report: a crack on a concrete pier photo is traced and measured with its uncertainty, vegetation in the crack is flagged, the defect register is filled in and the report is reviewed and signed by a qualified engineer." class="infra-rep">
+  <div class="rep" data-infrarep>
+    <div class="ui-media img">
+      <div class="ui-cover">
+        <div class="ui-cover-frame frame">
+          <Picture img="concrete-crack" decorative position="50% 50%" sizes="(min-width: 1024px) 560px, 100vw" />
+          <svg viewBox="0 0 150 100" preserveAspectRatio="none" aria-hidden="true">
+            <rect class="veg" data-veg x={veg.x * 1.5} y={veg.y} width={veg.w * 1.5} height={veg.h} />
+            <path class="trace-u" d={d} />
+            <path class="trace" data-trace d={d} pathLength="100" stroke-dasharray="100" stroke-dashoffset="0" />
+            <g class="gauge" data-meas>
+              <line x1={gauge.x} y1={gauge.y1 - 3} x2={gauge.x} y2={gauge.y1} />
+              <line x1={gauge.x} y1={gauge.y2} x2={gauge.x} y2={gauge.y2 + 3} />
+              <line x1={gauge.x - 1.6} y1={gauge.y1} x2={gauge.x + 1.6} y2={gauge.y1} />
+              <line x1={gauge.x - 1.6} y1={gauge.y2} x2={gauge.x + 1.6} y2={gauge.y2} />
+            </g>
+          </svg>
+          <span class="ui-hud is-warn veg-t" data-veg-t style={`left:${veg.x}%;top:${veg.y}%`}>D-015</span>
+        </div>
+        {/* In pane coordinates, anchored right, so it can never run off the photo whatever the crop. */}
+        <span class="ui-hud is-bad is-plain meas" data-meas><span class="meas-id">D-014</span><span>w 3.5 ± 0.2 mm</span></span>
+        <span class="scale" style={`--bar:${barFrac}`}><i></i><span class="ui-hud is-plain">{BAR_MM} mm</span></span>
+        <span class="ui-hud is-plain cap">Drone-02 · zoom · {GSD} mm/px · 21 Oct 10:14</span>
+      </div>
+    </div>
+
+    <div class="reg">
+      <div class="r-head">
+        <span class="ui-panel-t">Defect register</span>
+        <span class="ui-id" data-cnt>4 defects</span>
+      </div>
+      <table class="ui-table">
+        <thead><tr><th>ID</th><th>Defect</th><th class="r">Size</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr data-row>
+              <td class="id"><span class={`ui-dot is-${r.sev}`}></span><span class="ui-id">{r.id}</span></td>
+              <td class="def"><b>{r.type}</b><small>{r.loc}</small></td>
+              <td class="r"><span class="nw">{r.size}</span><small class={`chg is-${r.cc}`}>{r.chg}</small></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div class="sign is-done" data-sign>
+        <span class="seal"><Icon name="check" size={14} /></span>
+        <div><b data-sign-t>Reviewed &amp; signed</b><small>Chartered structural engineer · demo report</small></div>
+      </div>
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .rep { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+
+  .img { min-height: 260px; border-right: 1px solid var(--ui-line-1); }
+  .frame { --ar: 1.5; --fx: 0.47; }
+  .veg { fill: rgba(245, 158, 11, 0.08); stroke: var(--ui-warn); stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+  .trace-u { fill: none; stroke: rgba(8, 11, 16, 0.45); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
+  .trace { fill: none; stroke: var(--ui-bad); stroke-width: 0.7; stroke-linejoin: round; stroke-linecap: round; }
+  .veg-t { margin-top: -22px; }
+  .gauge line { stroke: var(--ui-text-1); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: square; }
+  /* Above the measured point of the crack, which the gauge marks. Two lines
+     keep it narrow enough to clear the D-015 box at every crop. Its bottom
+     sits at 52 % of the frame height, just above where the crack turns right:
+     the frame is centred vertically and is max(pane height, pane width / 1.5)
+     tall, so that point is 50cqh − 0.02 × frame height from the pane bottom. */
+  .meas { right: 8px; bottom: calc(50cqh - max(2cqh, 1.3333cqw)); flex-direction: column; align-items: flex-start; gap: 0; }
+  .meas-id { color: var(--ui-bad-text); letter-spacing: 0.04em; }
+  .scale { position: absolute; top: 8px; right: 8px; display: grid; justify-items: end; gap: 2px; }
+  .scale i { display: block; width: calc(max(100cqw, 150cqh) * var(--bar)); height: 6px; border: 2px solid var(--ui-text-1); border-top: 0; }
+  .scale .ui-hud { position: static; }
+  .cap { left: 8px; bottom: 8px; }
+
+  .reg { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; align-content: start; min-width: 0; }
+  .r-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .r-head .ui-id { color: var(--ui-text-3); }
+  .id { white-space: nowrap; }
+  .id .ui-dot { margin-right: 6px; vertical-align: 1px; }
+  .nw { white-space: nowrap; }
+  .ui-table { table-layout: fixed; }
+  .ui-table th:nth-child(1) { width: 64px; }
+  .ui-table th:nth-child(3) { width: 124px; }
+  /* A long location wraps to a second line rather than being cut off. */
+  .def small { text-wrap: pretty; }
+  .ui-table .r { text-align: right; }
+  .ui-table td.r .nw { display: block; }
+  .ui-table tr { transition: background-color var(--ui-t-fast); }
+  .ui-table tr.is-hl { background: var(--ui-bg-3); }
+  .chg.is-bad { color: var(--ui-bad-text); }
+  .chg.is-warn { color: var(--ui-warn-text); }
+  .chg.is-ok { color: var(--ui-text-3); }
+
+  .sign { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--ui-r); border: 1px solid var(--ui-line-2); background: var(--ui-bg-2); transition: border-color var(--ui-t-fast), background-color var(--ui-t-fast); }
+  .sign.is-done { border-color: var(--ui-ok-line); background: var(--ui-ok-bg); }
+  .seal { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px dashed var(--ui-line-3); color: transparent; transition: background-color var(--ui-t-fast), color var(--ui-t-fast); }
+  .sign.is-done .seal { border: 0; background: var(--ui-ok); color: var(--ui-on-ok); }
+  .sign b { display: block; font-size: var(--ui-fs-sm); line-height: 16px; }
+  .sign small { display: block; color: var(--ui-text-3); }
+
+  /* Stack before the photo pane turns portrait: below ~640 px the pane is too
+     narrow to keep the vegetation tag, the gauge and the capture line in view. */
+  @container ui (max-width: 640px) {
+    .rep { grid-template-columns: minmax(0, 1fr); }
+    .img { min-height: 0; aspect-ratio: 16 / 9; border-right: 0; border-bottom: 1px solid var(--ui-line-1); }
+  }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-infrarep]').forEach((root) => {
+    const rows = [...root.querySelectorAll<HTMLElement>('[data-row]')];
+    const trace = root.querySelector<SVGPathElement>('[data-trace]')!;
+    const meas = [...root.querySelectorAll<Element>('[data-meas]')];
+    const veg = [root.querySelector('[data-veg]')!, root.querySelector('[data-veg-t]')!];
+    const sign = root.querySelector<HTMLElement>('[data-sign]')!;
+    const signT = root.querySelector<HTMLElement>('[data-sign-t]')!;
+    const SIGNED = signT.textContent ?? '';
+
+    mockLoop(root, (_gsap, tl) => {
+      // 0–1.6 s hero holds. Re-run: the result dims, the crack is re-traced,
+      // the measurement and the register rows update, then sign-off.
+      tl.to([...meas, ...veg], { opacity: 0.2, duration: 0.2, ease: 'power2.in' }, 1.6)
+        .to(trace, { opacity: 0.3, duration: 0.2, ease: 'power2.in' }, 1.6)
+        .call(() => { sign.classList.remove('is-done'); signT.textContent = 'Awaiting engineer review'; }, [], 1.7)
+        .set(trace, { opacity: 1, attr: { 'stroke-dashoffset': 100 } }, 1.85)
+        .to(trace, { attr: { 'stroke-dashoffset': 0 }, duration: 1.4, ease: 'power1.inOut' }, 1.85)
+        .to(meas, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 3.3)
+        .call(() => rows[0]?.classList.add('is-hl'), [], 3.3)
+        .call(() => rows[0]?.classList.remove('is-hl'), [], 4.1)
+        .to(veg, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 3.8)
+        .call(() => rows[1]?.classList.add('is-hl'), [], 3.8)
+        .call(() => rows[1]?.classList.remove('is-hl'), [], 4.6)
+        .call(() => { sign.classList.add('is-done'); signT.textContent = SIGNED; }, [], 5.2)
+        .to({}, { duration: 0.4 }, 5.4);
+    });
+  });
+</script>

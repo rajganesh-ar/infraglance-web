@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import { nb, nbDeep } from '../data/helpers';
+import InspectHMI from '../components/mockups/InspectHMI.astro';
+import CTASection from '../components/sections/CTASection.astro';
+
+const stations = nbDeep([
+  { k: 'Live conveyor', d: 'A running conveyor with Inspect Defect and Inspect Colour on an Inspect Station kit — bring your own parts.', c: 'var(--inspect)' },
+  { k: 'Safety zone', d: 'A marked danger zone with Guard PPE+ and Guard Zone, point-of-work warnings and the mobile app.', c: 'var(--guard)' },
+  { k: 'Flow & machine data', d: 'Flow Line fused with a PLC, so you can see jams and micro-stops detected from video plus signals.', c: 'var(--flow)' },
+  { k: 'Hub control room', d: 'Glance Hub, Glance Ask and the accuracy report card on the big screen.', c: 'var(--cyan)' },
+]);
+const visit = nbDeep([
+  { t: 'Arrive with samples', d: 'A box of good and bad parts, or a few minutes of footage from your site.' },
+  { t: 'Recipe on your parts', d: 'We set up an inspection recipe or a safety zone on your own examples.' },
+  { t: 'Live results', d: 'Watch pass, review and reject decisions — and the evidence behind each one.' },
+  { t: 'Written summary', d: 'A short note afterwards: what worked, what didn’t and what a feasibility study would test.' },
+]);
+---
+<BaseLayout title="Experience Lab" description="See Infraglance running live: a conveyor with inspection, a safety zone, line-flow analytics and the Glance Hub control room.">
+  <PageHero eyebrow="Experience Lab" title="See it running. <span class='gradient-text'>Bring your parts.</span>" lead={nb("Our demo lab runs the platform end-to-end on real hardware. Bring samples or footage and watch your use case evaluated in front of you — or join a live remote demo.")} image="plastic-molding" crumbs={[{ href: '/experience-lab', label: 'Experience Lab' }]}>
+    <div class="btn-row"><a href="/contact?topic=lab-visit" class="btn btn--primary">Book a lab visit <span class="arrow" aria-hidden="true">→</span></a><a href="/contact?topic=remote-demo" class="btn btn--ghost">Book a remote demo</a></div>
+  </PageHero>
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">The stations</span>
+        <h2>Four stations, one platform.</h2>
+      </div>
+      <div class="grid grid-4">
+        {stations.map((s, i) => (
+          <div class="card" data-reveal style={`--accent:${s.c}; --d:${i * 0.06}s`}>
+            <span class="badge"><span class="dot"></span>Station 0{i + 1}</span>
+            <h3>{s.k}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide split split--rev visit">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">A visit</span>
+        <h2>About two hours, on your own parts.</h2>
+        <ol class="steps" role="list">
+          {visit.map((v, i) => <li><span class="mono">0{i + 1}</span><div><b>{v.t}</b><p>{v.d}</p></div></li>)}
+        </ol>
+      </div>
+      <div data-reveal style="--d:0.1s"><InspectHMI /></div>
+    </div>
+  </section>
+
+  <CTASection
+    image="tiles-production"
+    title="Bring a box of good and bad parts."
+    lead="We’ll set up a recipe on your samples, show live results and send a short summary afterwards."
+    primary={{ href: '/contact?topic=lab-visit', label: 'Book a lab visit' }}
+    secondary={{ href: '/contact?topic=remote-demo', label: 'Book a remote demo' }}
+  />
+</BaseLayout>
+
+<style>
+  .card .badge { align-self: flex-start; }
+  .visit { align-items: center; }
+  .steps { display: grid; gap: var(--s-2); margin: var(--s-2) 0 0; padding: 0; }
+  .steps li { display: grid; grid-template-columns: 32px 1fr; gap: var(--s-3); padding: var(--s-4) var(--s-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .steps .mono { color: var(--cyan); font-size: var(--fs-xs); padding-top: 3px; }
+  .steps b { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; }
+  .steps p { color: var(--muted); font-size: var(--fs-sm); margin-top: 2px; }
+</style>

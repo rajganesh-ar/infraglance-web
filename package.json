@@ -1,0 +1,47 @@
+{
+  "name": "infraglance-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro build && wrangler dev",
+    "check": "astro check",
+    "ci": "astro check && astro build",
+    "deploy": "astro build && wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply infraglance-leads --local",
+    "db:migrate:remote": "wrangler d1 migrations apply infraglance-leads --remote",
+    "db:leads": "wrangler d1 execute infraglance-leads --remote --command \"SELECT id, created_at, company, email, interests FROM leads ORDER BY id DESC LIMIT 20\"",
+    "media": "node scripts/media.mjs",
+    "people": "node scripts/people.mjs"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/mdx": "^4.3.14",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/ibm-plex-sans": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "astro": "^5.18.2",
+    "gsap": "^3.15.0",
+    "n8ao": "^2.0.1",
+    "postprocessing": "^6.39.6",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@cloudflare/workers-types": "^5.20261029.1",
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "@types/three": "^0.186.0",
+    "fbx2gltf": "^0.9.7-p1",
+    "meshoptimizer": "^1.1.1",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.155.0"
+  }
+}

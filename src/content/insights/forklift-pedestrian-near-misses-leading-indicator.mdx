@@ -1,0 +1,110 @@
+---
+title: "Forklift–pedestrian safety: why near-misses are the number to watch"
+seoTitle: "Forklift safety: watch the near-misses"
+description: "Collisions are rare; near-misses are not. How ground-plane calibration, time-to-collision and heatmaps make CCTV a leading indicator for vehicle safety."
+date: 2026-09-10
+category: Safety
+hero: forklift-aisle
+heroAlt: "Forklift truck in a warehouse aisle between tall pallet racking"
+tags: [Forklift safety, Near-miss, Leading indicators, Workplace transport]
+---
+
+Most sites learn about their forklift risk from incident reports. That is the slowest and most painful way to learn it.
+
+Workplace transport is not a minor hazard. In Great Britain, being struck by a moving vehicle was the second most common kind of fatal accident to workers in 2025/26, after falls from height, according to [HSE's provisional statistics](https://www.hse.gov.uk/statistics/fatals-overview.htm). That figure covers all vehicles, not just lift trucks, but the pattern will be familiar to anyone who runs a warehouse.
+
+A single site may go years without a collision. Meanwhile, forklifts and pedestrians pass close to each other many times a day, and almost none of those encounters is ever recorded. People do not report near-misses that they think nobody saw, or that they worry will be blamed on them. A camera that counts them consistently gives you the number that comes before the injury.
+
+<Callout title="Vision does not replace segregation" tone="warn">
+
+[HSE's guidance](https://www.hse.gov.uk/workplacetransport/separating.htm) is clear that separate pedestrian and vehicle routes are the most effective control. Vision AI measures how well your separation works and warns people where physical separation is not possible. It does not replace barriers, one-way systems or speed limits.
+
+</Callout>
+
+## Define a near-miss before you count one
+
+"Too close" is not a definition. If the rule is vague, you will get either thousands of meaningless events or a number nobody trusts. An objective near-miss needs all of these:
+
+- A vehicle and a person who are both **tracked** and positioned on the floor plan
+- The two are **closing**: their predicted paths converge
+- The predicted **time-to-collision** falls below a threshold, or the predicted separation at the closest point falls below a minimum distance
+- **One encounter produces one event,** with a start time, duration, minimum separation and evidence clip
+
+Severity tiers help people act on the data. For example, a site might classify encounters with predicted separation under 1 m as *critical* and those under 2 m as *serious*. These are illustrative thresholds. Agree yours with your EHS team, and make sure you can re-run historical footage when you change them.
+
+## Ground-plane calibration: pixels are not metres
+
+Nothing in that definition works until the system can turn image positions into floor positions. That is what ground-plane calibration does.
+
+**Map the floor.** Mark at least four points with known positions in each camera view, using floor tape, survey points or the building's CAD drawing. The system then computes a homography: a transform from image pixels to floor coordinates. More points give a better fit, and a good system reports the leftover error for each zone.
+
+**Expect error to grow with distance.** Near the camera, one pixel may be a centimetre of floor. At the far end of a long aisle, seen at a shallow angle, one pixel can be tens of centimetres. Measure the accuracy across each view, and do not calculate time-to-collision where the calibration cannot support it.
+
+**Find the feet.** A person's position on the floor is where their feet touch it. The bottom of a bounding box is a rough proxy, and it fails when racking or pallets hide the legs. Body keypoints and track history give a much better estimate.
+
+**Model the vehicle as a footprint, not a point.** A forklift's danger zone includes the forks, the load and the counterweight's swing when it turns. It also changes direction, because these trucks spend much of their time reversing. Represent the truck as an oriented rectangle extended by the forks and load.
+
+**Watch for broken assumptions.** A flat-floor model fails on ramps, dock levellers and mezzanines. Those areas need their own calibration or should be left out of the calculation.
+
+<Figure img="floor-markings" alt="Warehouse floor with yellow safety markings around a reach-truck bay" caption="Floor markings make good calibration points, and they define the zones the near-miss rules use." />
+
+## Time-to-collision, not just distance
+
+Distance alone produces bad alerts. A forklift parked next to someone picking an order is close, but it is not a near-miss. A truck approaching a blind intersection at speed while a pedestrian walks towards the same corner may be 6 m away and in real danger.
+
+Time-to-collision (TTC) captures that difference. It is the separation divided by the closing speed, calculated along the predicted paths. Take a forklift and a pedestrian heading for the same point with a combined closing speed of 3.7 m/s and 6 m apart. They are about 1.6 seconds from contact. Now take two who are 1.5 m apart and moving in the same direction. Their closing speed is close to zero, so there is no collision course, although a pedestrian-only aisle rule might still apply.
+
+Two engineering details matter:
+
+- **Speed from tracks is noisy.** Velocity is estimated from positions over several frames and needs smoothing. Without it, TTC jumps around and creates false events.
+- **Paths are not straight lines.** At intersections, vehicles turn. Predicting the closest point of approach along plausible paths is more reliable than extending the current heading.
+
+## Heatmaps: where, when and why
+
+A single near-miss is an anecdote. A month of them on a floor plan shows you where to act.
+
+Aggregate the events by intersection, aisle, shift, hour of day and direction of travel, and patterns appear quickly. These patterns, and their usual fixes, are standard traffic-management practice:
+
+| Pattern in the data | Likely cause | Typical engineering response |
+|---|---|---|
+| Cluster at the end of a racking run | Blind corner | Mirror, warning beacon, setback for the pedestrian crossing |
+| Spike at shift change near a door | Pedestrians crossing a vehicle route to reach facilities | Move the crossing, time-based segregation, a barrier |
+| Encounters along a vehicle-only aisle | Shortcut through the aisle | Physical barrier, a better pedestrian route |
+| High closing speeds on one route | Speeding on a long straight | Speed limit zone, speed alerts, layout change |
+| Events at dock doors during loading | Drivers and pickers sharing the dock apron | Defined waiting areas, a loading sequence |
+
+Then measure again. If you use the same calibrated definition before and after a layout change, you can see whether the change worked. That loop of measure, change and re-measure is what makes near-misses a *leading* indicator rather than another dashboard.
+
+Report by zone and shift, not by named person. The aim is to fix the environment. It also keeps the workforce on side, and you need them if the system is going to be trusted.
+
+## Point-of-work warnings vs dashboards
+
+A dashboard tells the EHS manager tomorrow. A warning tells the driver and the pedestrian now. You need both, for different purposes.
+
+**Warnings must be selective.** A beacon that flashes every time a forklift passes is ignored within a week. Trigger it only when a vehicle and a person are *both* approaching a conflict point. The detection has to run on site, because a warning that arrives after the encounter is useless.
+
+**Warnings are advisory.** Slowing a vehicle or interlocking a door automatically is a safety function. It needs your safety engineering team's sign-off, not a software setting.
+
+Fixed cameras are not the only way to give warnings, and the alternatives have different strengths:
+
+| Approach | Strengths | Limits |
+|---|---|---|
+| Fixed cameras with vision AI | Sees everyone, including visitors without tags. Measures near-misses site-wide. Often reuses existing CCTV | Only covers camera views. Occlusion and lighting matter. Not a certified safety function |
+| Wearable tags with units on vehicles | Works around corners and through racking. Warns the driver in the cab | Only protects people wearing a charged tag. Can cause nuisance alarms in tight areas |
+| Cameras or radar mounted on vehicles | Moves with the truck. Covers reversing | Cost for every vehicle. Limited to that truck's view. No site-wide picture |
+
+These approaches can be combined. Fixed vision gives you the site-wide measurement that the other two cannot.
+
+<Figure img="v-warehouse-forklift" alt="Operator in hi-vis and harness on an order picker in a warehouse racking aisle" caption="Dashboards are for deciding what to change. Warnings at the point of work are for the encounter happening now." />
+
+## What to ask before you buy
+
+- **How is the floor calibrated,** and what is the measured position error in each zone?
+- **How is a near-miss defined?** Can we change the thresholds and re-run past footage?
+- **How are the forklift's footprint, forks and load modelled,** including when it reverses?
+- **What is the end-to-end latency** from detection to beacon?
+- **How are repeated detections of one encounter de-duplicated?**
+- **Are reports by zone and shift, or by person?** Can individuals be identified, and who decides?
+- **How is accuracy proven on our own footage,** including precision and recall for near-miss events?
+
+[Guard Traffic](/products/guard-traffic) is in early access. It measures vehicle–pedestrian proximity, time-to-collision and near-miss hot spots using your existing cameras, and it can drive Glance Nudge warning beacons. See the [forklift–pedestrian safety use case](/use-cases/forklift-pedestrian-safety), or [talk to us](/contact) about calibrating your floor.

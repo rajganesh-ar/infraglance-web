@@ -1,0 +1,239 @@
+---
+/**
+ * Glance Flow line dashboard: OEE, throughput, stops and stations.
+ *
+ * Every headline number is derived from the drawn data, so they reconcile:
+ * - The band spans the 06:00–14:00 shift (480 min planned). Each stop's width
+ *   is its duration: seven micro-stops (all under 2 min) and one planned
+ *   changeover. The header totals are the sums of those durations.
+ * - Availability = run time / planned time, where run time excludes every
+ *   stop (changeover and micro-stops).
+ * - Throughput is plotted as 15-min averages: a bucket's average is its run
+ *   rate × run minutes / 15, so stops show as dips (zero during the
+ *   changeover). The dashed line is the ideal (rated) rate.
+ * - Performance = units made / (run time × ideal rate).
+ * - OEE = availability × performance × quality.
+ * - Station figures are the micro-stop minutes each station caused; they add
+ *   up to the band's micro-stop total, and the bottleneck caused the most.
+ * - The throughput readout is the rolling 15-min average (the last plotted
+ *   point), labelled as such on the plot.
+ *
+ * Hero frame (server markup): the whole shift so far. The loop is live only:
+ * the labeller jams for JAM minutes (a micro-stop). The line is in series, so
+ * output stops; the rolling average loses rate / 15 for every stopped minute,
+ * falls to current × (1 − JAM / 15), holds after the restart and recovers once
+ * the jam leaves the window (time compressed).
+ */
+import MockWindow from './MockWindow.astro';
+
+const SHIFT = 480; // planned production time, minutes, 06:00–14:00
+const IDEAL = 420; // ideal (rated) line rate, units / min
+const Q = 0.97; // good units / units made
+
+/* at = minutes after 06:00, m = duration in minutes, st = station that stopped the line. */
+const micro = [
+  { at: 38, m: 1.2, st: 'Filler' }, { at: 101, m: 1.6, st: 'Labeller' }, { at: 158, m: 1.9, st: 'Labeller' },
+  { at: 214, m: 1.4, st: 'Capper' }, { at: 326, m: 1.8, st: 'Labeller' }, { at: 374, m: 1.4, st: 'Case packer' },
+  { at: 432, m: 1.1, st: 'Labeller' },
+];
+const changeover = { at: 250, m: 36 }; // planned SKU changeover, 10:10–10:46
+const all = [...micro, changeover];
+const pct = (n: number, d = 2) => +((n / SHIFT) * 100).toFixed(d);
+const band = [
+  { l: pct(changeover.at), w: pct(changeover.m, 3), c: 'down' },
+  ...micro.map((s) => ({ l: pct(s.at), w: pct(s.m, 3), c: 'warn' })),
+];
+const microMin = micro.reduce((n, s) => n + s.m, 0);
+const f1 = (n: number) => n.toFixed(1);
+
+/* Throughput as 15-min averages. A bucket loses the minutes of any stop that
+   overlaps it; the run rate varies a little while the line runs. */
+const BUCKET = 15;
+const nB = SHIFT / BUCKET; // 32
+const runRate = [376, 371, 378, 372, 375, 369, 377, 374];
+const buckets = Array.from({ length: nB }, (_, b) => {
+  const b0 = b * BUCKET, b1 = b0 + BUCKET;
+  const down = all.reduce((n, s) => n + Math.max(0, Math.min(s.at + s.m, b1) - Math.max(s.at, b0)), 0);
+  const run = BUCKET - down;
+  const rate = runRate[b % runRate.length];
+  return { run, units: rate * run, avg: (rate * run) / BUCKET };
+});
+const runMin = buckets.reduce((n, k) => n + k.run, 0);
+const made = buckets.reduce((n, k) => n + k.units, 0);
+const A = runMin / SHIFT;
+const P = made / (runMin * IDEAL);
+const oee = Math.round(A * P * Q * 100);
+const pc = (n: number) => `${Math.round(n * 100)}%`;
+const apq = [{ k: 'Availability', v: pc(A) }, { k: 'Performance', v: pc(P) }, { k: 'Quality', v: pc(Q) }];
+
+/* Plot: y = 63 − v / IDEAL × 44, so 0 sits on the base line (y 63), half the
+   ideal rate on the mid grid line (y 41) and the ideal rate on the dashed
+   line (y 19). Bucket averages sit at bucket centres, held flat to both edges. */
+const yOf = (v: number) => +(63 - (v / IDEAL) * 44).toFixed(1);
+const pts = buckets.map((k, b) => `${+(((b + 0.5) / nB) * 300).toFixed(2)},${yOf(k.avg)}`);
+const spark = `M0,${yOf(buckets[0].avg)} L${pts.join(' L')} L300,${yOf(buckets[nB - 1].avg)}`;
+const current = Math.round(buckets[nB - 1].avg);
+const JAM = 1.8; // minutes, the live jam in the loop: under 2 min, so a micro-stop
+const dip = Math.round(current * (1 - JAM / BUCKET));
+
+const stations = [
+  { n: 'Filler', s: 'Running', c: 'ok' },
+  { n: 'Capper', s: 'Running', c: 'ok' },
+  { n: 'Labeller', s: 'Label jams', c: 'bad', neck: true },
+  { n: 'Case packer', s: 'Starved', c: 'warn' },
+].map((st) => {
+  const m = micro.filter((s) => s.st === st.n).reduce((n, s) => n + s.m, 0);
+  return { ...st, m, w: Math.round((m / microMin) * 100) };
+});
+---
+<MockWindow app="Glance Flow" context={['Packaging L2', 'Shift A']} pillar="var(--flow)" label="Line flow dashboard with live updates: OEE with availability, performance and quality, throughput against the ideal rate, micro-stops and a changeover on the shift timeline, and the stop minutes each station caused, with the bottleneck flagged." class="flowtl">
+  <div class="fl" data-flowtl>
+    <div class="top">
+      <div class="ui-panel oee">
+        <div class="ring">
+          <svg viewBox="0 0 96 96" width="96" height="96">
+            <circle cx="48" cy="48" r="40" class="trk" />
+            <circle cx="48" cy="48" r="40" class="val" pathLength="100" stroke-dasharray="100" stroke-dashoffset={100 - oee} transform="rotate(-90 48 48)" />
+          </svg>
+          <div class="ring-v"><b class="ui-kpi-v"><span>{oee}</span><small>%</small></b><span class="ui-label">OEE</span></div>
+        </div>
+        <dl class="apq">
+          {apq.map((r) => <div><dt class="ui-label">{r.k}</dt><dd>{r.v}</dd></div>)}
+        </dl>
+      </div>
+
+      <div class="ui-panel spark">
+        <div class="ui-panel-h">
+          <span class="ui-panel-t">Throughput</span>
+          <span class="tp"><b data-tp data-dip={dip}>{current}</b><span class="ui-meta">units / min</span></span>
+        </div>
+        <div class="plot">
+          <span class="ui-meta avg">15-min avg</span>
+          <span class="ui-meta tgt">Ideal rate {IDEAL}</span>
+          <svg viewBox="0 0 300 64" preserveAspectRatio="none">
+            <line class="ui-grid-line" x1="0" x2="300" y1="41" y2="41" />
+            <line class="ui-grid-line" x1="0" x2="300" y1="63" y2="63" />
+            <line class="target" x1="0" x2="300" y1="19" y2="19" />
+            <path class="ui-series" d={spark} />
+          </svg>
+        </div>
+        <div class="ui-axis"><span>06:00</span><span>10:00</span><span>14:00</span></div>
+      </div>
+    </div>
+
+    <div class="ui-panel tl">
+      <div class="ui-panel-h">
+        <span class="ui-panel-t">Stops · this shift</span>
+        <span class="ui-legend lg">
+          <span><i style="--c:var(--ui-warn)"></i><span><b>{micro.length}</b> micro-stops · <b>{f1(microMin)}</b> min</span></span>
+          <span><i style="--c:var(--ui-text-4)"></i><span>Changeover · <b>{changeover.m}</b> min</span></span>
+        </span>
+      </div>
+      <div class="band">{band.map((s) => <i class={`ms is-${s.c}`} style={`left:${s.l}%;width:${s.w}%`}></i>)}</div>
+      <div class="ui-axis"><span>06:00</span><span>08:00</span><span>10:00</span><span>12:00</span><span>14:00</span></div>
+    </div>
+
+    <div class="stations">
+      {stations.map((s) => (
+        <div class={`ui-panel st ${s.neck ? 'is-neck' : ''}`} data-st>
+          <div class="st-h"><span class="st-n">{s.n}</span><b>{f1(s.m)}<small> min</small></b></div>
+          <div class={`ui-meter ${s.neck ? 'is-bad' : ''}`}><i style={`--w:${s.w}%`}></i></div>
+          <div class="st-s">
+            {s.neck ? <span class="ui-pill is-bad" data-neck>Bottleneck</span> : <span class={`ui-dot is-${s.c}`}></span>}
+            <span class="ui-meta" data-ss={s.neck ? '' : undefined}>{s.s}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .fl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; }
+  .top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; }
+
+  .oee { display: flex; align-items: center; gap: 16px; }
+  .ring { position: relative; flex: none; width: 96px; height: 96px; }
+  .ring svg { display: block; }
+  .trk { fill: none; stroke: var(--ui-bg-3); stroke-width: 8; }
+  .val { fill: none; stroke: var(--ui-accent); stroke-width: 8; stroke-linecap: butt; }
+  .ring-v { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; }
+  .ring-v .ui-label { margin-top: -2px; }
+  .apq { display: grid; gap: 4px; margin: 0; }
+  .apq div { display: flex; justify-content: space-between; gap: 12px; }
+  .apq dd { margin: 0; font-weight: 600; color: var(--ui-text-1); }
+
+  .spark { display: flex; flex-direction: column; }
+  .tp { display: inline-flex; align-items: baseline; gap: 6px; }
+  .tp b { font: 600 var(--ui-fs-lg) / 20px var(--ui-font); transition: color var(--ui-t-fast); }
+  .tp b.is-low { color: var(--ui-warn-text); }
+  .plot { position: relative; margin-top: auto; }
+  .tgt, .avg { position: absolute; top: 0; line-height: 16px; white-space: nowrap; }
+  .tgt { right: 0; }
+  .avg { left: 0; }
+  .plot svg { display: block; width: 100%; height: 64px; }
+  .ui-series { stroke: var(--ui-s1); }
+  .target { stroke: var(--ui-text-4); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; shape-rendering: crispEdges; }
+
+  .tl .ui-panel-h { flex-wrap: wrap; row-gap: 4px; }
+  .lg { flex-wrap: wrap; row-gap: 0; }
+  .lg i { flex: none; }
+
+  .band { position: relative; height: 12px; border-radius: var(--ui-r-sm); background: var(--ui-ok-bg); box-shadow: inset 0 0 0 1px var(--ui-ok-line); overflow: hidden; }
+  /* Micro-stops are 0.2–0.4 % of the shift; keep every stop at least 3 px wide. */
+  .ms { position: absolute; top: 0; bottom: 0; min-width: 3px; }
+  .ms.is-warn { background: var(--ui-warn); }
+  .ms.is-down { background: var(--ui-text-4); }
+
+  .stations { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .st { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; padding: 8px 10px 10px; }
+  .st.is-neck { border-color: var(--ui-bad-line); }
+  .st-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .st-h b { white-space: nowrap; }
+  .st-h small { color: var(--ui-text-3); font-weight: 500; }
+  .st-n { color: var(--ui-text-1); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-s { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-height: 20px; min-width: 0; }
+  .st-s .ui-meta { white-space: nowrap; }
+
+  @container ui (max-width: 480px) {
+    .top { grid-template-columns: minmax(0, 1fr); }
+    .oee { justify-content: center; }
+  }
+  @container ui (max-width: 680px) {
+    .stations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  /* 320 px phones: minutes go under the name in every tile, so 'Case packer'
+     is never cut and the meters stay level across a row. */
+  @container ui (max-width: 320px) {
+    .st-h { flex-direction: column; align-items: flex-start; gap: 0; }
+  }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-flowtl]').forEach((root) => {
+    const tpEl = root.querySelector<HTMLElement>('[data-tp]')!;
+    const ss = root.querySelector<HTMLElement>('[data-ss]')!;
+    const neck = root.querySelector<HTMLElement>('[data-neck]')!;
+    const TP = parseInt(tpEl.textContent ?? '', 10) || 0;
+    const DIP = parseInt(tpEl.dataset.dip ?? '', 10) || TP;
+    const SS = ss.textContent ?? '';
+
+    mockLoop(root, (_gsap, tl) => {
+      const o = { tp: TP };
+      const showTp = () => { tpEl.textContent = String(Math.round(o.tp)); tpEl.classList.toggle('is-low', o.tp < TP - 8); };
+      // Live phase from the hero frame: a label jam stops the labeller and,
+      // the line being in series, its output. The rolling 15-min average falls
+      // steadily while it is stopped (rate / 15 per minute), holds after the
+      // restart while the jam is still in the window, then recovers.
+      tl.set(neck, { opacity: 1 }, 0)
+        .call(() => { ss.textContent = 'Stopped'; }, [], 1.6)
+        .fromTo(neck, { opacity: 1 }, { opacity: 0.4, duration: 0.4, ease: 'power1.inOut', yoyo: true, repeat: 5, immediateRender: false }, 1.6)
+        .to(o, { tp: DIP, duration: 2.6, ease: 'none', onUpdate: showTp }, 1.7)
+        .call(() => { ss.textContent = SS; }, [], 4.4)
+        .to(o, { tp: TP, duration: 1.4, ease: 'none', onUpdate: showTp }, 5.2)
+        .to({}, { duration: 0.4 }, 6.6);
+    }, { repeatDelay: 2 });
+  });
+</script>

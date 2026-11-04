@@ -1,0 +1,45 @@
+---
+title: "Why colour inspection drifts on the factory floor — and how to stop it"
+seoTitle: "Colour inspection drift on the factory floor"
+description: "Colour is the hardest thing for a camera to judge consistently. A practical guide to lighting, calibration and ΔE2000 for inline colour and shade checks."
+date: 2026-10-08
+category: Quality
+hero: pharma-packs
+heroAlt: "Blister packs of tablets and capsules in different colours"
+tags: [Colour inspection, ΔE2000, Machine vision]
+---
+
+Ask a quality manager about automated colour inspection and you will often hear the same story: it worked during commissioning, then slowly started rejecting good parts&nbsp;— or worse, passing bad ones.
+
+The model rarely changed. The *light* did.
+
+## The camera does not see colour, it sees light
+
+A colour camera records the light reflected from a part, shaped by the light source, the lens, the sensor and its automatic settings. Change any of these and the recorded colour changes, even though the part has not.
+
+Common culprits on a real line:
+
+- Daylight through skylights changing over the day
+- Fluorescent tubes ageing or being replaced with LEDs
+- Auto-exposure and auto-white-balance "helpfully" correcting each frame
+- Dust on the lens or the lighting cover
+
+## A pipeline that holds its calibration
+
+**Enclose and control the light.** A hood or tunnel with fixed, daylight-balanced (D65) LEDs removes ambient light from the equation.
+
+**Lock the camera.** Exposure, gain and white balance are fixed. Nothing on the camera is allowed to adapt.
+
+**Calibrate every shift.** The station images a colour reference card at shift start and computes a correction. If the correction drifts beyond a limit, the station raises a maintenance flag instead of silently compensating.
+
+**Measure in a perceptual space.** Pixels are converted to CIELAB and compared with the approved master sample using **ΔE2000**, which tracks how differences are perceived by people better than simple RGB distances. The customer sets the tolerance&nbsp;— for example ΔE ≤ 1.5.
+
+**Look at patterns, not just averages.** Average colour can be in tolerance while a streak, blotch or uneven coating ruins the part. An anomaly model trained on good parts runs alongside the colour measurement.
+
+**Alarm on the trend.** A slow drift toward the limit is often the most useful signal of all&nbsp;— it points to a dosing, temperature or supplier change upstream before any part fails.
+
+## Be honest about what a camera can do
+
+An industrial RGB camera under controlled light measures colour *difference* against a master sample very well. It is not a laboratory spectrophotometer. When a specification demands lab-grade absolute colour, we integrate the customer's spectrophotometer or use a multispectral camera&nbsp;— and we say so in the feasibility report.
+
+That honesty is the difference between a pilot and a production system. [Talk to us](/contact) about your colour and shade inspection.

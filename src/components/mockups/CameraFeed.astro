@@ -1,0 +1,145 @@
+---
+/**
+ * Glance Guard camera feed (CAM-07): an order picker and its operator are
+ * tracked, the operator is flagged for a missing helmet and an alert is raised.
+ *
+ * Hero frame (server markup): both boxes, the red "No helmet" tag, the alert
+ * toast and the event tick. The loop dismisses the alert, re-acquires the
+ * track and raises it again, so the window is never empty.
+ */
+import MockWindow from './MockWindow.astro';
+import Picture from '../media/Picture.astro';
+import Icon from './ui/Icon.astro';
+
+/* Overlay geometry measured on the v-warehouse-forklift frame (16:9), in % of the frame. */
+const person = { l: 59.4, t: 37.6, w: 7.3, h: 34.8 };
+const vehicle = { l: 45.6, t: 29.4, w: 28.4, h: 55.6 };
+const zone = [[30, 100], [50, 88], [76, 81], [100, 71], [100, 100]].map(([x, y]) => `${+(x * 1.6).toFixed(2)},${+(y * 0.9).toFixed(2)}`).join(' ');
+const box = (b: { l: number; t: number; w: number; h: number }) => `left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%`;
+---
+<MockWindow app="Glance Guard" context={['CAM-07', 'Warehouse aisle 14']} pillar="var(--guard)" label="Animated camera feed from a warehouse aisle: the order picker and its operator are tracked, the operator is flagged for a missing helmet, an alert appears and is logged on the event timeline." class="camfeed">
+  <div class="cf" data-camfeed>
+    <div class="ui-media frame">
+      <Picture img="v-warehouse-forklift" decorative position="50% 50%" sizes="(min-width: 1100px) 720px, (min-width: 768px) 60vw, 100vw" />
+      <svg class="zone" viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points={zone} />
+      </svg>
+
+      <div class="ui-box is-info veh" style={box(vehicle)} data-veh>
+        <span class="ui-hud tag-in">Vehicle 0.98</span>
+      </div>
+      <div class="ui-box is-bad per" style={box(person)} data-per>
+        <span class="ui-hud tag" data-tag>No helmet 0.94</span>
+      </div>
+
+      <span class="ui-hud hud-l"><span class="rec"></span>Live<span class="hud-x"> · 25 fps · Edge-02</span></span>
+      <span class="ui-hud hud-r" data-clock>14:32:11</span>
+      <span class="ui-hud is-warn hud-z">Vehicle aisle</span>
+
+      <div class="ui-toast toast" data-toast>
+        <Icon name="alert" />
+        <div><strong>No helmet · Aisle 14</strong><small>Track #2 · 0.94 · 4.1 s</small></div>
+      </div>
+    </div>
+
+    <div class="tl">
+      <span class="ui-caps">Events</span>
+      <div class="track">
+        <i class="ev is-ok" style="left:12%"></i>
+        <i class="ev is-warn" style="left:31%"></i>
+        <i class="ev is-bad" style="left:93%" data-ev></i>
+        <span class="head" style="left:96%"></span>
+      </div>
+      <span class="ui-id range">14:24–14:32</span>
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .frame { aspect-ratio: 16 / 9; }
+  .zone { pointer-events: none; }
+  .zone polygon {
+    fill: rgba(245, 158, 11, 0.1);
+    stroke: var(--ui-warn);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 5;
+    vector-effect: non-scaling-stroke;
+  }
+  .per { transition: border-color var(--ui-t-fast); }
+  .per:not(.is-bad) { --box: var(--ui-ok); }
+  /* Grows leftwards from the person box's right edge: it stays inside the
+     vehicle box and clear of a device overlapping the frame's right side. */
+  .tag { right: -2px; bottom: calc(100% + 2px); }
+  .tag-in { left: 2px; bottom: 2px; }
+  .hud-l { left: 8px; top: 8px; }
+  .hud-r { right: 8px; top: 8px; }
+  /* Sits inside the zone, at its left end, so the frame's right edge stays free for an overlapping phone. */
+  .hud-z { left: 32%; bottom: 8px; }
+  .rec { width: 6px; height: 6px; border-radius: 50%; background: var(--ui-bad); }
+  @media (prefers-reduced-motion: no-preference) {
+    .rec { animation: rec 1.2s ease-in-out infinite; }
+  }
+  @keyframes rec { 50% { opacity: 0.3; } }
+
+  .toast { position: absolute; left: 8px; top: 36px; }
+
+  /* --ui-reserve-r: width a device overlapping the window's lower-right corner
+     covers (set by the page); the latest event and the range stay clear of it. */
+  .tl { display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 calc(12px + var(--ui-reserve-r, 0px)) 0 12px; border-top: 1px solid var(--ui-line-1); background: var(--ui-chrome); }
+  .track { position: relative; flex: 1; height: 4px; border-radius: var(--ui-r-sm); background: var(--ui-bg-3); }
+  .ev { position: absolute; top: -3px; width: 2px; height: 10px; margin-left: -1px; border-radius: 1px; }
+  .ev.is-ok { background: var(--ui-ok); }
+  .ev.is-warn { background: var(--ui-warn); }
+  .ev.is-bad { background: var(--ui-bad); }
+  .head { position: absolute; top: -6px; width: 2px; height: 16px; margin-left: -1px; background: var(--ui-accent); }
+  .range { color: var(--ui-text-3); }
+
+  /* Phone width: keep the LIVE dot, both boxes, one tag and a docked toast. */
+  @container ui (max-width: 480px) {
+    .toast { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-width: none; padding: 6px 10px; align-items: center; }
+    .toast small { display: none; }
+    .hud-x, .hud-r, .hud-z, .tag-in, .range { display: none; }
+  }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-camfeed]').forEach((root) => {
+    const per = root.querySelector<HTMLElement>('[data-per]')!;
+    const veh = root.querySelector<HTMLElement>('[data-veh]')!;
+    const tag = root.querySelector<HTMLElement>('[data-tag]')!;
+    const toast = root.querySelector<HTMLElement>('[data-toast]')!;
+    const ev = root.querySelector<HTMLElement>('[data-ev]')!;
+    const clock = root.querySelector<HTMLElement>('[data-clock]')!;
+    const ALERT = tag.textContent ?? '';
+    // Matches the @container ui (max-width: 480px) rule that docks the toast.
+    const small = () => (root.closest<HTMLElement>('.ui-win')?.clientWidth ?? 999) <= 480;
+    // The clock only ever runs forward, across loops too.
+    const [hh, mm, ss] = (clock.textContent ?? '14:32:11').split(':').map((n) => parseInt(n, 10) || 0);
+    let secs = hh * 3600 + mm * 60 + ss;
+    const tick = () => {
+      secs++;
+      const p = (n: number) => String(n).padStart(2, '0');
+      clock.textContent = `${p(Math.floor(secs / 3600) % 24)}:${p(Math.floor(secs / 60) % 60)}:${p(secs % 60)}`;
+    };
+
+    mockLoop(root, (_gsap, tl) => {
+      // 0–2.6 s hero holds. Then the alert is dismissed, the track is
+      // re-acquired as a person and flagged again after the persistence time.
+      tl.set(toast, { opacity: 1, x: 0, y: 0 }, 0)
+        .to(toast, { opacity: 0, duration: 0.2, ease: 'power2.in' }, 2.6)
+        .to([per, veh], { opacity: 0, duration: 0.2, ease: 'power2.in' }, 3.0)
+        .to(ev, { opacity: 0.35, duration: 0.2, ease: 'power2.in' }, 3.0)
+        .call(() => { per.classList.remove('is-bad'); tag.textContent = 'Person 0.97'; }, [], 3.2)
+        .to(veh, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 3.4)
+        .to(per, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 3.6)
+        .call(() => { per.classList.add('is-bad'); tag.textContent = ALERT; }, [], 5.2)
+        .fromTo(toast, { opacity: 0, x: () => (small() ? 0 : -8), y: () => (small() ? 6 : 0) }, { opacity: 1, x: 0, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, 5.6)
+        .to(ev, { opacity: 1, duration: 0.2, ease: 'power2.out' }, 5.6)
+        .to({}, { duration: 0 }, 8);
+      // One tick per real second: the 8 s loop (no repeat delay) holds the hero at both ends.
+      for (let s = 1; s <= 8; s++) tl.call(tick, [], s);
+    }, { repeatDelay: 0 });
+  });
+</script>

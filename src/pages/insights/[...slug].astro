@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Picture from '../../components/media/Picture.astro';
+import InsightCard from '../../components/cards/InsightCard.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import Figure from '../../components/content/Figure.astro';
+import Callout from '../../components/content/Callout.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { readingTime, catSlug, fmtDate, isoDate } from '../../lib/reading';
+import { photo, pick } from '../../lib/media';
+import { site } from '../../data/site';
+import { freshImage, ctaPoolFor } from '../../data/helpers';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('insights');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props as { post: CollectionEntry<'insights'> };
+const { Content, headings } = await render(post);
+const d = post.data;
+const toc = headings.filter((h) => h.depth === 2);
+const mins = readingTime(post.body);
+// Photos this article already shows (hero + figures), so the related cards never repeat one.
+const shown = new Set([d.hero, ...[...(post.body ?? '').matchAll(/<Figure\s[^>]*img="([^"]+)"/g)].map((m) => m[1])]);
+// Same category first, then the most recent of the rest.
+const all = (await getCollection('insights')).filter((p) => p.id !== post.id && !shown.has(p.data.hero)).sort((a, b) => +b.data.date - +a.data.date);
+const related = [...all.filter((p) => p.data.category === d.category), ...all.filter((p) => p.data.category !== d.category)].slice(0, 3);
+// Closing backdrop rotates per article and never repeats a photo shown above it.
+const ctaImage = freshImage(ctaPoolFor(post.id), [...shown, ...related.map((r) => r.data.hero)]);
+const og = photo(d.hero);
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.date.toISOString(),
+  author: { '@type': 'Organization', name: d.author },
+  publisher: { '@type': 'Organization', name: site.name, logo: { '@type': 'ImageObject', url: `${site.url}/favicon.svg` } },
+  image: og ? `${site.url}${pick(og.jpg, 1280)}` : undefined,
+  mainEntityOfPage: `${site.url}/insights/${post.id}`,
+  articleSection: d.category,
+  keywords: d.tags.join(', '),
+}];
+---
+<BaseLayout title={d.seoTitle ?? d.title} description={d.description} image={og ? pick(og.jpg, 1280) : undefined} jsonLd={jsonLd}>
+  <header class="ahero tone-dark">
+    <Picture img={d.hero} alt={d.heroAlt} priority class="ahero-img" sizes="100vw" />
+    <div class="ahero-shade" aria-hidden="true"></div>
+    <div class="container container--wide ahero-inner">
+      <nav aria-label="Breadcrumb" class="crumbs mono"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/insights">Insights</a><span aria-hidden="true">/</span><a href={`/insights/category/${catSlug(d.category)}`} class="cat">{d.category}</a></nav>
+      <h1>{d.title.replace(/ ([—–]) /g, ' $1 ')}</h1>
+      <p class="lead">{d.description}</p>
+      <p class="meta mono"><span>{d.author}</span><span><time datetime={isoDate(d.date)}>{fmtDate(d.date)}</time></span><span>{mins} min read</span></p>
+    </div>
+  </header>
+
+  <section class="section tone-light article">
+    <div class="container container--wide layout">
+      <aside class="side" aria-label="On this page">
+        {toc.length > 1 && (
+          <nav class="toc">
+            <span class="mono rail-h">On this page</span>
+            <ol role="list">{toc.map((h) => <li><a href={`#${h.slug}`} data-toc={h.slug}>{h.text}</a></li>)}</ol>
+          </nav>
+        )}
+      </aside>
+      <div class="prose" data-article><Content components={{ Figure, Callout }} /></div>
+      <aside class="rail" aria-label="About this article">
+        {d.tags.length > 0 && (
+          <div class="rail-block">
+            <span class="mono rail-h">Topics</span>
+            <div class="tags">{d.tags.map((t) => <span class="chip">{t}</span>)}</div>
+          </div>
+        )}
+        <div class="rail-block rail-cta">
+          <span class="mono rail-h">Your site</span>
+          <p>Have a question like this about your own cameras or parts? Ask the engineers who wrote it.</p>
+          <a href="/contact" class="btn btn--primary btn--sm">Talk to an engineer <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section tone-mist">
+      <div class="container container--wide">
+        <div class="section-head section-head--row" data-reveal>
+          <div class="stack">
+            <span class="eyebrow">Keep reading</span>
+            <h2>Related insights</h2>
+          </div>
+          <a href="/insights" class="btn btn--ghost">All insights <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="grid-bal">{related.map((p, i) => <InsightCard post={p} delay={i * 0.05} />)}</div>
+      </div>
+    </section>
+  )}
+  <CTASection image={ctaImage} title="Have a question like this on your site?" lead="Bring it to the engineers who wrote this. We’ll answer it on your own footage or samples in a paid feasibility study." />
+</BaseLayout>
+
+<style>
+  .ahero { position: relative; min-height: clamp(26rem, 60svh, 36rem); display: flex; align-items: flex-end; overflow: hidden; color: #fff; padding: calc(var(--header-h) + var(--s-16)) 0 var(--section-y-tight); }
+  .ahero :global(.ahero-img) { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ahero-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(5, 7, 11, 0.94) 0%, rgba(5, 7, 11, 0.6) 55%, rgba(5, 7, 11, 0.3) 100%), linear-gradient(90deg, rgba(5, 7, 11, 0.7), transparent 70%); }
+  .ahero-inner { position: relative; display: grid; gap: var(--s-4); justify-items: start; }
+  .ahero h1 { font-size: var(--fs-h1-long); line-height: 1.1; letter-spacing: -0.015em; max-width: 30ch; }
+  .ahero .lead { color: rgba(238, 243, 248, 0.84); max-width: 68ch; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: var(--s-2); font-size: var(--fs-micro); letter-spacing: 0.04em; color: rgba(238, 243, 248, 0.65); }
+  .crumbs a:hover { color: #fff; }
+  .crumbs .cat { color: var(--cyan); }
+  /* Author · date · reading time, with the same separator as the cards. Each item stays whole. */
+  .meta { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); margin: 0; font-size: var(--fs-xs); color: rgba(238, 243, 248, 0.72); }
+  .meta > span { white-space: nowrap; }
+  .meta > span:not(:last-child)::after { content: '·'; margin-left: var(--s-2); opacity: 0.6; }
+
+  /* Centred reading column (~70 characters a line) between the contents and an article rail. */
+  .layout { display: grid; grid-template-columns: minmax(0, 13.5rem) minmax(0, 38rem) minmax(0, 13.5rem); justify-content: center; column-gap: clamp(2rem, 0.5rem + 3.5vw, 4.5rem); align-items: start; }
+  .article .prose { max-width: 38rem; font-size: 1.125rem; line-height: 1.65; }
+  .side, .rail { position: sticky; top: calc(var(--header-h) + var(--s-6)); display: grid; gap: var(--s-6); }
+  .rail-h { display: block; font-size: var(--fs-micro); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .rail-block { display: grid; gap: var(--s-3); }
+  .rail-cta { padding-top: var(--s-5); border-top: 1px solid var(--line); }
+  .rail-cta p { font-size: var(--fs-sm); line-height: 1.55; color: var(--text-2); }
+  .rail-cta .btn { justify-self: start; }
+  .toc ol { display: grid; gap: 2px; margin: var(--s-3) 0 0; padding: 0; border-left: 1px solid var(--line); }
+  .toc a { display: block; padding: 6px 0 6px var(--s-4); margin-left: -1px; border-left: 2px solid transparent; font-size: var(--fs-sm); color: var(--muted); line-height: 1.4; transition: color 0.2s, border-color 0.2s; }
+  .toc a:hover { color: var(--text); }
+  .toc a.is-on { color: var(--text); border-left-color: var(--cyan); }
+  .tags { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+  .tags .chip { font-size: var(--fs-xs); }
+  /* Narrower screens: the rail moves under the article. */
+  @media (max-width: 1240px) {
+    .layout { grid-template-columns: minmax(0, 13.5rem) minmax(0, 38rem); }
+    .rail { grid-column: 2; position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; margin-top: var(--s-12); padding-top: var(--s-6); border-top: 1px solid var(--line); }
+    .rail-cta { padding-top: 0; border-top: 0; }
+  }
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .side { display: none; }
+    .rail { grid-column: auto; }
+    .article .prose { font-size: 1.0625rem; }
+  }
+  @media (max-width: 560px) {
+    .rail { grid-template-columns: minmax(0, 1fr); }
+    .meta { column-gap: 6px; letter-spacing: 0; }
+    .meta > span:not(:last-child)::after { margin-left: 6px; }
+  }
+</style>
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-toc]')];
+  if (links.length && 'IntersectionObserver' in window) {
+    const map = new Map(links.map((l) => [l.dataset.toc || '', l]));
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const on = map.get(e.target.id);
+        if (!on) return;
+        links.forEach((l) => { l.classList.remove('is-on'); l.removeAttribute('aria-current'); });
+        on.classList.add('is-on');
+        on.setAttribute('aria-current', 'location');
+      }),
+      { rootMargin: '-20% 0px -70% 0px' },
+    );
+    document.querySelectorAll('[data-article] h2[id]').forEach((h) => io.observe(h));
+  }
+</script>

@@ -1,0 +1,94 @@
+---
+title: "Anomaly detection trained on good parts only: what it can and can’t do"
+seoTitle: "Anomaly detection trained on good parts only"
+description: "Good-only anomaly models find defects you have never seen, and miss some you have. Structural vs logical anomalies, thresholds, synthetic defects, drift."
+date: 2026-09-17
+category: Quality
+hero: castings
+heroAlt: "A pile of cast aluminium parts"
+tags: [Anomaly detection, Surface inspection, Machine vision, Quality]
+---
+
+Defects are rare, they vary, and new types keep appearing after commissioning. Collecting hundreds of labelled examples of every defect class can take months. Some classes never reach that number at all.
+
+Anomaly detection trained on good parts only avoids that problem. The model learns what *normal* looks like and flags anything that departs from it. It is one of the most useful tools in industrial inspection, and it is also widely oversold. This article sets out where the method is strong, where it is blind, and how to put it into production without fooling yourself.
+
+## How a good-only model decides
+
+Most modern methods share a basic design. A pretrained neural network turns each patch of the image into a feature vector. During training, the system builds a memory of the feature vectors from good parts. At inspection, each patch of a new image is compared with its nearest match in that memory. The distance becomes an anomaly score, and the scores together form a heatmap. [PatchCore (Roth et al., CVPR 2022)](https://openaccess.thecvf.com/content/CVPR2022/html/Roth_Towards_Total_Recall_in_Industrial_Anomaly_Detection_CVPR_2022_paper.html) is a widely cited example of this approach.
+
+The key point follows from that design. The model knows *unlike training*, not *defective*. Anything new gets a high score: a scratch, but also an oil fingerprint, a slightly different surface finish from a new supplier, or a label from another batch. And a defect that looks normal patch by patch gets a low score, however serious it is.
+
+## Structural vs logical anomalies
+
+That second blind spot has a name. The [MVTec LOCO AD dataset](https://mvtec.com/company/research/datasets/mvtec-loco) and its paper ([Bergmann et al., IJCV 2022](https://doi.org/10.1007/s11263-022-01578-9)) separate anomalies into two kinds:
+
+- **Structural anomalies** are local damage that looks new: scratches, dents, cracks, contamination.
+- **Logical anomalies** break a rule about how the scene should be. A required component is missing, there are too many of something, or permitted parts are in the wrong places.
+
+Patch-based models are strong on the first kind and much weaker on the second. A connector with five clips instead of six can look normal in every patch.
+
+| Anomaly | Example | Good-only patch model | Better tool |
+|---|---|---|---|
+| Local surface damage | Scratch, dent, porosity, burn mark | Strong | Anomaly model |
+| Low-contrast damage | Hairline crack under glare | Depends on the optics | Fix lighting and angle first |
+| Missing component | Missing screw or clip | Variable: good if the gap looks different, poor if it doesn't | Segmentation plus a presence rule |
+| Wrong count | Five fasteners instead of six | Weak | Count rule |
+| Wrong arrangement or variant | Correct parts swapped, wrong colour variant | Weak | Position rules, a recipe for each SKU |
+| Out of tolerance | Hole 0.3 mm out of position | Not designed for this | Calibrated measurement |
+
+This is why our inspection pipeline is hybrid. Inspect Defect handles structural anomalies. Inspect Assembly adds component segmentation with count, position and relationship rules for logical ones.
+
+<Figure img="electrical-panel" alt="Control cabinet assembly with rows of modules, wiring and terminal blocks" caption="On an assembly, the hardest defects are often logical: a missing, extra or swapped part that looks normal patch by patch." />
+
+## Setting a threshold without defect data
+
+This is where most projects are least rigorous. With good parts alone, you can measure **false rejects**. You cannot measure **misses**.
+
+**Hold out good images.** Keep a set of good-part images that the model never sees during training, score them, and look at the distribution. A threshold at the 99.5th percentile of those scores predicts that about 0.5% of good parts will be flagged, provided the held-out set represents production.
+
+**Respect sample size.** If 300 good parts produce zero false rejects, you have not shown a 0% rate. A standard approximation, the "rule of three", puts the 95% upper bound at about 3/n. Zero false rejects in 300 parts therefore means the rate is probably below 1%. To support a claim under 0.1%, you need about 3,000 good parts with no false rejects.
+
+**Use three bands, not one threshold.** Real lines need a *pass / review / reject* decision with two thresholds. Parts in the middle band go to a person, who sees the heatmap next to the nearest good example. Two things set where the bands sit. One is the relative cost of an escape and a false reject for each SKU. The other is how many parts a reviewer can realistically handle in an hour.
+
+<Callout title="Ask for two numbers, not one" tone="info">
+
+A credible inspection claim states a **false reject rate**, measured on held-out good parts with the sample size, and a **detection rate**, measured on real or seeded defects with the count of each type. If a vendor quotes only one of them, they have not measured the other.
+
+</Callout>
+
+## Synthetic defects: useful, not proof
+
+If you have no defects, you can make some. Methods such as [CutPaste (Li et al., CVPR 2021)](https://openaccess.thecvf.com/content/CVPR2021/html/Li_CutPaste_Self-Supervised_Learning_for_Anomaly_Detection_and_Localization_CVPR_2021_paper.html) cut patches out of normal images and paste them elsewhere to create artificial irregularities. Others paint in textures, noise or shapes.
+
+Synthetic defects work well for **sensitivity testing**. Generate scratches and spots in a range of sizes and contrasts, and plot which ones the model catches. That shows you the smallest defect your optics and model can detect, before production depends on it.
+
+They are not acceptance evidence. Real porosity, short shots and stains have their own appearance, and a model can learn to spot pasting artefacts rather than defects. Final validation needs real parts. Use limit samples from the quality lab, retained rejects, or defects produced on purpose in a controlled way.
+
+Keep a physical **challenge set** of known-bad parts. Run it through the station on a schedule, in the same way a colour station images its reference card at the start of a shift. If a challenge part ever passes, stop and investigate.
+
+## Drift: when normal changes
+
+A good-only model's idea of normal is fixed at training time. The line keeps changing.
+
+**What causes drift:** ageing or replaced lighting, a dirty lens, a camera knocked out of alignment, a new material lot, tool wear, and legitimate process changes. Even humidity changing the sheen of a surface can do it.
+
+**What drift looks like:** the score distribution for passing parts creeps upward, the review band gets busier, and operators start to complain about false rejects.
+
+**How to watch it:** track the median and the 99th percentile of anomaly scores for each SKU and shift on a control chart. Add the challenge-set results. A rising trend is an early warning, often days before the false rejects become a problem.
+
+**How to retrain safely:** the quality team must approve any "new normal" before it enters the training set. Otherwise a slowly worsening defect can be absorbed into the definition of good, and the model will learn to pass it. Version every model and record which version judged each part. Keep the previous version ready for rollback.
+
+<Figure img="quality-inspector" alt="Hands measuring a machined part with a digital caliper" caption="The review band is where human judgement adds the most, and where the model learns from it." />
+
+## What to ask before you buy
+
+- **Which of our defect types are structural and which are logical?** Which part of the system handles each?
+- **How many good images are needed per view,** and how many are held out to set thresholds?
+- **What is the measured false reject rate** on our held-out good parts, and from how many parts?
+- **What is the detection rate on real defects,** and how many of each type were tested?
+- **How are the pass / review / reject thresholds set,** and who is allowed to change them?
+- **How is drift detected,** and who approves retraining?
+- **Does every decision record the image, score and model version** for traceability?
+
+[Inspect Defect](/products/inspect-defect) typically starts from 50–200 good images per view. It combines an anomaly heatmap with known-class detectors and cost-weighted pass / review / reject decisions. [Inspect Assembly](/products/inspect-assembly), now in early access, covers the logical side. See the [surface defect inspection use case](/use-cases/surface-defect-inspection), or [send us samples](/contact) for a feasibility study on your own parts.

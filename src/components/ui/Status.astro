@@ -1,0 +1,15 @@
+---
+/**
+ * Product status label. One spec everywhere, independent of the pillar colour:
+ * Available = filled dot, Early access = half-filled dot, Roadmap = hollow dot + dashed edge.
+ * The shape carries the meaning as well as the colour. Styles live in global.css (.status).
+ */
+export type Phase = 'Available' | 'Early access' | 'Roadmap';
+interface Props {
+  phase: Phase;
+  class?: string;
+}
+const { phase, class: cls } = Astro.props;
+const mod = phase === 'Available' ? 'available' : phase === 'Early access' ? 'early' : 'roadmap';
+---
+<span class:list={['status', `status--${mod}`, cls]}><span class="status-dot" aria-hidden="true"></span>{phase}</span>

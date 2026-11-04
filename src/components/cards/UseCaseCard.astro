@@ -1,0 +1,20 @@
+---
+import Picture from '../media/Picture.astro';
+import type { UseCase } from '../../data/usecase-types';
+import { pillarBySlug } from '../../data/pillars';
+
+interface Props { u: UseCase; delay?: number; sizes?: string }
+const { u, delay = 0, sizes = '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw' } = Astro.props;
+const p = pillarBySlug[u.pillar];
+---
+<a href={`/use-cases/${u.slug}`} class="pcard" style={`--accent:${p.color}; --d:${delay}s`} data-reveal>
+  <div class="pcard-media">
+    <Picture img={u.hero} alt="" decorative sizes={sizes} />
+    <span class="pcard-tag tone-dark" style={`--accent:${p.color}`}><span class="badge"><span class="dot"></span>{p.name.replace('Glance ', '')}</span></span>
+  </div>
+  <div class="pcard-body">
+    <h3>{u.title}</h3>
+    <p>{u.summary}</p>
+    <span class="card-foot link-arrow">Read the use case <span class="arrow" aria-hidden="true">→</span></span>
+  </div>
+</a>

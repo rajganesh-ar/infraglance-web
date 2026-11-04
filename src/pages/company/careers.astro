@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { site } from '../../data/site';
+
+// Location and remote policy are agreed per role at the first conversation, so it is stated as such.
+const roles = [
+  { t: 'Senior Computer Vision Engineer', team: 'Infraglance Labs', type: 'Full-time' },
+  { t: 'Edge / Embedded Engineer (DeepStream, TensorRT)', team: 'Platform & edge', type: 'Full-time' },
+  { t: 'Imaging & Optics Engineer', team: 'Solutions & delivery', type: 'Full-time' },
+  { t: 'PLC / OT Integration Engineer', team: 'Solutions & delivery', type: 'Full-time' },
+  { t: 'Full-stack Engineer (Hub)', team: 'Platform & edge', type: 'Full-time' },
+  { t: 'Field Deployment Engineer', team: 'Solutions & delivery', type: 'Full-time · travel' },
+];
+---
+<BaseLayout title="Careers" description="Build vision AI for the physical world. Open roles in computer vision, edge, imaging, OT integration and platform engineering at Infraglance.">
+  <PageHero eyebrow="Careers" title="Build vision AI for <span class='gradient-text'>the physical world.</span>" lead="Hard problems, real sites, measurable impact: fewer injuries, fewer defects, fewer failures. Join a senior team building for factories, plants and infrastructure." image="drone-inspection" crumbs={[{ href: '/company/careers', label: 'Careers' }]} />
+
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Open roles · {roles.length}</span>
+          <h2>Where you could help.</h2>
+        </div>
+        <p class="muted policy">Location and remote policy are agreed per role.</p>
+      </div>
+      <ul class="roles" role="list">
+        {roles.map((r, i) => (
+          <li data-reveal style={`--d:${(i % 3) * 0.04}s`}>
+            <div class="role">
+              <h3>{r.t}</h3>
+              <span class="mono meta">{r.team} · {r.type}</span>
+            </div>
+            <a class="btn btn--ghost" href={`mailto:${site.careersEmail}?subject=${encodeURIComponent('Application: ' + r.t)}`}>Apply <span class="sr-only">for {r.t}</span> <span class="arrow" aria-hidden="true">→</span></a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CTASection
+    image="wind-turbines"
+    eyebrow="Careers"
+    title="Don’t see your role?"
+    lead={`Write to ${site.careersEmail} with what you’d build for factories, plants and infrastructure. We read every message.`}
+    primary={{ href: `mailto:${site.careersEmail}`, label: 'Email the team' }}
+    secondary={{ href: '/company/about', label: 'About us' }}
+  />
+</BaseLayout>
+
+<style>
+  .policy { font-size: var(--fs-sm); }
+  .roles { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+  .roles li { display: flex; justify-content: space-between; align-items: center; gap: var(--s-5); padding: var(--s-4) var(--s-5); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); transition: border-color 0.2s; }
+  .roles li:hover { border-color: var(--line-2); }
+  .role { display: grid; gap: var(--s-1); }
+  .roles h3 { font-size: var(--fs-lg); }
+  .roles .meta { font-size: var(--fs-xs); color: var(--muted); }
+  @media (max-width: 640px) { .roles li { flex-direction: column; align-items: flex-start; } }
+</style>

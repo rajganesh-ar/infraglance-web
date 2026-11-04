@@ -1,0 +1,96 @@
+---
+title: "Conveyor belt monitoring with vision: rips, drift, spillage and hot idlers"
+seoTitle: "Conveyor belt monitoring with vision"
+description: "Bulk conveyors fail in a handful of predictable ways. Where cameras and thermal imaging beat point sensors, where they don’t, and why PLC signals matter."
+date: 2026-10-01
+category: Operations
+hero: cement-plant
+heroAlt: "Cement plant with its preheater tower and stacks"
+tags: [Conveyor monitoring, Bulk handling, Thermal imaging, Condition monitoring]
+---
+
+A long bulk conveyor is often the single line that a mine, port, cement plant or power station depends on. When it fails, the whole site stops.
+
+The failures follow a familiar pattern. A belt can rip along its length, wander off its idlers until it frays an edge, or flood a transfer point with spillage. A chute can block. An idler bearing can seize and heat up under a dusty belt.
+
+Traditional protection adds a separate point sensor for each failure mode. Vision promises a single camera that sees several of them at once. It can do that, but only in the places it can see, and only if you are honest about what it cannot see.
+
+## The failure modes, and what each needs
+
+| Failure mode | Usual point protection | What vision adds | Where vision struggles |
+|---|---|---|---|
+| Longitudinal rip and gouges | Rip-detection loops in the belt, rip switches | Continuous view of the belt surface. Catches damage before a full rip | The carry side is covered by material, so watch the return strand |
+| Edge damage | Inspection rounds | Measures fraying and edge wear over time | Needs both edges in view with good contrast |
+| Misalignment and tracking drift | Belt-sway switches that trip at a fixed offset | Measures edge position continuously, so drift shows up before a trip | Needs a stable mount and a clear edge |
+| Spillage at transfer points | Housekeeping rounds | Measures the pile growing, with evidence clips | Dust, water spray and poor light |
+| Chute blockage | Plugged-chute switches | Sees material backing up at the head and the skirts | Cannot see inside an enclosed chute |
+| Hot idlers and bearings | Thermography rounds, sensors on pulleys | Fixed thermal coverage of idler sets | Each camera covers a limited length of belt |
+| Belt slip | Speed sensor on a non-driven pulley | Measures belt surface speed against the drive speed | Needs visible texture on the belt |
+| Foreign objects and oversize | Tramp-metal magnets, metal detectors | Non-metallic tramp material (timber, liners, plastic) and oversize lumps | Objects buried in the load. Metal detection stays |
+
+Two patterns stand out. Vision is strongest where a point sensor gives only a binary trip and a measured *trend* would be more useful, such as tracking drift and edge wear. It is weakest where the failure is hidden, either under the load or inside an enclosure.
+
+<Figure img="conveyor-rollers" alt="Close-up of conveyor idlers and rollers supporting a belt" caption="The return strand is usually clean, so it is the best place to look for rips and edge damage." />
+
+## One camera versus many point sensors
+
+"One camera instead of ten sensors" is true at one location. It is not true for a whole conveyor.
+
+A camera watching a loading point sees rips, drift, spillage and blockage at that point. It cannot see an idler set 400 m downstream. So the design question is which few locations matter most. Typical candidates are the loading and transfer points, the head and tail pulleys, a stretch of the return strand, and the idler sets where failures have happened before.
+
+Point sensors still have real advantages. They are cheap, simple and well understood, and some of them are **safety devices**. Pull-wire emergency stops, guarding and isolation are not replaced by any camera.
+
+What vision adds is *measurement* and *evidence*. You get continuous values instead of trip/no-trip, trends that let maintenance plan rather than react, and a video clip that shows what actually happened at 03:12.
+
+<Callout title="Cameras do not make a running belt safe to approach" tone="warn">
+
+The US Mine Safety and Health Administration's [safety alert on working near belt conveyors](https://www.msha.gov/working-proximity-belt-conveyors-safety-alert) stresses locking out and blocking against motion before any work. A real benefit of vision is that people need to walk a running belt less often for inspection. It is not a substitute for lockout.
+
+</Callout>
+
+## Thermal: reading idlers from a distance
+
+A seized idler is a heat source in a dusty environment. A fixed radiometric thermal camera, which measures temperature in every pixel, can watch a run of idler sets continuously instead of once per inspection round. Three engineering details decide whether it works.
+
+**Spot size.** Each thermal pixel covers an area that grows with distance. Take, as an illustration, a 640-pixel-wide camera with a 25° horizontal field of view. Each pixel subtends about 0.68 milliradians, so it covers roughly 14 mm at 20 m and 34 mm at 50 m. A bearing housing needs to span several pixels for a reliable temperature. If it doesn't, the reading is averaged with the cooler background and comes out low. That limits how far one camera can usefully see.
+
+**Emissivity.** Dusty, painted and bare-metal surfaces emit heat differently, so absolute temperatures from a distance carry real uncertainty. Relative measurements are more robust. Compare each idler with its neighbours in the same set, and watch the rate of rise.
+
+**Sun and weather.** On outdoor conveyors, solar loading can heat a whole row of idlers in the afternoon. Comparing against neighbours, and alarming on a temperature difference rather than a fixed limit, filters most of that out.
+
+<Figure img="thermal-image" alt="Illustrative false-colour thermal view of a control cabinet with two warm components" caption="Illustrative false-colour view. Comparing a component with its neighbours is more robust than an absolute temperature read from a distance, and the same holds for one idler against the rest of the row." />
+
+## Fusion with PLC signals
+
+Video alone does not know whether the belt *should* be running. The control system does. Bringing in a few signals over OPC UA or Modbus removes whole classes of false alarms and adds diagnoses that neither source can make alone:
+
+- **Drive running, but the belt surface is not moving:** slip or a broken belt
+- **Drive stopped:** suppress slip alerts, but keep watching for spillage and smoke
+- **Motor current rising while the belt drifts to one side:** look for seized idlers or material build-up on a pulley
+- **Off-centre load profile from a 3D sensor:** a likely cause of drift, which points to the loading chute
+- **Idler hot while running, cooling when stopped:** consistent with a bearing problem rather than a reflection
+
+The output should be work, not just alarms. A confirmed edge-wear trend or hot idler becomes a work order in SAP PM or Maximo, with the evidence attached and the asset identified.
+
+## Installation realities
+
+Most conveyor vision projects that fail do so because of the installation, not the model.
+
+- **Dust:** use an IP66 enclosure, an air purge or air knife across the window, and a cleaning schedule someone actually owns.
+- **Light:** night shifts need illumination, ideally strobed in sync with the shutter so moving belt texture stays sharp.
+- **Speed and blur:** fast belts need short exposures or a line-scan camera triggered by an encoder.
+- **Vibration:** mount the camera on structure that is isolated from the conveyor frame where you can.
+- **Access:** put cameras where they can be cleaned without stopping the belt or entering a guarded area.
+- **Power and network:** long conveyors often need fibre, because copper Ethernet runs are limited to 100 m.
+
+## What to ask before you buy
+
+- **Which locations will the cameras cover,** and which failure modes at each?
+- **Is the rip camera on the return strand,** and how is motion blur handled at our belt speed?
+- **What is the thermal pixel footprint** on the furthest idler you claim to monitor?
+- **Do thermal alarms use temperature relative to neighbouring idlers,** rate of rise, absolute limits, or a combination?
+- **Which PLC signals are used,** and how does the system behave when they are unavailable?
+- **What is the cleaning and maintenance plan** for the enclosures, and who owns it?
+- **How do alerts become work orders** in our CMMS?
+
+[Flow Belt](/products/flow-belt) is in early access. It combines a rugged belt camera, thermal coverage of idler sets and correlation with drive signals. [Sense Thermal](/products/sense-thermal), also in early access, extends hot-spot monitoring to motors, panels and pulleys. See the [conveyor belt monitoring use case](/use-cases/conveyor-belt-monitoring), or [talk to us](/contact) about a site survey of your critical transfer points.

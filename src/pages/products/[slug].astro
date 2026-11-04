@@ -1,0 +1,247 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import Status from '../../components/ui/Status.astro';
+import CameraFeed from '../../components/mockups/CameraFeed.astro';
+import InspectHMI from '../../components/mockups/InspectHMI.astro';
+import FlowTimeline from '../../components/mockups/FlowTimeline.astro';
+import HubDashboard from '../../components/mockups/HubDashboard.astro';
+import InfraReport from '../../components/mockups/InfraReport.astro';
+import Picture from '../../components/media/Picture.astro';
+import { products, productsByPillar, type Product } from '../../data/products';
+import { pillarBySlug } from '../../data/pillars';
+import { industryBySlug } from '../../data/industries';
+import { usecases } from '../../data/usecases';
+import { phaseCta, nb, freshImage, ctaPoolFor, mockImages } from '../../data/helpers';
+import { site } from '../../data/site';
+
+export function getStaticPaths() {
+  return products.map((p) => ({ params: { slug: p.slug }, props: { it: p } }));
+}
+const { it } = Astro.props as { it: Product };
+const p = pillarBySlug[it.pillar];
+// Same pillar first, topped up from other pillars so the row is always full.
+const related = [
+  ...productsByPillar(it.pillar).filter((x) => x.slug !== it.slug),
+  ...products.filter((x) => x.pillar !== it.pillar && x.industries.some((s) => it.industries.includes(s))),
+].slice(0, 3);
+const useCase = usecases.find((u) => u.products.includes(it.slug));
+// Products without a use case of their own get a photo of the asset they work on.
+const heroFor: Record<string, string> = {
+  'guard-fire': 'steel-plant',
+  'inspect-grade': 'packaging-line',
+  'flow-gate': 'parcel-conveyor',
+  'infra-road': 'highway-aerial',
+  'infra-rail': 'railway-tracks',
+  'infra-progress': 'construction-cranes',
+};
+const heroImg = heroFor[it.slug] ?? useCase?.hero ?? p.photo;
+
+// Overview visual. The pillar's app mockup appears only on the products whose detections it actually
+// shows; every other product gets a photo of the situation it works on, so the screen beside
+// "What it detects" never shows another product's alerts.
+const mockFor: Record<string, string> = {
+  'guard-ppe': `The ${p.name} app, shown with demo data.`,
+  'inspect-defect': `The ${p.name} app, shown with demo data.`,
+  'inspect-colour': `The ${p.name} app with its ΔE colour reading, shown with demo data.`,
+  'flow-line': `The ${p.name} app, shown with demo data.`,
+  'sense-scene': 'The Glance Hub plant-condition view, shown with demo data.',
+  'sense-gauge': 'The Glance Hub plant-condition view with gauge readings, shown with demo data.',
+  'infra-structure': `The ${p.name} app, shown with demo data.`,
+};
+const shotFor: Record<string, { img: string; caption: string; pos?: string }> = {
+  'guard-zone': { img: 'robot-cell', caption: 'A robot cell: the danger zone is armed while the machine runs.' },
+  'guard-traffic': { img: 'truck-gate', caption: 'Docks and yards are part of the same traffic picture as the aisles.' },
+  'guard-height': { img: 'harness-worker', pos: '50% 70%', caption: 'The check that matters is the hook on the anchor, not just the harness on the body.' },
+  'guard-fire': { img: 'ppe-welder', caption: 'Hot work: sparks are expected while the arc is on, and a fire watch must stay once it stops.' },
+  'guard-permit': { img: 'ppe-welder', caption: 'Hot work under a permit: the conditions it lists are checked on camera when it opens.' },
+  'guard-lone': { img: 'industrial-night', caption: 'Night shifts and remote areas, where a fall can go unseen for hours.' },
+  'guard-ergo': { img: 'parcel-conveyor', caption: 'Pick and pack stations: lifting and reach risk scored by workstation, never by person.' },
+  'inspect-shade-sort': { img: 'textile-rolls', caption: 'Shade graded along the roll and piece by piece, so one lot ships in one shade.' },
+  'inspect-assembly': { img: 'auto-assembly', caption: 'Assembly lines: parts, fasteners and step order checked at each station.' },
+  'inspect-pack': { img: 'pharma-packs', caption: 'Batch and expiry codes read and verified on every pack, not just the first of the run.' },
+  'inspect-measure': { img: 'cnc-parts', caption: 'Machined parts against their drawings: lengths, diameters and hole positions.' },
+  'inspect-web': { img: 'textile-rolls', caption: 'Shade checked across the width and along the roll, not just at a sample point.' },
+  'inspect-grade': { img: 'food-line', caption: 'Grading by eye today: size, colour and blemishes judged at the sorting table.' },
+  'flow-belt': { img: 'cement-plant', caption: 'Mines, cement plants, power stations and ports share the same conveyor failure modes.' },
+  'flow-gate': { img: 'truck-gate', caption: 'Dock doors and trucks, timed from the gate to the bay and back out.' },
+  'sense-machine': { img: 'robot-cell', caption: 'Motor on, no movement: video checked against what the machine is supposed to be doing.' },
+  'sense-thermal': { img: 'thermal-image', caption: 'Illustrative false-colour view. Per-asset thermal regions get limits and rate-of-rise checks.' },
+  'sense-gas': { img: 'chemical-plant-night', caption: 'Process units, where a detector alarm is worth more with the camera view beside it.' },
+  'infra-road': { img: 'concrete-crack', caption: 'Cracking classified by type and extent, then mapped along the route.' },
+  'infra-rail': { img: 'metro-platform', caption: 'Platforms: crowding at the screen doors watched from fixed cameras.' },
+  'infra-power': { img: 'transmission-tower', caption: 'Drone surveys extend the same defect register to lines and towers.' },
+  'infra-progress': { img: 'scaffold-height', caption: 'A structure rising: progress compared with the model and the schedule, week by week.' },
+};
+const mockCaption = mockFor[it.slug];
+const shot = mockCaption ? undefined : shotFor[it.slug];
+const ctaImage = freshImage([p.photo, ...ctaPoolFor(it.slug)], [heroImg, shot?.img, ...(mockCaption ? (mockImages[p.slug] ?? []) : [])]);
+const cta = phaseCta(it);
+const phaseNote =
+  it.phase === 'Early access'
+    ? 'Open to design partners, with scope agreed per site.'
+    : it.phase === 'Roadmap'
+      ? 'Not yet available. Register interest to help shape the first release.'
+      : '';
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: it.name,
+    description: it.summary,
+    brand: { '@type': 'Brand', name: site.name },
+    category: `${p.name} — ${p.area}`,
+    url: `${site.url}/products/${it.slug}`,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Products', item: `${site.url}/products` },
+      { '@type': 'ListItem', position: 2, name: p.name, item: `${site.url}/solutions/${p.slug}` },
+      { '@type': 'ListItem', position: 3, name: it.name, item: `${site.url}/products/${it.slug}` },
+    ],
+  },
+];
+---
+<BaseLayout title={`${it.name} — ${p.area}`} description={it.summary} jsonLd={jsonLd}>
+  <PageHero eyebrow={`${p.name} · ${p.area}`} title={it.name} lead={nb(it.tagline)} accent={p.color} image={heroImg} size="md" crumbs={[{ href: '/products', label: 'Products' }, { href: `/solutions/${p.slug}`, label: p.name }, { href: `/products/${it.slug}`, label: it.name }]}>
+    <div class="phase-row"><Status phase={it.phase} />{phaseNote && <span class="phase-note">{phaseNote}</span>}</div>
+    <div class="btn-row"><a href={cta.href} class="btn btn--primary">{cta.label} <span class="arrow" aria-hidden="true">→</span></a><a href={`/solutions/${p.slug}`} class="btn btn--ghost">About {p.name}</a></div>
+  </PageHero>
+
+  <section class="section section--tight tone-light" style={`--accent:${p.color}`}>
+    <div class="container container--wide">
+      <div class:list={['overview', (mockCaption || shot) ? 'split' : 'overview--solo']}>
+        <div class="stack" data-reveal>
+          <span class="eyebrow">Overview</span>
+          <h2>What it detects.</h2>
+          <p class="lead">{it.summary}</p>
+          <ul class="check-list">{it.detects.map((d) => <li>{d}</li>)}</ul>
+        </div>
+        {mockCaption && (
+          <figure class="mock" data-reveal style="--d:0.1s">
+            {p.slug === 'guard' && <CameraFeed />}
+            {p.slug === 'inspect' && <InspectHMI />}
+            {p.slug === 'flow' && <FlowTimeline />}
+            {p.slug === 'sense' && <HubDashboard variant="sense" />}
+            {p.slug === 'infra' && <InfraReport />}
+            <figcaption class="mono">{mockCaption}</figcaption>
+          </figure>
+        )}
+        {shot && (
+          <figure class="shot" data-reveal style="--d:0.1s">
+            <Picture img={shot.img} position={shot.pos} framed sizes="(min-width: 1024px) 50vw, 100vw" />
+            <figcaption>{shot.caption}</figcaption>
+          </figure>
+        )}
+      </div>
+
+      <div class="how" data-reveal>
+        <span class="eyebrow">How it works</span>
+        <ol class="steps" role="list" style={`--n:${it.how.length}`}>{it.how.map((h, i) => <li><span class="node mono">0{i + 1}</span><span>{h}</span></li>)}</ol>
+      </div>
+
+      <div class="card specs" data-reveal>
+        <div class="spec">
+          <span class="eyebrow">Deployment</span>
+          <ul class="check-list">{it.deploy.map((d) => <li>{d}</li>)}</ul>
+        </div>
+        <div class="spec">
+          <span class="eyebrow">Integrations</span>
+          <div class="chips">{it.integrations.map((d) => <span class="chip">{d}</span>)}</div>
+        </div>
+        <div class="spec">
+          <span class="eyebrow">Industries</span>
+          <div class="chips">{it.industries.map((s) => <a class="chip ind" href={`/industries/${s}`}>{industryBySlug[s].name}</a>)}</div>
+        </div>
+      </div>
+
+      <div class="custom card" data-reveal>
+        <div class="custom-copy">
+          <span class="eyebrow">Need it adapted?</span>
+          <h2>Tuned to your gear, parts and sites.</h2>
+          <p class="lead">Every {it.name} deployment starts with a feasibility study on your own footage or samples. If your use case needs a new model, special imaging or an integration we don’t ship yet, Infraglance Engineering builds it on the same platform.</p>
+        </div>
+        <a href="/engineering" class="btn btn--ghost">Custom engineering <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section tone-mist" style={`--accent:${p.color}`}>
+      <div class="container container--wide">
+        <div class="section-head section-head--row" data-reveal>
+          <div class="stack">
+            <span class="eyebrow">Related</span>
+            <h2>Products that work alongside {it.name}.</h2>
+          </div>
+          <a href="/products" class="btn btn--ghost">Full catalogue <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="grid-bal">
+          {related.map((r, i) => (
+            <a href={`/products/${r.slug}`} class="card" data-reveal style={`--accent:${pillarBySlug[r.pillar].color}; --d:${i * 0.05}s`}>
+              <div class="card-top"><span class="badge"><span class="dot"></span>{pillarBySlug[r.pillar].name.replace('Glance ', '')}</span><Status phase={r.phase} /></div>
+              <h3>{r.name}</h3>
+              <p>{r.tagline}</p>
+              <span class="card-foot link-arrow">View product <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <CTASection
+    title={it.phase === 'Available' ? `See ${it.name} on your own footage.` : `Help shape ${it.name}.`}
+    image={ctaImage}
+    primary={{ href: cta.href, label: cta.label }}
+  />
+</BaseLayout>
+
+<style>
+  .phase-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); }
+  .phase-note { font-size: var(--fs-sm); color: rgb(238 243 248 / 0.78); }
+
+  .overview { align-items: center; }
+  .mock { margin: 0; display: grid; gap: var(--s-3); }
+  .mock figcaption { font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--muted); }
+  /* Product photo in place of a mockup: about the mockups' footprint, caption styled like the use-case galleries. */
+  .shot { margin: 0; }
+  .shot :global(.pic) { aspect-ratio: 3 / 2; border-radius: var(--radius); }
+  .shot figcaption { margin-top: var(--s-3); font-size: var(--fs-sm); line-height: 1.55; color: var(--muted); padding-left: var(--s-3); border-left: 2px solid var(--accent); }
+  .overview--solo .stack { max-width: 72ch; }
+
+  /* How it works: numbered steps across the page (a vertical list on narrow screens). */
+  .how { display: grid; gap: var(--s-5); margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem); }
+  .steps { position: relative; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: var(--gap); padding: 0; margin: 0; list-style: none; }
+  .steps::before { content: ''; position: absolute; left: 0; right: 0; top: 16px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0.6; }
+  .steps li { position: relative; display: grid; gap: var(--s-3); align-content: start; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-2); }
+  .node { width: 32px; height: 32px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); color: var(--accent); font-size: var(--fs-micro); }
+
+  /* Deployment, integrations and industries side by side in one card, so no column is left half-empty. */
+  .specs { margin-top: var(--s-8); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-6) var(--s-8); }
+  .spec { display: grid; gap: var(--s-3); align-content: start; }
+  .spec .check-list { gap: var(--s-2); }
+  .spec .check-list li { font-size: var(--fs-sm); line-height: 1.55; }
+  .ind { transition: border-color 0.2s, color 0.2s; }
+  .ind:hover { border-color: var(--accent); color: var(--text); }
+  .custom { margin-top: var(--gap); flex-direction: row; justify-content: space-between; align-items: center; gap: var(--s-8); padding: clamp(1.5rem, 1rem + 1.6vw, 2.5rem); }
+  .custom-copy { display: grid; gap: var(--s-3); }
+  .custom h2 { font-size: var(--fs-2xl); }
+  .custom .lead { font-size: var(--fs-md); color: var(--text-2); max-width: 70ch; }
+  .custom .btn { flex: none; }
+  .card-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-2); }
+  @media (max-width: 1024px) {
+    .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .spec:last-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 860px) {
+    .steps { grid-template-columns: minmax(0, 1fr); gap: var(--s-3); }
+    .steps::before { left: 16px; right: auto; top: 16px; bottom: 16px; width: 1px; height: auto; background: linear-gradient(180deg, var(--accent), transparent); }
+    .steps li { grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: var(--s-4); }
+    .specs { grid-template-columns: minmax(0, 1fr); }
+    .custom { flex-direction: column; align-items: flex-start; }
+  }
+</style>

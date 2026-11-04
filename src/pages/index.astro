@@ -1,0 +1,274 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSlider from '../components/sections/HeroSlider.astro';
+import Journey from '../components/sections/Journey.astro';
+import Picture from '../components/media/Picture.astro';
+import Video from '../components/media/Video.astro';
+import CameraFeed from '../components/mockups/CameraFeed.astro';
+import HubDashboard from '../components/mockups/HubDashboard.astro';
+import ArchitectureDiagram from '../components/sections/ArchitectureDiagram.astro';
+import PillarGrid from '../components/sections/PillarGrid.astro';
+import MethodTimeline from '../components/sections/MethodTimeline.astro';
+import IndustryGrid from '../components/sections/IndustryGrid.astro';
+import CTASection from '../components/sections/CTASection.astro';
+import UseCaseCard from '../components/cards/UseCaseCard.astro';
+import InsightCard from '../components/cards/InsightCard.astro';
+import { usecases } from '../data/usecases';
+import { products } from '../data/products';
+import { pillars } from '../data/pillars';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('insights')).sort((a, b) => +b.data.date - +a.data.date);
+const featured = posts.find((p) => p.data.featured) ?? posts[0];
+const latest = posts.filter((p) => p !== featured).slice(0, 3);
+// PPE compliance has its own section (the live camera feed) further up, so the grid leads with work at height.
+const featuredCases = ['work-at-height', 'surface-defect-inspection', 'conveyor-belt-monitoring', 'forklift-pedestrian-safety', 'analog-gauge-reading', 'bridge-inspection']
+  .map((s) => usecases.find((u) => u.slug === s))
+  .filter((u): u is NonNullable<typeof u> => Boolean(u));
+
+// Honest catalogue counts, computed from the product phases.
+const available = products.filter((p) => p.phase === 'Available').length;
+const notYet = products.length - available;
+
+const trust = [
+  { t: 'Edge-first', d: 'Video stays on site and keeps working without internet. Only events and metadata leave by default.', h: '/platform#edge' },
+  { t: 'Safety, not surveillance', d: 'No facial recognition by default, no individual performance scoring, and a human can always override.', h: '/trust/ai-ethics' },
+  { t: 'Security by design', d: 'Built toward ISO/IEC 27001 and IEC 62443 for industrial systems. Our certification roadmap is public.', h: '/trust/security' },
+  { t: 'Measured accuracy', d: 'Every deployment ships with a validation report and a monthly accuracy report card.', h: '/engineering' },
+];
+---
+<BaseLayout title="Infraglance" image="/og/default.png">
+  <HeroSlider />
+
+  <!-- Fact bar -->
+  <section class="facts tone-dark" aria-label="At a glance">
+    <div class="container container--wide facts-grid">
+      <div><b>{pillars.length}</b><span>solution pillars on one platform</span></div>
+      <div><b>{available}</b><span>products available today, <span class="nb">{notYet} more</span> in early access or on the roadmap</span></div>
+      <div><b>On-site</b><span>edge processing that keeps working offline</span></div>
+      <div><b>RTSP / ONVIF</b><span>any IP camera you already own</span></div>
+    </div>
+  </section>
+
+  <!-- Intro (light) -->
+  <section class="section tone-light">
+    <div class="container container--wide split intro">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">What we do</span>
+        <h2>Vision AI for the people who run plants and infrastructure.</h2>
+        <p class="lead">Infraglance turns CCTV, inspection cameras, thermal and drone imagery into decisions on safety, quality, operations and asset condition&nbsp;— on one edge-first platform.</p>
+        <div class="btn-row"><a href="/platform" class="btn btn--primary">How the platform works <span class="arrow" aria-hidden="true">→</span></a><a href="/use-cases" class="btn btn--ghost">Browse use cases</a></div>
+      </div>
+      <div class="collage" data-reveal style="--d:0.1s">
+        <Picture img="factory-hall-wide" alt="Wide view of a modern factory hall" class="c1" sizes="(min-width: 1024px) 34vw, 100vw" />
+        <Picture img="cctv-industrial" alt="Two bullet surveillance cameras mounted on a concrete wall" class="c2" sizes="(min-width: 1024px) 20vw, 50vw" />
+        <Picture img="solar-farm" alt="Aerial view of a solar farm" class="c3" sizes="(min-width: 1024px) 20vw, 50vw" />
+      </div>
+    </div>
+  </section>
+
+  <Journey />
+
+  <!-- Pillars (light) -->
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Solutions</span>
+          <h2>Five pillars, from the shop floor to the bridge deck.</h2>
+        </div>
+        <a href="/products" class="btn btn--ghost">Product catalogue <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <PillarGrid />
+    </div>
+  </section>
+
+  <!-- Live camera (mist) -->
+  <section class="section tone-mist">
+    <div class="container container--wide split">
+      <div class="stack" data-reveal>
+        <span class="eyebrow" style="--accent:var(--guard)">Glance Guard · live on CCTV</span>
+        <h2>Works on the cameras you already have.</h2>
+        <p class="lead">Any RTSP or ONVIF camera. Video is processed on a Glance Edge box on your site&nbsp;— only events, evidence clips and metadata leave the building.</p>
+        <ul class="check-list">
+          <li>One violation becomes one event, with duration and severity&nbsp;— not fifty frame alerts.</li>
+          <li>Faces blurred on the device. No facial recognition by default.</li>
+          <li>Accuracy measured on your own footage and reported every month.</li>
+        </ul>
+        <a href="/use-cases/ppe-compliance" class="link-arrow">See the PPE compliance use case <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div data-reveal style="--d:0.1s"><CameraFeed /></div>
+    </div>
+  </section>
+
+  <!-- Media band -->
+  <section class="band tone-dark" aria-label="Built for industrial environments">
+    <Video src="v-factory-robots" poster="robot-cell" class="band-media" alt="" />
+    <div class="band-shade" aria-hidden="true"></div>
+    <div class="container container--wide band-copy">
+      <span class="eyebrow">Engineered for the floor</span>
+      <h2>Built for dust, heat, vibration and night shifts.</h2>
+      <div class="band-points">
+        <div><b>Works offline</b><span>Detection and local alarms keep running when the network drops.</span></div>
+        <div><b>Rugged hardware</b><span>Fanless edge, IP66 enclosures and hazardous-area partners.</span></div>
+        <div><b>Calibrated imaging</b><span>Lighting and optics engineered so defects are visible first.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use cases (light) -->
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Use cases</span>
+          <h2>Start from the problem, not the model.</h2>
+        </div>
+        <a href="/use-cases" class="btn btn--ghost">All {usecases.length} use cases <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="grid grid-3">{featuredCases.map((u, i) => <UseCaseCard u={u} delay={(i % 3) * 0.05} />)}</div>
+    </div>
+  </section>
+
+  <!-- Industries (light; tiles carry their own dark shade) -->
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Industries</span>
+          <h2>Tuned to the industry you run.</h2>
+        </div>
+        <a href="/industries" class="btn btn--ghost">All industries <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <IndustryGrid />
+    </div>
+  </section>
+
+  <!-- Platform (dark) -->
+  <section class="section tone-dark platform-sec">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">The Glance Platform</span>
+        <h2>From pixel to work order.</h2>
+        <p class="lead">Edge-first and camera-agnostic. Video, thermal and drone imagery meet your PLC and SCADA signals, then flow into the systems your teams already use.</p>
+      </div>
+      <ArchitectureDiagram />
+      <div class="split hub-row">
+        <div class="stack" data-reveal>
+          <span class="eyebrow">Glance Hub</span>
+          <h3 class="h3-lg">Safety, quality and flow in one view&nbsp;— with proof it’s working.</h3>
+          <ul class="check-list">
+            <li>Live events with evidence, severity and acknowledgement</li>
+            <li>Zone heatmaps and near-miss trends as leading indicators</li>
+            <li>Precision, recall and false alarms per camera, per month</li>
+          </ul>
+          <a href="/platform" class="link-arrow">Explore the platform <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div data-reveal style="--d:0.1s"><HubDashboard /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Method (mist) -->
+  <section class="section tone-mist">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">The Glance Method</span>
+          <h2>Proven on your data before you commit.</h2>
+        </div>
+        <a href="/pricing" class="btn btn--ghost">Engagement models <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <MethodTimeline />
+    </div>
+  </section>
+
+  <!-- Trust (light, tight) -->
+  <section class="section section--tight tone-light">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Trust</span>
+          <h2>Built to be trusted on site.</h2>
+        </div>
+        <a href="/trust/security" class="btn btn--ghost">Security &amp; compliance <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="trust">
+        {trust.map((x, i) => (
+          <a href={x.h} class="trust-item" data-reveal style={`--d:${i * 0.06}s`}>
+            <span class="mono n">0{i + 1}</span>
+            <h3>{x.t}</h3>
+            <p>{x.d}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Insights (light) -->
+  {featured && (
+    <section class="section tone-light">
+      <div class="container container--wide">
+        <div class="section-head section-head--row" data-reveal>
+          <div class="stack">
+            <span class="eyebrow">Insights</span>
+            <h2>From the engineering team.</h2>
+          </div>
+          <a href="/insights" class="btn btn--ghost">All insights <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <InsightCard post={featured} variant="feature" />
+        {latest.length > 0 && <div class="grid grid-3 latest">{latest.map((p, i) => <InsightCard post={p} delay={i * 0.05} />)}</div>}
+      </div>
+    </section>
+  )}
+
+  <CTASection title="Bring us your hardest visual problem." image="industrial-night" />
+</BaseLayout>
+
+<style>
+  .facts { background: var(--bg-2); border-bottom: 1px solid var(--line); }
+  .facts-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .facts-grid > div { display: grid; gap: var(--s-1); align-content: start; padding: var(--s-5) var(--s-6); border-left: 1px solid var(--line); }
+  .facts-grid > div:first-child { border-left: 0; padding-left: 0; }
+  .facts b { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .facts span { font-size: var(--fs-sm); color: var(--muted); line-height: 1.45; }
+  .facts .nb { white-space: nowrap; }
+  @media (max-width: 900px) {
+    .facts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .facts-grid > div { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+    .facts-grid > div:nth-child(-n + 2) { border-top: 0; }
+  }
+
+  .intro { align-items: center; }
+  .collage { display: grid; grid-template-columns: 1.2fr 1fr; grid-template-rows: 1fr 1fr; gap: var(--s-3); height: clamp(320px, 34vw, 500px); }
+  .collage :global(.c1) { grid-row: span 2; }
+  .collage :global(.pic) { height: 100%; border-radius: var(--radius); }
+
+  .band { position: relative; min-height: clamp(24rem, 56vh, 36rem); display: flex; align-items: flex-end; overflow: hidden; color: #fff; }
+  .band :global(.band-media) { position: absolute; inset: 0; }
+  .band-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(5, 7, 11, 0.92) 0%, rgba(5, 7, 11, 0.5) 55%, rgba(5, 7, 11, 0.2) 100%); }
+  /* On phones the copy covers busy machinery, so the shade stays heavy all the way up. */
+  @media (max-width: 760px) { .band-shade { background: linear-gradient(0deg, rgb(var(--ink-rgb) / 0.9) 0%, rgb(var(--ink-rgb) / 0.78) 50%, rgb(var(--ink-rgb) / 0.62) 100%); } }
+  .band-copy { position: relative; display: grid; gap: var(--s-4); padding-block: var(--section-y-tight); }
+  .band-copy h2 { max-width: 22ch; font-size: var(--fs-3xl); }
+  .band-points { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-top: var(--s-2); border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: var(--s-5); }
+  .band-points div { display: grid; gap: var(--s-1); }
+  .band-points b { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600; }
+  .band-points span { color: rgba(238, 243, 248, 0.78); font-size: var(--fs-sm); }
+  @media (max-width: 760px) { .band-points { grid-template-columns: 1fr; } }
+
+  .platform-sec { background: var(--bg); }
+  .hub-row { margin-top: var(--s-16); }
+  .h3-lg { font-size: var(--fs-2xl); }
+
+  .latest { margin-top: var(--gap); }
+
+  .trust { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .trust-item { display: grid; gap: var(--s-2); align-content: start; padding: var(--s-6); background: var(--surface); transition: background 0.25s; }
+  .trust-item:hover { background: var(--surface-2); }
+  .trust-item .n { font-size: var(--fs-micro); color: var(--cyan); letter-spacing: 0.06em; }
+  .trust-item h3 { font-size: var(--fs-lg); }
+  .trust-item p { font-size: var(--fs-sm); color: var(--muted); }
+  @media (max-width: 960px) { .trust { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .trust { grid-template-columns: 1fr; } }
+</style>

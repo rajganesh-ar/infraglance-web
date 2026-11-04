@@ -1,0 +1,276 @@
+---
+/**
+ * Glance Ask: a plain-language question about forklift near-misses and an
+ * answer with its evidence (the closest-approach clip, an event map of Bay 2
+ * and the other clips) and a by-day chart.
+ *
+ * Hero frame (server markup): the full exchange. The loop replays it and
+ * never goes dark: only the question dims while it is retyped in the composer;
+ * on send, the answer block fades to half and streams back in over its own
+ * faint layout, then the evidence and bars light up. Times sit inside the
+ * changeover window the answer names.
+ */
+import MockWindow from './MockWindow.astro';
+import Picture from '../media/Picture.astro';
+import Icon from './ui/Icon.astro';
+import AppMark from './ui/AppMark.astro';
+
+const Q = 'How many forklift near-misses in Bay 2 last week, and when?';
+const A = '6 near-misses in Bay 2 last week, up from 2 the week before. 4 of 6 happened at the blind corner by rack R-14 during shift changeover (07:45–08:15). Closest approach: 0.9 m on Wednesday.';
+const PLACEHOLDER = 'Ask about your sites…';
+
+/* Closest approach (Wed): poster frame of the CAM-07 clip, the same frame Glance
+   Guard shows. Boxes are measured on the full 16:9 frame (% of frame, same
+   geometry as CameraFeed); the crop scales the frame by z (relative to the
+   16:10 thumbnail width) around (cx, cy), clamps to the edges and keeps both
+   boxes inside the thumbnail, right of the duration tag. */
+type Box = { l: number; t: number; w: number; h: number; tone: 'bad' | 'info' };
+type Clip = { img: string; ar: number; z: number; cx: number; cy: number; boxes: Box[]; when: string; what: string; dur: string };
+const clip: Clip = {
+  img: 'v-warehouse-forklift', ar: 16 / 9, z: 1.55, cx: 47, cy: 57,
+  boxes: [
+    { l: 45.6, t: 29.4, w: 28.4, h: 55.6, tone: 'info' }, // vehicle
+    { l: 59.4, t: 37.6, w: 7.3, h: 34.8, tone: 'bad' }, // person
+  ],
+  when: 'Wed 08:03', what: '0.9 m · CAM-07', dur: '0:11',
+};
+const THUMB_AR = 16 / 10;
+const cropStyle = (c: Clip) => {
+  const w = 100 * c.z;
+  const h = w * (THUMB_AR / c.ar);
+  const clamp = (v: number, min: number) => Math.min(0, Math.max(min, v));
+  const left = clamp(50 - (w * c.cx) / 100, 100 - w);
+  const top = clamp(50 - (h * c.cy) / 100, 100 - h);
+  return `width:${w.toFixed(1)}%;height:${h.toFixed(1)}%;left:${left.toFixed(1)}%;top:${top.toFixed(1)}%`;
+};
+const boxStyle = (b: Box) => `left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%`;
+
+/* Event map of Bay 2 (160 x 100 plan units): four rack rows, the cross aisle on
+   the right and the six near-misses; four sit at the blind corner where the
+   end of rack R-14 meets the cross aisle, inside CAM-07's view. */
+const racks = [12, 32, 54, 74].map((y) => ({ x: 8, y, w: 100, h: 8 }));
+const events = [
+  { x: 115, y: 45, hi: true }, // Wed 08:03, closest approach
+  { x: 120, y: 49, hi: false }, { x: 113, y: 50, hi: false }, { x: 121, y: 43, hi: false },
+  { x: 60, y: 26, hi: false }, { x: 134, y: 84, hi: false },
+];
+const days = [
+  { d: 'M', v: 1 }, { d: 'T', v: 0 }, { d: 'W', v: 2 }, { d: 'T', v: 1 }, { d: 'F', v: 1 }, { d: 'S', v: 0 }, { d: 'S', v: 1 },
+];
+---
+<MockWindow app="Glance Ask" context={['Plant Q&A']} label="Animated Glance Ask conversation: a question about forklift near-misses is typed and sent, and the answer streams in with the closest-approach clip, a map of where the events happened, five more clips and a bar chart by day." class="ask">
+  <div class="chat" data-ask>
+    <div class="msg user" data-user>
+      <span class="txt">{Q}</span>
+    </div>
+
+    <div class="msg bot" data-bot>
+      <div class="bot-head" data-dim>
+        <span class="av"><AppMark size={14} /></span>
+        <span class="ui-caps">Glance Ask</span>
+        <span class="thinking is-off" data-think><i></i><i></i><i></i></span>
+        <span class="ui-meta src">6 events · Bay 2</span>
+      </div>
+      <p class="txt ans" data-ans><span class="ghost" data-ghost>{A}</span><span class="typed" data-a>{A}</span></p>
+
+      <div class="thumbs">
+        <figure class="thumb" data-thumb>
+          <div class="ui-media shot">
+            <div class="crop" style={cropStyle(clip)}>
+              <Picture img={clip.img} decorative position="50% 50%" sizes="240px" />
+              {clip.boxes.map((b) => <span class={`ui-box is-${b.tone}`} style={boxStyle(b)}></span>)}
+            </div>
+            <span class="ui-hud dur"><Icon name="play" size={10} />{clip.dur}</span>
+          </div>
+          <figcaption><b class="ui-id">{clip.when}</b><span>{clip.what}</span></figcaption>
+        </figure>
+
+        <figure class="thumb" data-thumb>
+          <div class="ui-media shot map">
+            <svg viewBox="0 0 160 100" aria-hidden="true">
+              <polygon class="fov" points="154,4 100,34 126,64" />
+              {racks.map((r) => <rect class="rack" x={r.x} y={r.y} width={r.w} height={r.h} />)}
+              <line class="lane" x1="124" y1="4" x2="124" y2="96" />
+              <circle class="heat" cx="117" cy="47" r="15" />
+              <circle class="heat" cx="117" cy="47" r="8" />
+              {events.map((e) => <circle class:list={['evt', { 'is-hi': e.hi }]} cx={e.x} cy={e.y} r={e.hi ? 3.2 : 2.4} />)}
+            </svg>
+            <span class="ui-hud rk">R-14</span>
+            <span class="ui-hud cam"><Icon name="camera" size={10} />07</span>
+          </div>
+          <figcaption><b class="ui-id">Bay 2 map</b><span>4 of 6 at R-14</span></figcaption>
+        </figure>
+
+        <figure class="thumb" data-thumb>
+          <div class="ui-media shot more">
+            <Picture img="forklift-aisle" decorative position="40% 70%" sizes="240px" />
+            <span class="more-n">+5</span>
+          </div>
+          <figcaption><b class="ui-id">More clips</b><span>CAM-03, 05, 07</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="chart" data-chart>
+        <div class="chart-h"><span class="ui-label">Near-misses by day</span><span class="ui-meta">Last week · total 6</span></div>
+        <div class="bars">
+          {days.map((d) => (
+            <div class="b">
+              <span class="v">{d.v}</span>
+              <i data-bar style={`height:${d.v * 24}px`}></i>
+            </div>
+          ))}
+        </div>
+        <div class="days">{days.map((d) => <span>{d.d}</span>)}</div>
+      </div>
+    </div>
+
+    <div class="ui-input composer" data-composer>
+      <span class="in"><span class="in-run"><span data-input data-placeholder={PLACEHOLDER}>{PLACEHOLDER}</span><i class="caret is-off" data-caret></i></span></span>
+      <span class="ui-btn is-primary is-icon" data-send><Icon name="send" /></span>
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .chat { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; align-content: start; }
+
+  .msg { border-radius: var(--ui-r); border: 1px solid var(--ui-line-2); font-size: var(--ui-fs-md); line-height: 20px; }
+  .user { justify-self: end; max-width: 85%; padding: 8px 12px; background: var(--ui-bg-3); color: var(--ui-text-1); }
+  .bot { justify-self: start; width: 100%; max-width: 96%; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; background: var(--ui-bg-2); }
+
+  /* The ghost reserves the answer's final size, and doubles as the faint
+     layout the answer streams over during the replay. */
+  .txt { display: grid; margin: 0; }
+  .ans > span { grid-area: 1 / 1; }
+  .ghost { visibility: hidden; color: var(--ui-text-4); }
+  .ans { color: var(--ui-text-2); }
+  .caret { display: inline-block; flex: none; width: 2px; height: 16px; margin-left: 1px; background: var(--ui-accent); }
+  .caret.is-off, .thinking.is-off { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .caret { animation: caret 1s steps(1) infinite; }
+    .thinking i { animation: think 1s ease-in-out infinite; }
+    .thinking i:nth-child(2) { animation-delay: 0.15s; }
+    .thinking i:nth-child(3) { animation-delay: 0.3s; }
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+  @keyframes think { 50% { opacity: 0.25; } }
+
+  .bot-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .av { display: grid; place-items: center; width: 20px; height: 20px; border-radius: var(--ui-r); background: var(--ui-bg-0); border: 1px solid var(--ui-line-3); }
+  .bot-head .ui-caps { color: var(--ui-text-2); }
+  .thinking { display: inline-flex; gap: 3px; }
+  .thinking i { width: 4px; height: 4px; border-radius: 50%; background: var(--ui-accent); }
+  .src { margin-left: auto; white-space: nowrap; }
+
+  .thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .thumb { margin: 0; overflow: hidden; border-radius: var(--ui-r); border: 1px solid var(--ui-line-2); background: var(--ui-bg-1); }
+  .shot { aspect-ratio: 16 / 10; }
+  .crop { position: absolute; }
+  .crop :global(.ui-box) { border-width: 1.5px; }
+
+  /* Event map: plan view, no photo. */
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .map .rack { fill: var(--ui-bg-3); stroke: var(--ui-line-3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .map .lane { stroke: var(--ui-line-3); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  .map .fov { fill: var(--ui-accent-bg); stroke: var(--ui-accent-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .map .heat { fill: var(--ui-bad); opacity: 0.14; }
+  .map .evt { fill: var(--ui-warn); stroke: var(--ui-bg-0); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .map .evt.is-hi { fill: var(--ui-bad); stroke: var(--ui-text-1); }
+  .map .ui-hud { padding: 0 4px; font-size: var(--ui-fs-xs); line-height: 16px; }
+  .map .rk { left: 34%; top: calc(36% - 8px); }
+  .map .cam { right: 4px; top: 4px; gap: 3px; color: var(--ui-accent-hi); }
+
+  /* "+5" tile: a dimmed, softened still behind the count. */
+  .more :global(.pic img) { filter: blur(3px) saturate(0.5) brightness(0.42); transform: scale(1.06); }
+  .more-n { position: absolute; inset: 0; display: grid; place-items: center; font: 600 var(--ui-fs-kpi) / 1 var(--ui-font); color: var(--ui-text-1); }
+  .dur { left: 4px; bottom: 4px; gap: 4px; padding: 0 4px; font-size: var(--ui-fs-xs); line-height: 16px; }
+  .thumb figcaption { display: grid; padding: 4px 8px 6px; border-top: 1px solid var(--ui-line-1); }
+  .thumb figcaption b { color: var(--ui-text-1); }
+  .thumb figcaption span { font-size: var(--ui-fs-xs); line-height: 16px; color: var(--ui-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .chart { padding-top: 12px; border-top: 1px solid var(--ui-line-1); }
+  .chart-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; align-items: end; height: 72px; border-bottom: 1px solid var(--ui-line-2); }
+  .b { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; height: 100%; }
+  .b i { display: block; width: 100%; max-width: 28px; border-radius: 2px 2px 0 0; background: var(--ui-s2); }
+  .v { font: 500 var(--ui-fs-xs) / 16px var(--ui-font); color: var(--ui-text-2); }
+  .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 4px; text-align: center; }
+  .days span { font: 500 var(--ui-fs-xs) / 16px var(--ui-mono); color: var(--ui-text-3); }
+
+  .composer { transition: border-color var(--ui-t-fast); }
+  .composer.is-focus { border-color: var(--ui-accent-line); }
+  /* While typing, a long question keeps its end (and the caret) in view:
+     the box turns RTL so overflow spills off the left, the run stays LTR. */
+  .composer .in { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-align: left; }
+  .composer .in-run { display: inline-flex; align-items: center; direction: ltr; unicode-bidi: isolate; vertical-align: middle; }
+  .composer.is-typing .in { direction: rtl; }
+  .composer.is-typing [data-input] { color: var(--ui-text-1); }
+  .composer .ui-btn { flex: none; transition: background-color var(--ui-t-fast); }
+  .composer .ui-btn.is-press { background: var(--ui-accent-hi); }
+
+  @container ui (max-width: 480px) {
+    .user { max-width: 92%; }
+    .bot { max-width: 100%; }
+    .thumbs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .thumb:nth-child(3) { display: none; }
+    .src { display: none; }
+  }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-ask]').forEach((root) => {
+    const user = root.querySelector<HTMLElement>('[data-user]')!;
+    const head = root.querySelector<HTMLElement>('[data-dim]')!;
+    const ans = root.querySelector<HTMLElement>('[data-ans]')!;
+    const ghost = root.querySelector<HTMLElement>('[data-ghost]')!;
+    const a = root.querySelector<HTMLElement>('[data-a]')!;
+    const think = root.querySelector<HTMLElement>('[data-think]')!;
+    const thumbs = [...root.querySelectorAll<HTMLElement>('[data-thumb]')];
+    const chart = root.querySelector<HTMLElement>('[data-chart]')!;
+    const bars = [...root.querySelectorAll<HTMLElement>('[data-bar]')];
+    const composer = root.querySelector<HTMLElement>('[data-composer]')!;
+    const input = root.querySelector<HTMLElement>('[data-input]')!;
+    const caret = root.querySelector<HTMLElement>('[data-caret]')!;
+    const send = root.querySelector<HTMLElement>('[data-send]')!;
+    const Q = user.textContent?.trim() ?? '';
+    const A = a.textContent ?? '';
+    const PH = input.dataset.placeholder ?? '';
+    // Dimmed parts stay readable: the window never reads as dark or empty.
+    const DIM = 0.45;
+
+    mockLoop(root, (_gsap, tl) => {
+      const o = { q: 0, a: 0 };
+      // 0–2.0 s hero holds. Only the question dims while it is retyped in
+      // the composer; the answer and evidence stay lit.
+      tl.set(user, { y: 0 }, 0)
+        .set(bars, { scaleY: 1, transformOrigin: '50% 100%' }, 0)
+        .to(user, { opacity: DIM, duration: 0.2, ease: 'power2.in' }, 2.0)
+        .call(() => { composer.classList.add('is-focus', 'is-typing'); input.textContent = ''; caret.classList.remove('is-off'); }, [], 2.1)
+        .fromTo(o, { q: 0 }, { q: Q.length, duration: 1.5, ease: 'none', immediateRender: false, onUpdate: () => { input.textContent = Q.slice(0, Math.round(o.q)); } }, 2.2)
+        // Send: the bubble lights up, the composer clears and the answer
+        // block fades to half for the re-run.
+        .call(() => send.classList.add('is-press'), [], 3.85)
+        .call(() => {
+          send.classList.remove('is-press');
+          composer.classList.remove('is-focus', 'is-typing');
+          caret.classList.add('is-off');
+          input.textContent = PH;
+        }, [], 4.0)
+        .fromTo(user, { opacity: DIM, y: 6 }, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, 4.0)
+        .to([head, ans, ...thumbs, chart], { opacity: DIM, duration: 0.2, ease: 'power2.in' }, 4.0)
+        // Answer: thinking, then the text streams over its faint layout.
+        .to(head, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 4.25)
+        .call(() => think.classList.remove('is-off'), [], 4.25)
+        .call(() => { think.classList.add('is-off'); a.textContent = ''; ghost.style.visibility = 'visible'; }, [], 4.8)
+        .to(ans, { opacity: 1, duration: 0.2, ease: 'power2.out' }, 4.8)
+        .fromTo(o, { a: 0 }, { a: A.length, duration: 1.8, ease: 'none', immediateRender: false, onUpdate: () => { a.textContent = A.slice(0, Math.round(o.a)); } }, 4.8)
+        .call(() => { ghost.style.visibility = ''; }, [], 6.6)
+        .to(thumbs, { opacity: 1, duration: 0.25, ease: 'power2.out', stagger: 0.1 }, 6.6)
+        .to(chart, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 6.8)
+        .fromTo(bars, { scaleY: 0.35 }, { scaleY: 1, duration: 0.5, ease: 'power2.out', stagger: 0.05, transformOrigin: '50% 100%', immediateRender: false }, 6.8)
+        .to({}, { duration: 0.3 }, 7.6);
+    }, { repeatDelay: 2.4 });
+  });
+</script>

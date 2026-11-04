@@ -1,0 +1,89 @@
+---
+import Picture from '../media/Picture.astro';
+import { photo } from '../../lib/media';
+
+interface Link { href: string; label: string }
+interface Props {
+  title?: string;
+  lead?: string;
+  /** @deprecated use `lead` (kept so existing pages keep working) */
+  text?: string;
+  eyebrow?: string;
+  image?: string;
+  primary?: Link;
+  /** null hides the secondary button */
+  secondary?: Link | null;
+}
+const {
+  title = 'Bring us your hardest visual problem.',
+  text,
+  eyebrow = 'Design partner programme · now open',
+  image = 'industrial-night',
+  primary = { href: '/contact', label: 'Book a demo' },
+} = Astro.props;
+const lead = Astro.props.lead ?? text ?? 'Start with a paid feasibility study on your own footage or samples. In one to two weeks you’ll know what can be detected, how accurately, and what it’s worth.';
+// An explicit `secondary={null}` hides it; omitting the prop shows the default.
+const secondary = 'secondary' in Astro.props ? Astro.props.secondary : { href: '/pricing', label: 'Engagement models' };
+// Never link a page's CTA back to itself.
+const here = Astro.url.pathname.replace(/(.)\/+$/, '$1');
+const showSecondary = !!secondary && secondary.href.replace(/[?#].*$/, '').replace(/(.)\/+$/, '$1') !== here;
+const lum = (photo(image) as unknown as { lum?: number } | undefined)?.lum;
+// Bind a spaced dash to the word before it (no line starts with "— …").
+const nb = (s: string) => s.replace(/\s+([—–])\s+/g, ' $1 ');
+---
+<section class="cta tone-dark" style={lum != null ? `--media-lum:${lum}` : undefined}>
+  <Picture img={image} alt="" decorative class="cta-img" sizes="100vw" />
+  <div class="media-scrim cta-scrim" aria-hidden="true"></div>
+  <div class="container container--wide cta-inner" data-reveal>
+    <div class="copy on-media">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h2>{nb(title)}</h2>
+      {lead && <p class="lead">{lead}</p>}
+    </div>
+    <div class="btn-row">
+      <a href={primary.href} class="btn btn--primary btn--lg">{primary.label} <span class="arrow" aria-hidden="true">→</span></a>
+      {showSecondary && secondary && <a href={secondary.href} class="btn btn--ghost btn--lg">{secondary.label}</a>}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta { position: relative; overflow: hidden; padding-block: clamp(3.5rem, 2.5rem + 3vw, 5.5rem); background: var(--ink); color: #fff; }
+  .cta :global(.cta-img) { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* Calmer footage under the copy: a touch less colour, so highlights don't fight the type */
+  .cta :global(.cta-img img) { filter: saturate(0.85); }
+  /*
+   * The CTA band carries copy on the left and buttons on the right, so it gets its own scrim:
+   * a full-width ramp (dense behind the copy, never below ≈ 42% ink under the buttons) plus a
+   * soft corner pool where the buttons sit. Scaled by --scrim-k (brighter photo → stronger).
+   */
+  .cta .cta-scrim {
+    background:
+      radial-gradient(42% 90% at 100% 100%, rgb(var(--ink-rgb) / 0.3), transparent 72%),
+      linear-gradient(90deg,
+        rgb(var(--ink-rgb) / calc(0.82 * var(--scrim-k))) 0%,
+        rgb(var(--ink-rgb) / calc(0.72 * var(--scrim-k))) 40%,
+        rgb(var(--ink-rgb) / calc(0.52 * var(--scrim-k))) 68%,
+        rgb(var(--ink-rgb) / calc(0.42 * var(--scrim-k))) 100%);
+  }
+  .cta-inner { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 24px 48px; }
+  .copy { display: grid; gap: 16px; max-width: 42rem; }
+  .copy h2 { font-size: var(--fs-3xl); line-height: 1.12; max-width: 22ch; color: #fff; }
+  .lead { color: rgb(238 243 248 / 0.9); max-width: 58ch; }
+  /* Ghost button: a solid ink backing with a clear edge, so it reads the same on any photo */
+  .btn-row .btn--ghost {
+    --btn-bg: rgb(var(--ink-rgb) / 0.62); --btn-bd: rgb(255 255 255 / 0.4); --btn-fg: #fff;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .btn-row .btn--ghost:hover { --btn-bg: rgb(var(--ink-rgb) / 0.78); --btn-bd: rgb(255 255 255 / 0.7); }
+  @media (max-width: 900px) {
+    .cta-inner { grid-template-columns: 1fr; align-items: start; }
+    /* Stacked: copy over the top and middle, buttons below — an even, slightly heavier veil */
+    .cta .cta-scrim {
+      background: linear-gradient(180deg,
+        rgb(var(--ink-rgb) / calc(0.8 * var(--scrim-k))) 0%,
+        rgb(var(--ink-rgb) / calc(0.7 * var(--scrim-k))) 55%,
+        rgb(var(--ink-rgb) / calc(0.62 * var(--scrim-k))) 100%);
+    }
+  }
+</style>

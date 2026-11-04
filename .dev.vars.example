@@ -1,0 +1,7 @@
+# Local development secrets for `astro dev` and `npm run preview` (wrangler dev).
+# Copy this file to .dev.vars (which is gitignored):  cp .dev.vars.example .dev.vars
+#
+# This is Cloudflare's PUBLISHED Turnstile test secret: it always passes and is safe to commit.
+# It pairs with the test site key the contact form uses when PUBLIC_TURNSTILE_SITE_KEY is unset.
+# Production uses a real secret:  npx wrangler secret put TURNSTILE_SECRET
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA

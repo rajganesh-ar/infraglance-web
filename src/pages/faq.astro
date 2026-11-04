@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import CTASection from '../components/sections/CTASection.astro';
+import { faq } from '../data/faq';
+import { nb } from '../data/helpers';
+
+const slug = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const total = faq.reduce((n, g) => n + g.items.length, 0);
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.flatMap((g) => g.items).map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+}];
+---
+<BaseLayout title="FAQ" description="Answers on cameras, hardware, data and privacy, accuracy, deployment, integrations and pricing for Infraglance vision AI." jsonLd={jsonLd}>
+  <PageHero eyebrow="FAQ" title="Questions we hear <span class='gradient-text'>on every site visit.</span>" lead={nb(`${total} answers on cameras, data, accuracy, deployment and commercials — written plainly. If yours isn’t here, ask an engineer.`)} video="v-warehouse-forklift" crumbs={[{ href: '/faq', label: 'FAQ' }]} />
+
+  <section class="section tone-light">
+    <div class="container container--wide layout">
+      <nav class="side" aria-label="FAQ topics">
+        <span class="mono side-h">Topics</span>
+        <ol role="list">{faq.map((g) => <li><a href={`#${slug(g.group)}`}><span>{g.group}</span><span class="mono count">{g.items.length}</span></a></li>)}</ol>
+        <a href="/contact" class="btn btn--primary">Ask an engineer <span class="arrow" aria-hidden="true">→</span></a>
+      </nav>
+      <div class="groups">
+        {faq.map((g) => (
+          <div class="group" id={slug(g.group)}>
+            <h2>{g.group}</h2>
+            <div class="items">
+              {g.items.map((f) => (
+                <details class="accordion">
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+  <CTASection image="steel-plant" title="Still have a question?" lead={nb("Ask the engineers who deploy the platform. We’ll answer plainly — and tell you if vision is the wrong tool for the job.")} secondary={{ href: '/pricing', label: 'Engagement models' }} />
+</BaseLayout>
+
+<style>
+  .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: clamp(2rem, 1rem + 3vw, 4rem); align-items: start; }
+  .side { position: sticky; top: calc(var(--header-h) + var(--s-6)); display: grid; gap: var(--s-4); }
+  .side-h { font-size: var(--fs-micro); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .side ol { display: grid; gap: 2px; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  .side a:not(.btn) { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); padding: var(--s-2) 0 var(--s-2) var(--s-4); font-size: var(--fs-sm); color: var(--text-2); transition: color 0.2s; }
+  .side a:not(.btn):hover { color: var(--text); }
+  .side .count { font-size: var(--fs-micro); color: var(--muted); }
+  .side .btn { justify-self: start; }
+  .groups { display: grid; gap: var(--s-12); }
+  .group { scroll-margin-top: calc(var(--header-h) + var(--s-6)); }
+  .group h2 { font-size: var(--fs-2xl); margin-bottom: var(--s-4); }
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .side { position: static; }
+    .side ol { grid-template-columns: repeat(2, minmax(0, 1fr)); border-left: 0; gap: var(--s-1) var(--s-4); }
+    .side a:not(.btn) { padding-left: 0; border-bottom: 1px solid var(--line); }
+  }
+  @media (max-width: 560px) { .side ol { grid-template-columns: minmax(0, 1fr); } }
+</style>

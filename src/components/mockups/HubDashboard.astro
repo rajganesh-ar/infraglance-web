@@ -1,0 +1,293 @@
+---
+/**
+ * Glance Hub dashboard.
+ *
+ * variant 'overview' (default): plant-wide safety, quality and line KPIs.
+ * variant 'sense': plant condition only (leaks, hot spots, gauge readings,
+ * housekeeping); no PPE or quality numbers.
+ *
+ * Hero frame (server markup): every tile populated. The loop is a live phase
+ * only: zones drift, the newest event is highlighted and the first KPI ticks
+ * up then settles, ending on the hero frame.
+ */
+import MockWindow from './MockWindow.astro';
+import Icon from './ui/Icon.astro';
+
+interface Props {
+  variant?: 'overview' | 'sense';
+}
+const { variant = 'overview' } = Astro.props;
+const uid = Math.random().toString(36).slice(2, 7);
+
+type Kpi = { l: string; n: string; suf: string; d: string; dir: 'arrow-up' | 'arrow-down'; good: boolean };
+type Evt = { t: string; c: 'ok' | 'warn' | 'bad'; txt: string; s: string };
+
+const V = {
+  overview: {
+    context: ['Plant overview', 'Shift B'],
+    title: 'Plant overview',
+    label: 'Glance Hub dashboard with live updates: KPI tiles, a 14-day trend of alerts and near-misses, a zone heatmap and a live event feed.',
+    kpis: [
+      { l: 'Open events', n: '23', suf: '', d: '18%', dir: 'arrow-down', good: true },
+      { l: 'PPE compliance', n: '96.4', suf: '%', d: '4.1', dir: 'arrow-up', good: true },
+      { l: 'First-pass yield', n: '98.7', suf: '%', d: '0.6', dir: 'arrow-up', good: true },
+      { l: 'Line OEE', n: '81', suf: '%', d: '3', dir: 'arrow-up', good: true },
+    ] as Kpi[],
+    chart: 'Safety trend · 14 days',
+    series: ['Alerts', 'Near-misses'],
+    ticks: [30, 20, 10, 0],
+    a: [22, 20, 24, 21, 17, 15, 16, 13, 11, 12, 9, 8, 7, 6],
+    b: [11, 13, 9, 12, 10, 9, 8, 9, 7, 6, 7, 5, 6, 4],
+    heat: 'Zone heatmap',
+    events: [
+      { t: '14:32', c: 'bad', txt: 'No helmet · Aisle 14', s: 'Guard' },
+      { t: '14:29', c: 'warn', txt: 'Belt drift +41 mm · C-2', s: 'Flow' },
+      { t: '14:21', c: 'bad', txt: 'Reject · scratch · Line 4', s: 'Inspect' },
+      { t: '14:17', c: 'warn', txt: 'Vapour · valve V-12', s: 'Sense' },
+      { t: '14:05', c: 'ok', txt: 'Zone cleared · Press 2', s: 'Guard' },
+    ] as Evt[],
+  },
+  sense: {
+    context: ['Plant condition', 'Utilities'],
+    title: 'Plant condition',
+    label: 'Glance Hub plant-condition dashboard with live updates: open leaks, gauge readings in range, hot spots and housekeeping score, a 14-day trend of leaks and hot spots, a zone heatmap and a live event feed.',
+    kpis: [
+      { l: 'Open leaks', n: '3', suf: '', d: '2', dir: 'arrow-down', good: true },
+      { l: 'Gauges in range', n: '98.2', suf: '%', d: '0.4', dir: 'arrow-up', good: true },
+      { l: 'Hot spots > 80 °C', n: '2', suf: '', d: '1', dir: 'arrow-up', good: false },
+      { l: '5S score', n: '87', suf: '', d: '3', dir: 'arrow-up', good: true },
+    ] as Kpi[],
+    chart: 'Leaks & hot spots · 14 days',
+    series: ['Leaks', 'Hot spots'],
+    ticks: [12, 8, 4, 0],
+    a: [9, 8, 9, 7, 8, 6, 7, 6, 5, 6, 4, 5, 4, 3],
+    b: [4, 5, 3, 4, 4, 3, 3, 4, 2, 3, 2, 3, 1, 2],
+    heat: 'Findings by zone',
+    events: [
+      { t: '14:31', c: 'warn', txt: 'Vapour · valve V-12', s: 'Scene' },
+      { t: '14:26', c: 'bad', txt: 'PG-104 · 7.8 bar > 7.0', s: 'Gauge' },
+      { t: '14:18', c: 'bad', txt: 'Hot spot · MCC-2 · 84 °C', s: 'Thermal' },
+      { t: '14:09', c: 'warn', txt: 'Spill · Bay 3 drain', s: 'Scene' },
+      { t: '13:58', c: 'ok', txt: 'Exit E4 cleared', s: '5S' },
+    ] as Evt[],
+  },
+}[variant];
+
+const heat = variant === 'sense'
+  ? [1, 0, 2, 0, 1, 4, 0, 1, 0, 2, 7, 1, 0, 1, 3, 0, 0, 2, 1, 0, 0, 1, 5, 2]
+  : [2, 5, 1, 0, 3, 7, 2, 1, 0, 4, 9, 3, 1, 2, 6, 2, 0, 1, 3, 1, 0, 2, 5, 8];
+const hmax = Math.max(...heat);
+const cellO = (v: number) => (0.08 + (v / hmax) * 0.84).toFixed(2);
+
+const nav = ['grid', 'camera', 'bell', 'chart', 'wrench'] as const;
+
+/* Chart: 14 days, grid at y = 10 / 46 / 82 / 118 for the four ticks. */
+const H = 120;
+const grid = [10, 46, 82, 118];
+const top = V.ticks[0];
+const yOf = (v: number) => +(118 - (v / top) * 108).toFixed(1);
+const smooth = (vals: number[]) => {
+  const pts = vals.map((v, i) => [+(i * (320 / (vals.length - 1))).toFixed(1), yOf(v)]);
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] ?? p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
+  }
+  return d;
+};
+const dA = smooth(V.a);
+const dN = smooth(V.b);
+const lastA = yOf(V.a[V.a.length - 1]);
+---
+<MockWindow app="Glance Hub" context={V.context} label={V.label} class="hubdash">
+  <div class="hub" data-hub>
+    <div class="ui-side side">
+      {nav.map((n, i) => <span class={`ui-side-i ${i === 0 ? 'is-on' : ''}`}><Icon name={n} /></span>)}
+      <span class="ui-side-sep"></span>
+      <span class="ui-side-i"><Icon name="settings" /></span>
+    </div>
+
+    <div class="main">
+      <div class="toolbar">
+        <span class="tb-t">{V.title}</span>
+        <span class="ui-pill">Today · 06:00–14:32</span>
+        <span class="ui-pill is-ok"><span class="ui-dot is-ok is-live"></span>Live</span>
+      </div>
+
+      <div class="kpis">
+        {V.kpis.map((k) => (
+          <div class="ui-panel ui-kpi">
+            <span class="ui-label">{k.l}</span>
+            <div class="ui-kpi-row">
+              <b class="ui-kpi-v"><span data-n={k.n}>{k.n}</span>{k.suf && <small>{k.suf}</small>}</b>
+              <span class={`ui-delta ${k.good ? 'is-good' : 'is-bad'}`}><Icon name={k.dir} size={12} />{k.d}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="row">
+        <div class="ui-panel chart">
+          <div class="ui-panel-h">
+            <span class="ui-panel-t">{V.chart}</span>
+            <span class="ui-legend"><span><i style="--c:var(--ui-s1)"></i>{V.series[0]}</span><span><i style="--c:var(--ui-s2)"></i>{V.series[1]}</span></span>
+          </div>
+          <div class="plot">
+            <div class="y">{V.ticks.map((t, i) => <span style={`top:${grid[i]}px`}>{t}</span>)}</div>
+            <svg viewBox={`0 0 320 ${H}`} preserveAspectRatio="none" style={`height:${H}px`}>
+              <defs>
+                <linearGradient id={`hd-g-${uid}`} x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" style="stop-color: var(--ui-s1); stop-opacity: 0.16" />
+                  <stop offset="1" style="stop-color: var(--ui-s1); stop-opacity: 0" />
+                </linearGradient>
+              </defs>
+              {grid.map((y) => <line class="ui-grid-line" x1="0" x2="320" y1={y} y2={y} />)}
+              <path d={`${dA} L320,118 L0,118Z`} fill={`url(#hd-g-${uid})`} />
+              <path class="ui-series s2" d={dN} />
+              <path class="ui-series s1" d={dA} />
+            </svg>
+            <span class="now" data-now style={`top:${lastA}px`}></span>
+          </div>
+          <div class="ui-axis x"><span>14 d</span><span>7 d</span><span>Today</span></div>
+        </div>
+
+        <div class="ui-panel heat">
+          <div class="ui-panel-h"><span class="ui-panel-t">{V.heat}</span><span class="ui-meta">24 zones</span></div>
+          <div class="cells">{heat.map((v) => <i data-v={v} style={`opacity:${cellO(v)}`}></i>)}</div>
+          <div class="scale"><span class="ui-meta">Low</span><i></i><span class="ui-meta">High</span></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="ui-panel feed">
+          <div class="ui-panel-h"><span class="ui-panel-t">Live events</span><span class="ui-meta">Last 45 min</span></div>
+          <ul>
+            {V.events.map((e) => (
+              <li class="ui-row" data-evt data-c={e.c}>
+                <span class={`ui-dot is-${e.c}`}></span>
+                <span class="ui-id">{e.t}</span>
+                <span class="ui-ellipsis">{e.txt}</span>
+                <span class="ui-pill">{e.s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="ui-panel acc">
+          <div class="ui-panel-h"><span class="ui-panel-t">Model accuracy</span><span class="ui-pill is-ok">Within SLA</span></div>
+          <div class="acc-row"><span>Precision</span><b>97%</b><div class="ui-meter is-ok"><i style="--w:97%"></i><span class="ui-meter-mark" style="left:90%"></span></div></div>
+          <div class="acc-row"><span>Recall</span><b>94%</b><div class="ui-meter is-ok"><i style="--w:94%"></i><span class="ui-meter-mark" style="left:90%"></span></div></div>
+          <div class="acc-row"><span>False alarms / day</span><b>0.4</b><div class="ui-meter is-ok"><i style="--w:40%"></i><span class="ui-meter-mark" style="left:calc(100% - 1px)"></span></div></div>
+          <span class="ui-meta acc-n">Per camera, on site footage&nbsp;· tick&nbsp;=&nbsp;SLA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</MockWindow>
+
+<style>
+  .hub { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
+  .main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; align-content: start; min-width: 0; }
+
+  .toolbar { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .tb-t { margin-right: auto; font: 600 var(--ui-fs-md) / 20px var(--ui-font); color: var(--ui-text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .ui-kpi-row { flex-wrap: wrap; row-gap: 0; }
+  /* Delta pinned right so it never jitters while the value changes. */
+  .ui-kpi .ui-delta { margin-left: auto; }
+
+  .row { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 8px; }
+
+  /* Headers wrap (pill / meta under the title) instead of ellipsising the title. */
+  .chart .ui-panel-h, .heat .ui-panel-h, .acc .ui-panel-h { flex-wrap: wrap; row-gap: 4px; }
+  .plot { position: relative; padding-left: 24px; }
+  .plot svg { display: block; width: 100%; }
+  .y span { position: absolute; left: 0; margin-top: -8px; font: 500 var(--ui-fs-xs) / 16px var(--ui-mono); color: var(--ui-text-3); }
+  .s1 { stroke: var(--ui-s1); }
+  .s2 { stroke: var(--ui-s2); }
+  .x { padding-left: 24px; }
+  /* Live end of the primary series. */
+  .now { position: absolute; right: -3px; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--ui-s1); box-shadow: 0 0 0 2px var(--ui-bg-2); }
+
+  .heat { display: flex; flex-direction: column; }
+  /* Cells are at least 4:3 and grow to fill the panel when the chart beside it is taller. */
+  .cells { flex: 1 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 4px; }
+  .cells i { aspect-ratio: 4 / 3; place-self: stretch; border-radius: var(--ui-r-sm); background: var(--ui-accent); }
+  .scale { display: flex; align-items: center; gap: 8px; padding-top: 8px; }
+  .scale i { flex: 1; height: 4px; border-radius: var(--ui-r-sm); background: linear-gradient(90deg, rgba(34, 211, 238, 0.1), var(--ui-accent)); }
+
+  .feed ul { margin: 0 -12px -12px; }
+  /* A long event wraps to a second line rather than being cut off. */
+  .feed .ui-row { height: auto; min-height: 32px; padding: 8px 12px; align-items: start; }
+  .feed .ui-row .ui-dot { margin-top: 5px; }
+  .feed .ui-row .ui-pill { margin-block: -2px; color: var(--ui-text-3); }
+  .feed .ui-row .ui-ellipsis { white-space: normal; overflow: visible; }
+
+  .acc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; }
+  .acc .ui-panel-h { margin-bottom: 0; }
+  .acc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px; row-gap: 4px; }
+  .acc-row > span { color: var(--ui-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acc-row > b { font-weight: 600; }
+  .acc-row .ui-meter { grid-column: 1 / -1; }
+  .acc-n { text-wrap: pretty; }
+
+  @container ui (max-width: 640px) {
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  /* Small split columns: the nav rail gives its width to the panels. */
+  @container ui (max-width: 600px) {
+    .hub { grid-template-columns: minmax(0, 1fr); }
+    .side { display: none; }
+  }
+  @container ui (max-width: 500px) {
+    .heat, .acc { display: none; }
+    .row { grid-template-columns: minmax(0, 1fr); }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .feed li:nth-child(n + 5) { display: none; }
+    .feed li:nth-child(4) { border-bottom: 0; }
+    .toolbar .ui-pill:not(.is-ok) { display: none; }
+  }
+</style>
+
+<script>
+  import { mockLoop } from './ui/loop';
+
+  document.querySelectorAll<HTMLElement>('[data-hub]').forEach((root) => {
+    const first = root.querySelector<HTMLElement>('[data-n]');
+    const cells = [...root.querySelectorAll<HTMLElement>('[data-v]')];
+    const evt = root.querySelector<HTMLElement>('[data-evt]');
+    const now = root.querySelector<HTMLElement>('[data-now]');
+    const hmax = Math.max(1, ...cells.map((c) => parseInt(c.dataset.v ?? '0', 10) || 0));
+    const cellO = (el: HTMLElement) => 0.08 + ((parseInt(el.dataset.v ?? '0', 10) || 0) / hmax) * 0.84;
+    // Row highlight uses the shared status tint of the newest event.
+    const css = getComputedStyle(root);
+    const tint = css.getPropertyValue(evt?.dataset.c === 'warn' ? '--ui-warn-bg' : '--ui-bad-bg').trim() || 'rgba(239, 68, 68, 0.12)';
+    const clear = tint.replace(/[\d.]+\)$/, '0)');
+    const base = parseFloat(first?.dataset.n ?? '0') || 0;
+    const dec = (first?.dataset.n?.split('.')[1] ?? '').length;
+
+    mockLoop(root, (_gsap, tl) => {
+      const o = { v: base };
+      // Live phase from the hero frame: zones drift, a new event lands on the
+      // feed's first row, the first KPI ticks up, then everything settles back.
+      if (evt) tl.set(evt, { backgroundColor: clear }, 0);
+      if (now) tl.set(now, { opacity: 1 }, 0);
+      tl.to(cells, { opacity: () => 0.08 + Math.random() * 0.8, duration: 1, ease: 'power1.inOut', stagger: { each: 0.02, from: 'random' } }, 1.2);
+      if (evt) {
+        tl.fromTo(evt, { backgroundColor: clear }, { backgroundColor: tint, duration: 0.15, ease: 'power2.out', immediateRender: false }, 2.2)
+          .to(evt, { backgroundColor: clear, duration: 0.8, ease: 'power2.in' }, 3.6);
+      }
+      if (now) tl.fromTo(now, { opacity: 1 }, { opacity: 0.3, duration: 0.4, ease: 'power1.inOut', yoyo: true, repeat: 3, immediateRender: false }, 2.2);
+      if (first) {
+        tl.to(o, { v: base + (dec ? 0.1 : 1), duration: 0.6, ease: 'power2.out', onUpdate: () => { first.textContent = o.v.toFixed(dec); } }, 2.2)
+          .to(o, { v: base, duration: 0.6, ease: 'power2.out', onUpdate: () => { first.textContent = o.v.toFixed(dec); } }, 5.2);
+      }
+      // Settle on the reference frame (same as the server-rendered markup).
+      tl.to(cells, { opacity: (i: number) => cellO(cells[i]), duration: 1, ease: 'power1.inOut', stagger: { each: 0.02, from: 'random' } }, 4.6)
+        .to({}, { duration: 0.6 }, 6.4);
+    }, { repeatDelay: 1.6 });
+  });
+</script>

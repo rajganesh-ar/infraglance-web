@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import { site } from '../data/site';
+
+// Legal review is still pending: have counsel approve this text before launch.
+// Non-breaking spaces keep the date on one line in the hero lead.
+const updated = '29 October 2026';
+---
+<BaseLayout title="Website terms" description="Terms of use for the Infraglance website: site content, intellectual property, acceptable use and liability.">
+  <PageHero eyebrow="Legal" title="Website terms of use" lead={`The terms that apply to your use of infraglance.com. Last updated ${updated}.`} crumbs={[{ href: '/terms', label: 'Website terms' }]} />
+
+  <section class="section section--tight tone-light">
+    <div class="container container--text prose">
+      <p>These terms apply to your use of infraglance.com. Use of the Infraglance platform and services is governed by separate customer agreements.</p>
+      <h2 id="content">Content</h2>
+      <p>Content on this site is provided for general information. Product mockups and dashboards shown on this site use illustrative demo data, not customer data or measured results.</p>
+      <h2 id="intellectual-property">Intellectual property</h2>
+      <p>The Infraglance name, logo, product names, text, graphics and software on this site belong to Infraglance or its licensors. Third-party photographs and 3D assets are used under the licences listed on our <a href="/credits">image credits</a> page. You may not copy or reuse site content without permission.</p>
+      <h2 id="acceptable-use">Acceptable use</h2>
+      <p>Do not attempt to disrupt the site, access it by automated means beyond normal indexing, or submit false or malicious information through our forms.</p>
+      <h2 id="liability">Liability</h2>
+      <p>To the extent permitted by law, the site is provided “as is” and we are not liable for losses arising from its use.</p>
+      <h2 id="contact">Contact</h2>
+      <p><a href={`mailto:${site.email}`}>{site.email}</a></p>
+    </div>
+  </section>
+</BaseLayout>

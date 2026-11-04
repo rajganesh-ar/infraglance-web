@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import Picture from '../components/media/Picture.astro';
+import CTASection from '../components/sections/CTASection.astro';
+import { nbDeep } from '../data/helpers';
+
+const types = nbDeep([
+  { k: 'System & automation integrators', slug: 'integrator', img: 'engineer-laptop', d: 'Install and run Infraglance as part of your CCTV, automation or EHS projects. Use Glance Studio to configure sites and the API to integrate.', gets: ['Demo kit and Experience Lab access', 'Technical training and certification', 'Deal registration and pre-sales support'] },
+  { k: 'OEM & white-label', slug: 'oem', img: 'robot-cell', d: 'Camera makers, video-software vendors and machine builders can embed Glance models or ship the platform under their own brand.', gets: ['SDK and model licensing', 'Joint roadmap reviews', 'Co-engineering for your hardware'] },
+  { k: 'EPC contractors & consultancies', slug: 'epc', img: 'construction-cranes', d: 'Bring safety, progress and asset inspection into infrastructure and industrial projects — from construction through handover.', gets: ['Subcontract and tender support', 'Engineer-reviewed inspection reports', 'Project-based pricing'] },
+  { k: 'Technology partners', slug: 'technology', img: 'cctv-industrial', d: 'Edge hardware, cameras, thermal and gas imaging, video management, EHS and maintenance software that Infraglance connects to.', gets: ['Validated integrations', 'Joint solution briefs', 'Shared customer support paths'] },
+]);
+const steps = [
+  { t: 'Intro call', d: 'Your customers, regions and the problems you see most.' },
+  { t: 'Joint first project', d: 'We deliver the first site together, with our engineers alongside yours.' },
+  { t: 'Training', d: 'Configuration in Glance Studio, site surveys, imaging basics and support.' },
+  { t: 'Independent delivery', d: 'You lead projects; we back you with engineering and escalation.' },
+];
+---
+<BaseLayout title="Partners" description="Infraglance partner programme for system integrators, OEMs, EPC contractors and technology partners.">
+  <PageHero eyebrow="Partner programme" title="Build vision AI into <span class='gradient-text'>what you already deliver.</span>" lead="Integrators, OEMs and EPC contractors are how vision AI reaches thousands of sites. We bring the platform and the engineering; you bring the relationships and the field team." image="electrical-panel" crumbs={[{ href: '/partners', label: 'Partners' }]}>
+    <div class="btn-row"><a href="/contact?topic=partner" class="btn btn--primary">Apply to partner <span class="arrow" aria-hidden="true">→</span></a><a href="#types" class="btn btn--ghost">Partner types</a></div>
+  </PageHero>
+
+  <section class="section tone-light" id="types">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Partner types</span>
+        <h2>Four ways to partner.</h2>
+      </div>
+      <div class="grid grid-2 types">
+        {types.map((t, i) => (
+          <a href={`/contact?topic=partner-${t.slug}`} class="pcard" data-reveal style={`--d:${(i % 2) * 0.06}s`}>
+            <div class="pcard-media"><Picture img={t.img} alt="" decorative sizes="(min-width: 1024px) 50vw, 100vw" /></div>
+            <div class="pcard-body">
+              <h3>{t.k}</h3>
+              <p>{t.d}</p>
+              <ul class="check-list">{t.gets.map((g) => <li>{g}</li>)}</ul>
+              <span class="card-foot link-arrow">Talk to us <span class="arrow" aria-hidden="true">→</span></span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tone-mist">
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">How it works</span>
+        <h2>From first project to certified partner.</h2>
+        <p class="lead">Every partnership starts with one real site delivered together, so your team learns the platform on a live deployment.</p>
+      </div>
+      <ol class="steps" role="list" data-reveal style="--d:0.1s">
+        {steps.map((s, i) => <li><span class="mono">0{i + 1}</span><div><b>{s.t}</b><p>{s.d}</p></div></li>)}
+      </ol>
+    </div>
+  </section>
+
+  <CTASection
+    image="wind-turbines"
+    eyebrow="Partner programme · applications open"
+    title="Let’s build the first project together."
+    lead="Tell us about your customers and the sites you work on. We’ll suggest where Infraglance fits and how a joint first project would run."
+    primary={{ href: '/contact?topic=partner', label: 'Apply to partner' }}
+    secondary={{ href: '/platform', label: 'Explore the platform' }}
+  />
+</BaseLayout>
+
+<style>
+  .types .pcard-media { aspect-ratio: 16 / 7; }
+  .types .check-list { margin-top: var(--s-1); gap: var(--s-2); font-size: var(--fs-sm); }
+  .steps { display: grid; gap: var(--s-2); margin: 0; padding: 0; }
+  .steps li { display: grid; grid-template-columns: 40px 1fr; gap: var(--s-3); padding: var(--s-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .steps .mono { color: var(--cyan); font-size: var(--fs-xs); padding-top: 3px; }
+  .steps b { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600; }
+  .steps p { color: var(--muted); font-size: var(--fs-sm); margin-top: var(--s-1); }
+</style>

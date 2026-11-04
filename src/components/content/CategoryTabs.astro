@@ -1,0 +1,19 @@
+---
+import { getCollection } from 'astro:content';
+import { insightCategories } from '../../data/insight-categories';
+import { catSlug } from '../../lib/reading';
+
+interface Props { active: string }
+const { active } = Astro.props;
+const posts = await getCollection('insights');
+const cats = insightCategories.filter((c) => posts.some((p) => p.data.category === c));
+---
+<!-- Uses the shared .filters / .filter spec from global.css -->
+<nav class="filters" aria-label="Insight categories">
+  <a href="/insights" class:list={['filter', { 'is-on': active === 'all' }]} aria-current={active === 'all' ? 'page' : undefined}>All <span class="count">{posts.length}</span></a>
+  {cats.map((c) => (
+    <a href={`/insights/category/${catSlug(c)}`} class:list={['filter', { 'is-on': active === catSlug(c) }]} aria-current={active === catSlug(c) ? 'page' : undefined}>
+      {c} <span class="count">{posts.filter((p) => p.data.category === c).length}</span>
+    </a>
+  ))}
+</nav>

@@ -1,0 +1,18 @@
+---
+/**
+ * The Infraglance mark (corner frame + eye) used as the Glance app glyph in
+ * window title bars, phone notifications and the Ask assistant avatar.
+ * Frame and pupil take --pillar (falls back to the product accent); the eye
+ * outline uses the primary UI text colour. Styled in mock-ui.css (.ui-mark).
+ */
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 16, class: cls = '' } = Astro.props;
+---
+<svg class={`ui-mark ${cls}`} width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+  <path class="ui-mark-f" d="M3 10V5a2 2 0 0 1 2-2h5M22 3h5a2 2 0 0 1 2 2v5M29 22v5a2 2 0 0 1-2 2h-5M10 29H5a2 2 0 0 1-2-2v-5" stroke-width="3" stroke-linecap="round" />
+  <path class="ui-mark-e" d="M7 16s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6Z" stroke-width="2.4" />
+  <circle class="ui-mark-p" cx="16" cy="16" r="3.2" />
+</svg>

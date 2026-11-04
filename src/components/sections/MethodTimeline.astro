@@ -1,0 +1,60 @@
+---
+import { method } from '../../data/site';
+---
+<div class="method" data-method>
+  <div class="rail" aria-hidden="true"><i data-fill></i></div>
+  <ol role="list">
+    {method.map((m, i) => (
+      <li data-reveal style={`--d:${i * 0.06}s`}>
+        <span class="n mono" aria-hidden="true">{m.n}</span>
+        <h3><span class="sr-only">Step {m.n}: </span>{m.name}</h3>
+        <span class="time mono">{m.time}</span>
+        <p>{m.text}</p>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .method { position: relative; }
+  .rail { position: absolute; left: 0; right: 0; top: 19px; height: 2px; background: var(--line); overflow: hidden; }
+  .rail i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--cyan), var(--blue), var(--green)); transform-origin: left; transform: scaleX(var(--p, 0)); transition: transform 0.2s linear; }
+  ol { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; padding: 0; list-style: none; }
+  li { display: grid; gap: 6px; align-content: start; }
+  .n { width: 40px; height: 40px; display: grid; place-items: center; margin-bottom: 8px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line-2); color: var(--cyan); font-size: var(--fs-xs); font-weight: 500; font-variant-numeric: tabular-nums; }
+  h3 { font-size: var(--fs-lg); line-height: 1.3; }
+  .time { font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--text-3); }
+  p { font-size: var(--fs-sm); line-height: 1.55; color: var(--text-2); margin-top: 2px; }
+  @media (max-width: 1200px) {
+    .rail { display: none; }
+    ol { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 24px; }
+  }
+  @media (max-width: 760px) { ol { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; } }
+  /* Phones: numbered rows (number left, title / time / text right), like the use-case step lists */
+  @media (max-width: 480px) {
+    ol { grid-template-columns: 1fr; gap: 20px; }
+    li { grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; }
+    li > :not(.n) { grid-column: 2; }
+    .n { grid-row: 1 / span 3; margin-bottom: 0; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-method]').forEach((el) => {
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (window.innerHeight * 0.85 - r.top) / (r.height + window.innerHeight * 0.4)));
+      el.style.setProperty('--p', p.toFixed(3));
+    };
+    // rAF-throttled, and only listening while the timeline is near the viewport.
+    let raf = 0;
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); };
+    let listening = false;
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !listening) { addEventListener('scroll', onScroll, { passive: true }); listening = true; onScroll(); }
+      else if (!e.isIntersecting && listening) { removeEventListener('scroll', onScroll); listening = false; onScroll(); }
+    }, { rootMargin: '200px 0px' }).observe(el);
+    addEventListener('resize', onScroll, { passive: true });
+    update();
+  });
+</script>

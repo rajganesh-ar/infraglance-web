@@ -1,0 +1,32 @@
+# Normalise text to LF in the repository and in checkouts (Windows git defaults to CRLF otherwise).
+* text=auto eol=lf
+
+# Binary assets: never touch line endings, never diff as text.
+*.avif binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.glb binary
+*.hdr binary
+*.exr binary
+*.ktx2 binary
+*.wasm binary
+*.fbx binary
+*.tga binary
+*.pdf binary
+*.zip binary
+*.sqlite binary
+
+# Generated files: collapsed in GitHub diffs and excluded from language stats.
+package-lock.json linguist-generated=true
+src/data/media.json linguist-generated=true
+src/data/credits-3d.json linguist-generated=true

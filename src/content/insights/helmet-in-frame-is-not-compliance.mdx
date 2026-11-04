@@ -1,0 +1,44 @@
+---
+title: "A helmet in the frame is not PPE compliance"
+description: "Why most PPE detection stops at object presence — and the four engineering changes that turn it into compliance a safety team can trust."
+date: 2026-10-20
+category: Safety
+hero: ppe-helmet-closeup
+heroAlt: "Worker wearing a hard hat and safety glasses on an industrial site"
+tags: [PPE, Computer vision, EHS]
+featured: false
+---
+
+Most PPE detection systems answer a simple question: *is there a helmet somewhere near this person?* Safety managers are asking a different one: *is this person wearing the right protection, correctly, for the job they are doing right now?*
+
+The gap between those two questions is where pilots fail.
+
+## 1. Presence is not wearing
+
+A helmet carried in the hand, clipped to a belt or pushed back on the head is still "a helmet in the frame". A mask under the chin is still "a mask". Detectors trained on bounding boxes have no notion of *where on the body* an item sits.
+
+**What we do instead:** estimate body keypoints for every tracked person and map each PPE item to the body region it must cover&nbsp;— helmet to the crown, goggles to the eyes, mask to nose and mouth, gloves to both hands. An item that is detected but in the wrong place is reported as *worn incorrectly*, not compliant.
+
+## 2. Small items need their own pipeline
+
+Gloves, safety glasses and ear protection occupy a few dozen pixels on a typical CCTV view, and they are often hidden by the worker's own body. Running one detector over the whole frame misses them.
+
+**What we do instead:** detect and track the person first, take a high-resolution crop, and run per-item classifiers on that crop. Decisions are made over several seconds of a track, not a single frame&nbsp;— a glove hidden behind a box for half a second is not a violation.
+
+## 3. The rule depends on the context
+
+The PPE required at a grinding station is not the PPE required in the warehouse aisle, and hot work under a permit needs more again. A single global rule either floods the site with false alerts or misses what matters.
+
+**What we do instead:** a PPE matrix of *zone × shift × task × permit*. Zones can be armed by machine state from the PLC, and tasks can be inferred from the scene&nbsp;— a welding arc means a face shield is required.
+
+## 4. One violation, one event
+
+A person without a helmet walking for ten seconds through a camera view can generate hundreds of frame-level detections. If each becomes an alert, supervisors stop reading them within a week.
+
+**What we do instead:** one track with one violation becomes one event, with a start time, duration, severity and an evidence clip. Events escalate only if they persist, and every site has an alert budget we agree up front.
+
+## Proving it
+
+None of this matters unless it can be measured. Every Infraglance deployment ships with a validation report on the customer's own footage and a monthly accuracy report card: precision, recall and false alarms per camera per day, against limits written into the contract.
+
+If you are running&nbsp;— or recovering from&nbsp;— a PPE detection pilot, [book a feasibility study](/contact). We will tell you honestly what your cameras can and cannot see.

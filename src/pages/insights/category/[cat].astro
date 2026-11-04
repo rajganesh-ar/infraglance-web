@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHero from '../../../components/sections/PageHero.astro';
+import InsightCard from '../../../components/cards/InsightCard.astro';
+import CategoryTabs from '../../../components/content/CategoryTabs.astro';
+import CTASection from '../../../components/sections/CTASection.astro';
+import { getCollection } from 'astro:content';
+import { insightCategories, insightCategoryMeta, type InsightCategory } from '../../../data/insight-categories';
+import { catSlug } from '../../../lib/reading';
+import { freshImage, ctaPoolFor, nb } from '../../../data/helpers';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('insights');
+  return insightCategories
+    .filter((c) => posts.some((p) => p.data.category === c))
+    .map((c) => ({ params: { cat: catSlug(c) }, props: { name: c } }));
+}
+const { name } = Astro.props as { name: string };
+const all = (await getCollection('insights')).sort((a, b) => +b.data.date - +a.data.date);
+const posts = all.filter((p) => p.data.category === name);
+// Thin categories get the latest articles from elsewhere, so the page never looks empty.
+const more = posts.length < 3 ? all.filter((p) => p.data.category !== name).slice(0, 3) : [];
+const lower = name.toLowerCase();
+const ctaImage = freshImage(ctaPoolFor(name), [...posts, ...more].map((p) => p.data.hero));
+---
+<BaseLayout title={`${name} insights`} description={insightCategoryMeta[name as InsightCategory] ?? `Infraglance engineering insights on ${lower}.`} noindex={posts.length < 2}>
+  <PageHero eyebrow="Insights" title={name} lead={`${posts.length} article${posts.length === 1 ? '' : 's'} on ${lower} from the Infraglance engineering team.`} crumbs={[{ href: '/insights', label: 'Insights' }, { href: `/insights/category/${catSlug(name)}`, label: name }]} />
+  <section class="section tone-light">
+    <div class="container container--wide">
+      <CategoryTabs active={catSlug(name)} />
+      <div class="grid-bal">{posts.map((p, i) => <InsightCard post={p} delay={(i % 3) * 0.05} />)}</div>
+      {more.length > 0 && (
+        <div class="more">
+          <div class="section-head section-head--row">
+            <div class="stack">
+              <span class="eyebrow">Keep reading</span>
+              <h2>More insights</h2>
+            </div>
+            <a href="/insights" class="btn btn--ghost">All insights <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+          <div class="grid-bal">{more.map((p, i) => <InsightCard post={p} delay={i * 0.05} />)}</div>
+        </div>
+      )}
+    </div>
+  </section>
+  <CTASection image={ctaImage} title="Want us to look at your site?" lead={nb("Every article here comes from real engineering questions. Bring yours — we’ll answer it on your own footage in a paid feasibility study.")} />
+</BaseLayout>
+
+<style>
+  .more { margin-top: var(--s-16); padding-top: var(--s-12); border-top: 1px solid var(--line); }
+</style>

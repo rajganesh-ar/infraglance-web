@@ -1,0 +1,161 @@
+---
+/**
+ * Muted looping background video. The poster is a normal <Picture> (LCP-safe) and stays visible
+ * until the clip is actually playing; the clip loads only near the viewport, once, and only when
+ * motion and data allow. Clips are encoded as seamless loops (no dip to black), so the poster →
+ * clip cross-fade and every loop are invisible.
+ *
+ * Playback rules: plays only while wanted (auto mode: always; manual mode: after 'vid:play'),
+ * on screen, the tab visible, motion not reduced and Save-Data off. A failed load keeps the poster
+ * and is never retried.
+ */
+import Picture from './Picture.astro';
+import { photo, video, focus } from '../../lib/media';
+
+interface Props {
+  src: string; // video key
+  poster?: string; // photo key fallback if the video is missing
+  alt?: string;
+  class?: string;
+  priority?: boolean;
+  sizes?: string;
+  /** Parent controls playback via 'vid:play' / 'vid:pause' events (e.g. a slider). */
+  manual?: boolean;
+  /** object-position for clip and poster. Defaults to the manifest's focal point (`pos`). */
+  position?: string;
+}
+const { src, poster, alt, class: cls = '', priority = false, sizes = '100vw', manual = false } = Astro.props;
+const v = video(src);
+const bg = v?.color ?? photo(poster ?? src)?.color;
+// Clip and poster share one focal point so the cross-fade never shifts the frame.
+const position = Astro.props.position ?? focus(src) ?? (v ? undefined : focus(poster));
+---
+<div
+  class={`vid ${cls}`}
+  style={bg ? `background-color:${bg}` : undefined}
+  data-video={v ? '' : undefined}
+  data-priority={priority ? '' : undefined}
+  data-manual={manual ? '' : undefined}
+>
+  {v ? (
+    <>
+      <Picture img={src} alt={alt ?? v.alt} sizes={sizes} priority={priority} class="vid-poster" position={position} />
+      <video
+        class="vid-clip"
+        style={position ? `object-position:${position}` : undefined}
+        muted
+        playsinline
+        loop
+        preload="none"
+        disablepictureinpicture
+        {...{ disableremoteplayback: true }}
+        aria-hidden="true"
+        data-webm-hd={v.sources['1920']?.webm}
+        data-mp4-hd={v.sources['1920']?.mp4}
+        data-webm-sd={v.sources['1280']?.webm}
+        data-mp4-sd={v.sources['1280']?.mp4}
+      ></video>
+    </>
+  ) : (
+    <Picture img={poster ?? src} alt={alt} sizes={sizes} priority={priority} class="vid-poster" position={position} />
+  )}
+</div>
+
+<style>
+  .vid { position: relative; overflow: hidden; background-color: var(--surface-2); }
+  .vid :global(.vid-poster) { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .vid-clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.6s ease; }
+  .vid.is-playing .vid-clip { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .vid-clip { display: none; }
+  }
+</style>
+
+<script>
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const slow = () => {
+    const c = (navigator as any).connection;
+    return !!c && (!!c.saveData || /(^|-)2g|3g/.test(c.effectiveType || ''));
+  };
+  const allowed = () => !motion.matches && !slow();
+  const hdQuery = matchMedia('(min-width: 64rem), (min-width: 48rem) and (min-resolution: 2dppx)');
+
+  document.querySelectorAll<HTMLElement>('[data-video]').forEach((wrap) => {
+    const v = wrap.querySelector<HTMLVideoElement>('video.vid-clip');
+    if (!v) return;
+    const manual = 'manual' in wrap.dataset;
+    let loaded = false;
+    let failed = false;
+    let want = !manual && !('priority' in wrap.dataset && document.readyState !== 'complete');
+    let onScreen = false;
+
+    const fail = () => {
+      failed = true;
+      wrap.classList.remove('is-playing');
+      wrap.classList.add('is-failed');
+    };
+
+    // Sources are attached once; there is no reload path (no retry loops on flaky networks).
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      const hd = hdQuery.matches;
+      const d = v.dataset;
+      let last: HTMLSourceElement | null = null;
+      for (const [type, url] of [['video/webm; codecs="vp9"', hd ? d.webmHd : d.webmSd], ['video/mp4', hd ? d.mp4Hd : d.mp4Sd]]) {
+        if (!url || !v.canPlayType(type!)) continue;
+        last = document.createElement('source');
+        last.type = type!;
+        last.src = url;
+        v.appendChild(last);
+      }
+      if (!last) return fail();
+      last.addEventListener('error', fail); // fires when no listed source could be used
+      v.addEventListener('error', fail);
+      v.preload = 'auto';
+      v.load();
+    };
+
+    const sync = () => {
+      const run = want && onScreen && !failed && !document.hidden && allowed();
+      if (run) {
+        load();
+        if (failed || !v.paused) return;
+        const p = v.play();
+        if (p) p.catch(() => {}); // autoplay refused (e.g. iOS Low Power Mode): the poster stays
+      } else {
+        if (!v.paused) v.pause();
+        if (!allowed()) wrap.classList.remove('is-playing');
+      }
+    };
+
+    v.addEventListener('playing', () => {
+      if (!failed) wrap.classList.add('is-playing');
+    });
+
+    if (manual) {
+      wrap.addEventListener('vid:play', () => { want = true; sync(); });
+      wrap.addEventListener('vid:pause', () => { want = false; sync(); });
+    } else if (!want) {
+      // Priority (hero) clips wait until the page and its LCP poster have loaded.
+      window.addEventListener(
+        'load',
+        () => {
+          const go = () => { want = true; sync(); };
+          'requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 2000 }) : setTimeout(go, 200);
+        },
+        { once: true },
+      );
+    }
+
+    new IntersectionObserver(
+      ([e]) => {
+        onScreen = e.isIntersecting;
+        sync();
+      },
+      { rootMargin: '25% 0px' },
+    ).observe(wrap);
+    document.addEventListener('visibilitychange', sync);
+    motion.addEventListener?.('change', sync);
+  });
+</script>

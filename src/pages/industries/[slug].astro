@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { industries, type Industry } from '../../data/industries';
+import { pillarBySlug } from '../../data/pillars';
+import { productBySlug } from '../../data/products';
+import { usecases } from '../../data/usecases';
+import { gridFor, lcFirst, nb, freshImage, ctaPoolFor } from '../../data/helpers';
+import Status from '../../components/ui/Status.astro';
+import UseCaseCard from '../../components/cards/UseCaseCard.astro';
+import Picture from '../../components/media/Picture.astro';
+
+export function getStaticPaths() {
+  return industries.map((i) => ({ params: { slug: i.slug }, props: { ind: i } }));
+}
+const { ind } = Astro.props as { ind: Industry };
+const cases = usecases.filter((u) => u.industries.includes(ind.slug));
+const fits = ind.useCases
+  .map((u) => ({ ...u, prod: productBySlug[u.product] }))
+  .filter((u) => Boolean(u.prod));
+const gallery = ind.gallery ?? [];
+// Closing backdrop: never one the page already shows (hero, gallery or use-case cards).
+// Meta description: the summary plus as many segments as fit in ~155 characters.
+const segList = ind.segments.split(' · ');
+let metaDesc = ind.summary;
+for (let n = segList.length; n > 0; n--) {
+  const d = `${ind.summary} ${segList.slice(0, n).map((s, k) => (k ? lcFirst(s) : s)).join(', ')}.`;
+  if (d.length <= 155) { metaDesc = d; break; }
+}
+const ctaImage = freshImage([ind.ctaImg, ...ctaPoolFor(ind.slug)], [ind.video || ind.photo, ...gallery.map((g) => g.img), ...cases.map((c) => c.hero)]);
+---
+<BaseLayout title={`Vision AI for ${ind.name}`} description={metaDesc}>
+  <PageHero eyebrow="Industries" title={ind.name} lead={nb(ind.summary)} image={ind.photo} video={ind.video} size="md" crumbs={[{ href: '/industries', label: 'Industries' }, { href: `/industries/${ind.slug}`, label: ind.name }]}>
+    <ul class="segs mono" role="list" aria-label="Segments">{ind.segments.split(' · ').map((s) => <li>{s}</li>)}</ul>
+    <div class="chips hero-pills">{ind.pillars.map((p) => <a href={`/solutions/${p}`} class="badge" style={`--accent:${pillarBySlug[p].color}`}><span class="dot"></span>{pillarBySlug[p].name}</a>)}</div>
+  </PageHero>
+
+  <section class="section section--tight tone-light">
+    <div class="container container--wide split split--top">
+      <div class="stack" data-reveal>
+        <span class="eyebrow">The challenges</span>
+        <h2>{ind.challengeHead}</h2>
+      </div>
+      <ul class="chal" role="list">
+        {ind.challenges.map((c, i) => <li data-reveal style={`--d:${i * 0.05}s`}><span class="mono">0{i + 1}</span><span>{c}</span></li>)}
+      </ul>
+    </div>
+  </section>
+
+  {gallery.length > 0 && (
+    <section class="strip tone-light" aria-label={`${ind.name} in pictures`}>
+      <div class="container container--wide">
+        <div class="strip-grid" style={`--n:${gallery.length}; --nt:${gallery.length % 3 === 0 ? 3 : 2}`}>
+          {gallery.map((g, i) => (
+            <figure class="strip-item" data-reveal style={`--d:${i * 0.06}s`}>
+              <Picture img={g.img} framed sizes={`(max-width: 760px) 100vw, ${Math.round(100 / gallery.length)}vw`} />
+              <figcaption>{g.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="section tone-mist">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">What we deploy</span>
+        <h2>Where Infraglance fits in {lcFirst(ind.name)}.</h2>
+      </div>
+      <div class={gridFor(fits.length)}>
+        {fits.map((u, i) => {
+          const pil = pillarBySlug[u.prod.pillar];
+          return (
+            <a href={`/products/${u.prod.slug}`} class="card uc" data-reveal style={`--accent:${pil.color}; --d:${(i % 2) * 0.05}s`}>
+              <div class="uc-top"><span class="badge"><span class="dot"></span>{u.prod.name}</span><Status phase={u.prod.phase} /></div>
+              <h3>{u.title}</h3>
+              <p>{u.text}</p>
+              <span class="card-foot link-arrow">View {u.prod.name} <span class="arrow" aria-hidden="true">→</span></span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  {cases.length > 0 && (
+    <section class="section tone-light">
+      <div class="container container--wide">
+        <div class="section-head section-head--row" data-reveal>
+          <div class="stack">
+            <span class="eyebrow">Use cases in depth</span>
+            <h2>How it works, step by step.</h2>
+          </div>
+          <a href="/use-cases" class="btn btn--ghost">All use cases <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div class="grid-bal">{cases.map((u, i) => <UseCaseCard u={u} delay={(i % 3) * 0.05} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <CTASection title={ind.cta} image={ctaImage} />
+</BaseLayout>
+
+<style>
+  /* One item per segment, so a wrapped line never starts with a stray separator. */
+  .segs { --seg-gap: calc(var(--s-2) * 2 + 0.3em); display: flex; flex-wrap: wrap; gap: 2px var(--seg-gap); overflow: hidden; margin: 0; padding: 0; list-style: none; font-size: var(--fs-xs); letter-spacing: 0.02em; color: rgba(238, 243, 248, 0.72); max-width: 62rem; }
+  .segs li { position: relative; white-space: nowrap; }
+  /* Touch screens: the pillar links in the hero become comfortable tap targets. */
+  @media (pointer: coarse) {
+    .hero-pills { gap: 8px; }
+    .hero-pills a.badge { height: 32px; padding: 0 12px; }
+  }
+  .segs li::before { content: '·'; content: '·' / ''; position: absolute; top: 0; right: 100%; width: var(--seg-gap); text-align: center; opacity: 0.6; }
+  .chal { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+  .chal li { display: grid; grid-template-columns: 32px 1fr; gap: var(--s-3); align-items: baseline; padding: var(--s-4) var(--s-5); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text-2); }
+  .chal .mono { color: var(--cyan); font-size: var(--fs-xs); }
+  .uc-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-2); }
+  .strip { background: var(--bg); padding-bottom: var(--section-y-tight); }
+  .strip-grid { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: var(--gap); }
+  .strip-item { margin: 0; display: grid; gap: var(--s-3); align-content: start; }
+  .strip-item :global(.pic) { display: block; aspect-ratio: 3 / 2; overflow: hidden; border-radius: var(--radius); background: var(--surface); }
+  .strip-item :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease-out); }
+  .strip-item:hover :global(img) { transform: scale(1.04); }
+  .strip-item figcaption { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.5; max-width: 40ch; }
+  @media (max-width: 1100px) and (min-width: 761px) {
+    .strip-grid { grid-template-columns: repeat(var(--nt, 2), minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .strip-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

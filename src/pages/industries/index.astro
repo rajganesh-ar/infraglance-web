@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import IndustryGrid from '../../components/sections/IndustryGrid.astro';
+import CTASection from '../../components/sections/CTASection.astro';
+import { nb } from '../../data/helpers';
+---
+<BaseLayout title="Industries" description="Vision AI for manufacturing, heavy industry, energy and utilities, transport infrastructure, construction and logistics.">
+  <PageHero eyebrow="Industries" title="Built for the <span class='gradient-text'>physical world.</span>" lead={nb("From automotive plants to bridges, from cement kilns to cold stores — the same platform, tuned to each environment.")} image="industrial-night" crumbs={[{ href: '/industries', label: 'Industries' }]} />
+  <section class="section section--tight tone-light">
+    <div class="container container--wide"><IndustryGrid /></div>
+  </section>
+  <CTASection image="cement-plant" title="Let’s look at your sites." lead={nb("Tell us about your industry, your cameras and the problem that costs you most. We’ll show you where vision fits — and where it doesn’t.")} />
+</BaseLayout>

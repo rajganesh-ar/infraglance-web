@@ -1,0 +1,123 @@
+---
+title: "Edge or cloud? Where industrial video analytics should actually run"
+seoTitle: "Edge or cloud for industrial video analytics?"
+description: "Bandwidth, latency, privacy and offline operation decide where video AI belongs. A practical guide to edge, cloud and the hybrid most plants end up with."
+date: 2026-09-02
+category: Edge & Platform
+hero: electrical-panel
+heroAlt: "Open industrial control cabinet with PLC modules and wiring"
+tags: [Edge AI, Architecture, Video analytics, OT security]
+featured: true
+---
+
+Every vision-AI project hits the same architecture question in its first week: do we send the video to the cloud, or run the models on site?
+
+Vendors tend to answer with whatever they sell. The honest answer depends on four physical facts about your site: how much video you have, how fast you need to act on it, who is allowed to see it, and what happens when the network goes down. There is also one organisational fact. Somebody has to look after the boxes.
+
+## Start with the bandwidth arithmetic
+
+Video is heavy, and industrial sites are rarely well connected. Uplinks are often shared with the office, asymmetric, or carried over 4G from a quarry or a substation.
+
+Take a site with 40 cameras. Assume each one streams 1080p H.264 at 4 Mbit/s, which is a common NVR setting. Check yours, because encoder settings vary widely. Now compare streaming everything to the cloud with processing on site and sending only events. For the events, assume 200 a day, each with a 10-second evidence clip at the same bitrate.
+
+| | Stream all video to the cloud | Process on site, send events |
+|---|---|---|
+| Sustained upstream traffic | 160 Mbit/s, around the clock | Short bursts when events occur |
+| Data per day | ≈ 1.7 TB | ≈ 1 GB of clips, plus metadata |
+| Data per 30 days | ≈ 52 TB | ≈ 30 GB |
+
+That is simple arithmetic on stated assumptions, not a benchmark. The ratio is the point. Raw video is three orders of magnitude more data than the decisions you take from it.
+
+A common shortcut is to send a low-resolution sub-stream to the cloud instead. That works for coarse tasks such as counting trucks. It fails for small objects. Gloves, safety glasses and a lanyard hook cover only a few dozen pixels at full resolution, and at sub-stream resolution they disappear.
+
+## Decide what "real time" means for each use case
+
+"Real time" means very different things in different parts of a plant. Work out the latency budget from what happens next with the result.
+
+| Use case | What the result triggers | Latency that matters |
+|---|---|---|
+| Reject gate on an inspection line | An air jet or pusher, timed to the part | Milliseconds, and it must be consistent |
+| Forklift approaching a blind corner | A beacon at the point of work | Well under a second, end to end |
+| PPE breach in a hot-work zone | A supervisor alert | Seconds |
+| Spill or vapour on a walkway | A housekeeping or maintenance task | Minutes |
+| Gauge reading trend | A historian tag | Minutes to hours |
+| Drone survey of a bridge | A defect register for engineers | Days, processed as a batch |
+
+The physics is unforgiving. On a conveyor moving at 1 m/s, every 100 ms of delay is 10 cm of travel. A forklift at 2.5 m/s covers 25 cm in the same time.
+
+For the top half of that table, the cloud's average latency is not the main problem. **Jitter** is. A round trip that is usually fast but occasionally takes two seconds will fire a reject gate at the wrong part, or warn a pedestrian after the forklift has already passed.
+
+<Figure img="cctv-industrial" alt="Two CCTV cameras mounted on a concrete wall" caption="The camera already sits at the point of work. The decision usually belongs there too." />
+
+## Privacy is an architecture decision
+
+In most jurisdictions, footage of identifiable workers is personal data. Where it flows, who can see it and how long it is kept are design choices. You cannot add them later with a policy document.
+
+Processing on site makes data minimisation the default. The video is decoded and analysed next to the cameras. Only events and metadata leave the site, and faces are blurred on the device before any clip is stored or viewed. That gives you fewer copies, in fewer places, seen by fewer people. It does not make a deployment compliant by itself, but it makes the data protection impact assessment much shorter and the conversation with worker representatives much easier.
+
+Security follows the same logic. Cameras and edge boxes live on operational technology (OT) networks. A good design needs only outbound, authenticated connections from the edge to the management plane, with no inbound ports opened through the plant firewall. It also fits the zones-and-conduits model that most OT security teams already use, from [IEC 62443-3-2](https://webstore.iec.ch/en/publication/30727).
+
+## Offline is the normal case, not the edge case
+
+Networks fail. Fibre gets cut, firewall rules change, ISPs have outages, and 4G drops out in the bottom of a pit. If your safety alerts depend on a cloud round trip, the system fails silently at exactly the moment nobody is watching it.
+
+Design rules we apply:
+
+- **Detection, rules and local alarms run without the wide-area network.** Sirens, strobes, relay outputs and PLC signals keep working when the uplink is down.
+- **Events queue locally** and sync when the link returns, with their original timestamps. A local time source keeps clocks honest.
+- **The box reports its own blind spots.** If a camera goes offline, is knocked out of position or loses focus, that is an event in its own right. A camera that has silently stopped seeing is worse than no camera, because people assume it is watching.
+
+<Callout title="A useful rule of thumb" tone="info">
+
+Put the decision where the consequence is. If a result must stop a machine or warn a person, the model runs on site. If a result informs a weekly decision, it can run almost anywhere.
+
+</Callout>
+
+## Fleet management is the real cost of edge
+
+Edge has a weakness, and it is operations. Thirty boxes across six sites means thirty computers to patch, monitor and eventually replace. Many edge projects that looked cheap in the pilot became expensive in year two.
+
+Edge only works at scale when the fleet is managed centrally:
+
+- **Remote health:** stream status, frames per second per camera, GPU temperature, disk use and model version for every box
+- **Over-the-air model updates** with staged rollout (one camera, then one site, then the fleet) and automatic rollback
+- **Version-controlled configuration,** so zones and rules can be audited and restored
+- **Swap-and-go replacement:** a spare box pulls its configuration and models when it is plugged in
+- **Thermal and power headroom,** because a fanless box next to a furnace has different limits from one in a server room
+- **Drift monitoring per camera,** so you learn that accuracy is degrading before the users do
+
+## When the cloud makes sense
+
+Cloud processing is the better tool for some jobs, and an edge-first design should say so plainly.
+
+- **Batch workloads with no latency requirement.** A drone survey produces thousands of high-resolution images that are processed after the flight. Nothing is gained by putting a GPU on the bridge.
+- **Training and retraining models.** This work is GPU-heavy and intermittent, and it should run on curated data that people have agreed may be used.
+- **Analytics across sites,** run on events and metadata rather than raw video.
+- **Short pilots** with a handful of cameras and a good uplink, where buying hardware first would be overkill. Plan the move on site before the pilot starts.
+
+## The hybrid most plants end up with
+
+In practice, most industrial deployments settle into three layers:
+
+| Layer | Runs where | What it does |
+|---|---|---|
+| Edge | On site, next to the cameras | Decoding, inference, tracking, rules, local alarms, a short buffer of recent footage |
+| Hub | On premises or in your private cloud | Events and evidence, workflows, dashboards, fleet management, the model registry |
+| Cloud (optional) | Central | Model training, analytics across sites, processing of drone and vehicle surveys |
+
+This is how the Glance Platform is built. Glance Edge does detection on site and keeps local alarms working if the internet drops. Glance Hub holds events, evidence and fleet management for every box, either on premises or in your private cloud.
+
+<Figure img="team-engineering" alt="People reviewing events together at a shared screen" caption="Events, not video streams, are what people review, on site or in the cloud." />
+
+## What to ask before you buy
+
+- **What still works if the wide-area network is down for 24 hours?** Ask to see it with the cable pulled.
+- **What exactly leaves the site?** Raw video, clips, thumbnails or metadata only? Who can change that, and is the change logged?
+- **Where are faces blurred,** on the device or after upload?
+- **How are models updated and rolled back?** Can we stage an update to one camera first?
+- **How many streams can one box handle** at our resolution, with the models we need? Capacity depends on both.
+- **What is the end-to-end latency** from event to beacon or actuator, measured on our network, including the worst 1% of cases?
+- **Which network connections does the box need?** Are any of them inbound?
+- **Who replaces a failed box, how quickly, and what is lost** while it is down?
+
+If you are weighing edge against cloud for a specific site, see how [Glance Edge and Glance Hub](/platform) fit together, or [book a feasibility study](/contact). We will size the hardware against your cameras and your network, not an ideal one.

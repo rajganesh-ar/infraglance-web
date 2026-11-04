@@ -1,0 +1,82 @@
+[
+  {
+    "key": "worker-m1",
+    "title": "Site worker, orange hi-vis vest and hard hat (3D avatar)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Construction_Male_07",
+    "file": "/models/people/worker-m1.glb"
+  },
+  {
+    "key": "worker-m2",
+    "title": "Site worker, yellow hi-vis vest, white hard hat and radio (3D avatar)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Construction_Male_08",
+    "file": "/models/people/worker-m2.glb"
+  },
+  {
+    "key": "worker-f1",
+    "title": "Site worker, yellow hi-vis vest and white hard hat (3D avatar)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Construction_Female_01",
+    "file": "/models/people/worker-f1.glb"
+  },
+  {
+    "key": "anim-m-idle",
+    "title": "Male calm standing idle (3D animation)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_static/m_idle_neutral_01.max.fbx",
+    "file": "/models/anim/m-idle.glb"
+  },
+  {
+    "key": "anim-m-walk",
+    "title": "Male neutral walk cycle (3D animation)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral.max.fbx",
+    "file": "/models/anim/m-walk.glb"
+  },
+  {
+    "key": "anim-f-idle",
+    "title": "Female calm standing idle (3D animation)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_static/f_idle_neutral_02.max.fbx",
+    "file": "/models/anim/f-idle.glb"
+  },
+  {
+    "key": "anim-f-walk",
+    "title": "Female neutral walk cycle (3D animation)",
+    "author": "Microsoft Rocketbox",
+    "source": "Microsoft Rocketbox avatar library",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+    "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_xy/f_walk_neutral.max.fbx",
+    "file": "/models/anim/f-walk.glb"
+  },
+  {
+    "key": "hdri-kloofendal_48d_partly_cloudy_puresky",
+    "title": "Kloofendal 48d Partly Cloudy (Pure Sky) — daylight HDRI for 3D scene lighting",
+    "author": "Greg Zaal (original), Jarod Guest (sky edit)",
+    "source": "Poly Haven",
+    "url": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky",
+    "license": "CC0 1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "file": "/hdri/kloofendal_48d_partly_cloudy_puresky_1k.hdr"
+  }
+]

@@ -1,0 +1,58 @@
+---
+import Picture from '../media/Picture.astro';
+import { industries } from '../../data/industries';
+import { pillarBySlug } from '../../data/pillars';
+---
+<div class="ind">
+  {industries.map((i, n) => (
+    <a href={`/industries/${i.slug}`} class="tile tone-dark" data-reveal style={`--d:${n * 0.05}s`}>
+      <Picture img={i.photo} alt="" decorative sizes="(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw" class="tile-img pic--bare" />
+      <div class="media-scrim media-scrim--card tile-scrim" aria-hidden="true"></div>
+      <div class="tile-body on-media">
+        <span class="dots" aria-hidden="true">{i.pillars.map((p) => <i style={`background:${pillarBySlug[p].color}`} title={pillarBySlug[p].name}></i>)}</span>
+        <h3>{i.name}</h3>
+        <p class="segs">{i.segments.split(' · ').map((s) => <span>{s}</span>)}</p>
+        <ul class="uses" role="list">{i.useCases.slice(0, 3).map((u) => <li>{u.title}</li>)}</ul>
+        <span class="link-arrow">See use cases <span class="arrow" aria-hidden="true">→</span></span>
+      </div>
+    </a>
+  ))}
+</div>
+
+<style>
+  .ind { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+  .tile {
+    position: relative; isolation: isolate; display: flex; align-items: flex-end; min-height: 360px;
+    overflow: hidden; border-radius: var(--radius); color: #fff; background: var(--ink);
+  }
+  .tile :global(.tile-img) { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
+  .tile :global(.tile-img img) { transition: transform var(--dur-img) var(--ease-out); }
+  .tile:hover :global(.tile-img img) { transform: scale(1.03); }
+  /* Scrim lightens on hover so the photo "opens up" instead of going darker */
+  .tile-scrim { z-index: -1; transition: opacity 0.4s var(--ease-out); }
+  .tile:hover .tile-scrim { opacity: 0.88; }
+  .tile-body { display: grid; gap: 8px; width: 100%; padding: var(--card-pad); }
+  .tile h3 { font-size: var(--fs-xl); color: #fff; }
+  .tile p { font-size: var(--fs-sm); line-height: 1.5; color: rgb(238 243 248 / 0.8); }
+  /* Segments as separate unbreakable items, so 'Solar & wind' never splits. Each '·' sits in the gap
+     before its item; the first item on every line pushes its '·' past the left edge, where overflow clips
+     it, so no line starts or ends with a separator. */
+  .segs { --seg-gap: 1.2em; display: flex; flex-wrap: wrap; column-gap: var(--seg-gap); overflow: hidden; }
+  .segs > span { position: relative; white-space: nowrap; }
+  .segs > span::before { content: '·'; content: '·' / ''; position: absolute; top: 0; right: 100%; width: var(--seg-gap); text-align: center; opacity: 0.6; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.4); }
+  .uses { list-style: none; padding: 0; display: grid; gap: 4px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.45s var(--ease-out), opacity 0.35s; }
+  .uses li { position: relative; padding-left: 14px; font-size: var(--fs-sm); line-height: 1.45; color: rgb(238 243 248 / 0.9); }
+  .uses li::before { content: '›'; position: absolute; left: 0; color: var(--cyan); }
+  .tile:hover .uses, .tile:focus-visible .uses { max-height: 6.5rem; opacity: 1; }
+  .link-arrow { color: var(--cyan); margin-top: 2px; }
+  /* Touch: the use-case list is always shown, so the copy block is taller; the shade climbs with it */
+  @media (hover: none) {
+    .uses { max-height: none; opacity: 1; }
+    .tile-scrim { background: linear-gradient(0deg, rgb(var(--ink-rgb) / 0.9) 0%, rgb(var(--ink-rgb) / 0.78) 42%, rgb(var(--ink-rgb) / 0.48) 70%, rgb(var(--ink-rgb) / 0.14) 100%); }
+  }
+  @media (max-width: 1024px) { .ind { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .ind { grid-template-columns: 1fr; } .tile { min-height: 300px; } }
+  @media (prefers-reduced-motion: reduce) { .uses { max-height: none; opacity: 1; } }
+</style>
