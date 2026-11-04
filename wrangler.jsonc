@@ -32,16 +32,15 @@
   "observability": { "enabled": true },
 
   // ── 1. Lead storage (required) ──────────────────────────────────────────────────────────────
-  // PLACEHOLDER: the all-zero database_id below is not a real database. `wrangler deploy` fails with
-  // it, and release builds stop early with a clear message (see astro.config.mjs). One-time setup:
-  //   npx wrangler d1 create infraglance-leads    → paste the returned id here and commit it
-  //   npm run db:migrate:remote                   → creates the leads table from migrations/
+  // Created 2026-11-05 (region APAC) with `npx wrangler d1 create infraglance-leads`; the table comes
+  // from migrations/ via `npm run db:migrate:remote`. To start over elsewhere, create a new database
+  // and paste its id here (release builds stop if this is ever the all-zero placeholder again).
   // A D1 id is an identifier, not a secret. Local dev (npm run db:migrate:local) works as is.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "infraglance-leads",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "63cb2bd8-c6a4-4f62-8f6a-4c99fee070a0",
       "migrations_dir": "migrations"
     }
   ],
