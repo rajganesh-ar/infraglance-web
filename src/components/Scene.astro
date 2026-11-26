@@ -10,8 +10,10 @@
  * Page chrome laid over the canvas (.scene-head, .net-head, [data-scene-overlay])
  * is measured by the stage; scenes frame their subject and labels below it.
  *
- * The canvas takes its background from the nearest painted ancestor, so put
- * scenes in a light section (.tone-mist) for an invisible canvas edge.
+ * The canvas takes its background from the nearest painted ancestor, so the canvas
+ * edge is invisible. The site puts scenes in navy bands (background: var(--navy))
+ * and passes `dark`: the stage then runs its dark rig and the tags and HUD use their
+ * dark styles. A light (.tone-mist) host still gets the daylight look.
  */
 interface Props {
   name: string;
@@ -21,15 +23,38 @@ interface Props {
   eager?: boolean;
   /** Small honesty tag in the corner; false hides it (e.g. when the host shows its own). */
   note?: string | false;
+  /** The host band is dark (navy): dark poster, and the 3D uses its dark rig (stage.ts reads the band colour). */
+  dark?: boolean;
+  /**
+   * Camera HUD (corner brackets, camera name, clock), so the scene reads as one camera's view.
+   * true = the scene's default camera name; a string names it; false/omitted = no HUD.
+   */
+  hud?: boolean | string;
 }
-const { name, caption, accent = 'var(--cyan)', class: cls = '', eager = false, note = 'Illustrative scene · demo data' } = Astro.props;
+/** Default camera names per scene, as a site's camera list would name them. */
+const CAMS: Record<string, string> = {
+  'guard-zone': 'CAM-07 · Press bay 2',
+  'defect-part': 'CAM-12 · Inspection cell',
+  'belt-flow': 'CAM-21 · CV-03 head end',
+  'sense-scene': 'CAM-16 · Pipe rack B',
+  'infra-bridge': 'UAV-02 · Bridge survey',
+};
+const { name, caption, accent = 'var(--cyan)', class: cls = '', eager = false, note = 'Illustrative scene · demo data', dark = false, hud = false } = Astro.props;
+const cam = typeof hud === 'string' ? hud : hud ? CAMS[name] : undefined;
 ---
-<div class={`scene ${cls}`} data-scene={name} data-eager={eager ? '' : undefined} style={`--accent:${accent}`}>
+<div class={`scene ${dark ? 'scene--dark' : ''} ${cls}`} data-scene={name} data-eager={eager ? '' : undefined} style={`--accent:${accent}`}>
   <div class="scene-poster" aria-hidden="true">
     <div class="poster-floor"></div>
     <div class="poster-zone"></div>
     <div class="poster-shadow"></div>
   </div>
+  {cam && (
+    <div class="scene-hud" data-hud aria-hidden="true">
+      <i class="hc tl"></i><i class="hc tr"></i><i class="hc bl"></i><i class="hc br"></i>
+      <span class="hud-cam"><b class="rec"></b>{cam}</span>
+      <span class="hud-time" data-hud-time>--:--:--</span>
+    </div>
+  )}
   {note && <span class="scene-note" aria-hidden="true">{note}</span>}
   <p class="sr-only">{caption}</p>
 </div>
@@ -68,33 +93,85 @@ const { name, caption, accent = 'var(--cyan)', class: cls = '', eager = false, n
     border-radius: var(--radius, 2px); padding: 5px 7px;
   }
 
-  /* 3D labels (created by src/three/core/labels.ts): white chip, hairline, status dot. */
+  /* Dark (navy) band: the poster is a dark yard floor. */
+  .scene--dark .poster-floor {
+    background-image:
+      linear-gradient(to right, rgba(201, 214, 228, 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(201, 214, 228, 0.07) 1px, transparent 1px);
+  }
+  .scene--dark .poster-shadow { background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), transparent); }
+  .scene--dark .scene-note { color: #c3cdd8; background: rgba(8, 13, 20, 0.8); border-color: rgba(255, 255, 255, 0.12); }
+
+  /*
+   * 3D labels (created by src/three/core/labels.ts), styled as detection tags on a camera feed:
+   * a solid status-coloured tag, white mono caps, a hairline leader to the anchor. `info` (context,
+   * not a detection) is a dark glass tag with a cyan marker.
+   */
   .scene :global(.scene-labels) { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
   .scene :global(.scene-label) {
-    --tone: #0b7f99;
+    --tone: #0e7490;
     position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 8px 4px 7px; border-radius: 2px; white-space: nowrap;
-    font: 500 11px/14px var(--font-mono); letter-spacing: 0; text-transform: none;
-    color: #0b1220; background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(8, 17, 29, 0.14);
-    box-shadow: 0 1px 2px rgba(8, 17, 29, 0.08), 0 6px 14px -6px rgba(8, 17, 29, 0.24);
+    padding: 3px 7px; border-radius: 1px; white-space: nowrap;
+    font: 600 10.5px/14px var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase;
+    color: #fff; background: var(--tone);
+    border: 1px solid color-mix(in srgb, var(--tone) 70%, #000);
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.5);
     transition: opacity 0.25s;
   }
-  .scene :global(.scene-label .dot) { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--tone); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 18%, transparent); }
+  .scene :global(.scene-label .dot) { display: none; }
   /* Leader to the anchor: straight down, angled when the chip sits beside the thing it names, or up from the
      chip's top edge when it hangs below it (labels.ts sets --lead-top: 0 and an angle near 180°). */
   .scene :global(.scene-label::after) {
     content: ''; position: absolute; left: var(--lead-x, 50%); top: var(--lead-top, 100%); width: 1px; height: var(--lead, 10px);
-    background: rgba(8, 17, 29, 0.38); transform: rotate(var(--lead-a, 0deg)); transform-origin: 50% 0;
+    background: var(--tone); transform: rotate(var(--lead-a, 0deg)); transform-origin: 50% 0;
   }
   .scene :global(.scene-label.tone-ok) { --tone: #15803d; }
   .scene :global(.scene-label.tone-warn) { --tone: #b45309; }
-  .scene :global(.scene-label.tone-bad) { --tone: #c62828; }
-  .scene :global(.scene-label.tone-bad) { border-color: rgba(198, 40, 40, 0.45); }
-  .scene :global(.scene-label.tone-info) { --tone: #0b7f99; }
+  .scene :global(.scene-label.tone-bad) { --tone: #d42a2a; }
+  .scene :global(.scene-label.tone-info) {
+    --tone: #22d3ee;
+    color: #e6f1f8; background: rgba(9, 15, 24, 0.86); border-color: rgba(34, 211, 238, 0.42);
+    font-weight: 500; text-transform: none; letter-spacing: 0.01em;
+  }
+  .scene :global(.scene-label.tone-info .dot) { display: block; flex: none; width: 5px; height: 5px; background: var(--tone); }
+  .scene :global(.scene-label.tone-info::after) { background: rgba(34, 211, 238, 0.6); }
+  /* Light (mist) bands: the info tag is a white chip. */
+  .scene:not(.scene--dark) :global(.scene-label.tone-info) { --tone: #0e7490; color: #0b1220; background: rgba(255, 255, 255, 0.96); border-color: rgba(8, 17, 29, 0.16); }
+  .scene:not(.scene--dark) :global(.scene-label.tone-info::after) { background: rgba(8, 17, 29, 0.38); }
   @media (max-width: 640px) {
-    .scene :global(.scene-label) { padding: 3px 6px 3px 5px; gap: 5px; }
+    .scene :global(.scene-label) { padding: 2px 5px; gap: 5px; font-size: 10px; }
     .scene-note { top: 8px; right: 8px; }
+  }
+
+  /* Camera HUD: corner brackets, camera name with a recording dot, and a clock, in the canvas margins. */
+  .scene-hud { position: absolute; inset: 0; z-index: 2; pointer-events: none; --hud: rgba(226, 234, 242, 0.78); --hud-line: rgba(226, 234, 242, 0.42); }
+  /* No camera view without the 3D: the static poster shows no HUD. */
+  .scene.is-static .scene-hud { display: none; }
+  .scene:not(.scene--dark) .scene-hud { --hud: rgba(11, 18, 32, 0.72); --hud-line: rgba(11, 18, 32, 0.32); }
+  .scene-hud .hc { position: absolute; width: 18px; height: 18px; border: 0 solid var(--hud-line); }
+  .scene-hud .tl { left: 14px; top: 14px; border-width: 1px 0 0 1px; }
+  .scene-hud .tr { right: 14px; top: 14px; border-width: 1px 1px 0 0; }
+  .scene-hud .bl { left: 14px; bottom: 14px; border-width: 0 0 1px 1px; }
+  .scene-hud .br { right: 14px; bottom: 14px; border-width: 0 1px 1px 0; }
+  .hud-cam, .hud-time {
+    position: absolute; bottom: 20px; display: inline-flex; align-items: center; gap: 8px;
+    font: 500 11px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--hud);
+    font-variant-numeric: tabular-nums;
+  }
+  .hud-cam { left: 40px; }
+  .hud-time { right: 40px; }
+  .rec { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: rec 2s steps(1, end) infinite; }
+  @keyframes rec { 50% { opacity: 0.25; } }
+  @media (prefers-reduced-motion: reduce) { .rec { animation: none; } }
+  @media (max-width: 640px) {
+    .scene-hud .hc { width: 12px; height: 12px; }
+    .scene-hud .tl, .scene-hud .bl { left: 8px; }
+    .scene-hud .tr, .scene-hud .br { right: 8px; }
+    .scene-hud .tl, .scene-hud .tr { top: 8px; }
+    .scene-hud .bl, .scene-hud .br { bottom: 8px; }
+    .hud-cam, .hud-time { bottom: 13px; font-size: 10px; }
+    .hud-cam { left: 26px; }
+    .hud-time { right: 26px; }
   }
 </style>
 
@@ -108,6 +185,20 @@ const { name, caption, accent = 'var(--cyan)', class: cls = '', eager = false, n
   const disabled = prefersReducedMotion() || params.has('nowebgl') || saveData;
   const idle = (fn: () => void) =>
     'requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 1200 }) : setTimeout(fn, 60);
+
+  // Camera HUD clocks: one shared 1 s tick, local time as an NVR overlay prints it.
+  const clocks = [...document.querySelectorAll<HTMLElement>('[data-hud-time]')];
+  if (clocks.length) {
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    const tickClock = () => {
+      if (document.hidden) return;
+      const d = new Date();
+      const s = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+      clocks.forEach((c) => (c.textContent = s));
+    };
+    tickClock();
+    setInterval(tickClock, 1000);
+  }
 
   const markStatic = (el: SceneEl) => {
     el.classList.remove('is-live');

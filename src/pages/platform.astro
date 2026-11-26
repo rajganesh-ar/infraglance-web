@@ -7,6 +7,7 @@ import StudioRuleBuilder from '../components/mockups/StudioRuleBuilder.astro';
 import AskChat from '../components/mockups/AskChat.astro';
 import PhoneAlert from '../components/mockups/PhoneAlert.astro';
 import CTASection from '../components/sections/CTASection.astro';
+import AppScreens from '../components/media/AppScreens.astro';
 
 const edge = [
   { k: 'Edge S', streams: 'up to ~8 streams', use: 'Single zone or inspection station', form: 'Fanless, DIN-rail or desk' },
@@ -32,9 +33,9 @@ const flow = ['Cameras & drones', 'Glance Edge', 'Glance Hub', 'Apps & integrati
     <div class="btn-row"><a href="/contact" class="btn btn--primary">Book a demo <span class="arrow" aria-hidden="true">→</span></a><a href="#api" class="btn btn--ghost">API &amp; SDK</a></div>
   </PageHero>
 
-  <!-- 3D data-flow scene: light daylight scene in a mist band -->
-  <section class="net-sec tone-mist" aria-label="How data flows through the platform">
-    <Scene name="edge-network" note={false} caption="Animated network: cameras and drones send data packets to Glance Edge boxes, which send events to the Glance Hub core and out to the Guard, Inspect, Flow, Sense and Infra apps." class="net" />
+  <!-- 3D data-flow scene in a navy band -->
+  <section class="net-sec" aria-label="How data flows through the platform">
+    <Scene name="edge-network" note={false} dark caption="Animated network: cameras and drones send data packets to Glance Edge boxes, which send events to the Glance Hub core and out to the Guard, Inspect, Flow, Sense and Infra apps." class="net" />
     <div class="container container--wide net-head" aria-hidden="true">
       <span class="eyebrow">Data flow · illustrative 3D</span>
       <ol class="net-flow mono" role="list">{flow.map((f) => <li>{f}</li>)}</ol>
@@ -56,6 +57,20 @@ const flow = ['Cameras & drones', 'Glance Edge', 'Glance Hub', 'Apps & integrati
         </ul>
       </div>
       <div data-reveal style="--d:0.1s"><HubDashboard /></div>
+    </div>
+  </section>
+
+  <!-- Desktop apps (navy): real screens of Glance Guard and Glance Inspect -->
+  <section class="section apps-sec" id="apps" aria-labelledby="apps-h">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Desktop apps</span>
+        <h2 id="apps-h">Glance Guard and Glance Inspect, on the desktop.</h2>
+        <p class="lead">Two Windows apps on one design system: Guard for the safety desk (live PPE detection, alerts with evidence, compliance analytics, zones and reports) and Inspect for the line (the inspection station, review queue, SPC, ΔE2000 colour, lot traceability and threshold tuning). The screens below are the real apps, running on simulated data.</p>
+      </div>
+      <div data-reveal style="--d:0.08s">
+        <AppScreens ids={['guard-live', 'guard-focus', 'guard-alerts', 'guard-alert-detail', 'guard-analytics', 'guard-zones', 'guard-reports', 'inspect-station', 'inspect-review', 'inspect-review-detail', 'inspect-spc', 'inspect-colour', 'inspect-lots', 'inspect-model']} />
+      </div>
     </div>
   </section>
 
@@ -158,7 +173,8 @@ const flow = ['Cameras & drones', 'Glance Edge', 'Glance Hub', 'Apps & integrati
 </BaseLayout>
 
 <style>
-  .net-sec { position: relative; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .apps-sec { background: var(--navy); border-block: 1px solid var(--line); }
+  .net-sec { position: relative; background: var(--navy); border-bottom: 1px solid var(--line); }
   .net-sec :global(.net) { height: min(60vh, 520px); }
   .net-head { position: absolute; inset: var(--s-5) 0 auto; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-6); pointer-events: none; }
   .net-flow { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); margin: 0; padding: 0; list-style: none; font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--text-2); }

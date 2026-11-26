@@ -1,10 +1,11 @@
 import { CatmullRomCurve3, Group, Mesh, RingGeometry, Vector3 } from 'three';
 import { createStage } from '../core/stage';
 import { createLabels, type Label } from '../core/labels';
-import { C, addEnvironment, cctv, damp, forklift, hazardZone, overlayMat, wrapPi } from '../core/kit';
+import { C, addEnvironment, cctv, damp, hazardZone, overlayMat, wrapPi } from '../core/kit';
 import type { WorkerSpec } from './crew';
 import { avoidCrew, createCast, type CastMember } from './cast';
-import { floorLine, framedShot, guardFence, hydraulicPress, pad, robotArm } from './props';
+import { appMonitor, floorLine, framedShot, guardFence, hallBackdrop, pad } from './props';
+import { forklift, hydraulicPress, robotArm } from './machines';
 
 /** Zones on the floor (world metres). The press base sits inside the amber zone; the robot inside the fenced red cell. */
 const ZONES = [
@@ -39,7 +40,11 @@ export async function mount(el: HTMLElement) {
   stage.onResize(() => labels.setSafeArea(stage.frame));
   const cast = createCast(stage);
 
-  scene.add(pad(36, 26));
+  scene.add(pad(64, 26));
+  // The hall around the bay: back wall behind the machines (hides the slab's far edge).
+  const hall = hallBackdrop(64, 9.5, 6, 0.5);
+  hall.position.set(0, 0.12, -9.5);
+  scene.add(hall);
   const floor = new Group();
   floor.position.y = SLAB;
   scene.add(floor);
@@ -59,6 +64,12 @@ export async function mount(el: HTMLElement) {
   const fence = guardFence(7, 8, [-1.0, 0.4]);
   fence.position.set(7, 0, 1);
   floor.add(fence);
+  // Supervisor console between the press bay and the robot cell, showing Guard's live camera wall. Off every
+  // route (p1 turns at x ≤ −2.8, p3 walks z ≤ −4.7, p2 z ≥ 4.1) and far enough forward that its 1.9 m top
+  // stays below the sight line to p3's feet behind it.
+  const sup = appMonitor('guard-live', { width: 1.45, height: 1.52, tilt: 0.16, shelf: true });
+  sup.position.set(0.3, 0, 0.5);
+  floor.add(sup);
 
   // Zone names are static context: on a phone-sized canvas they give way to the live exceptions (the tinted,
   // taped zones still show), and while someone is in a zone the person's chip names it instead.
@@ -84,6 +95,7 @@ export async function mount(el: HTMLElement) {
   // People with detection boxes sized to each person; their labels appear once they have faded in.
   const crew = cast.add(floor, GUARD_ZONE_CREW, { boxes: true });
   avoidCrew(labels, crew); // no chip (forklift proximity included) is drawn over a person or their box
+  labels.avoid(sup.top, () => sup.screenHeight, () => true, 0.7); // nor over the console screen
   const people: { m: CastMember; lbl: Label; inside: number; dwell: number }[] = crew.members.map((m) => {
     const lbl = labels.add('', m.top, new Vector3(), 'ok');
     lbl.setVisible(false);
@@ -116,7 +128,7 @@ export async function mount(el: HTMLElement) {
   // Frames the press crown and pole cameras at the top and the whole forklift lane at the bottom.
   // On a phone only the machines, zones and the lane in front of them need to stay in (x -10...10.5 m): the
   // empty yard and the poles at the sides may crop, so the people are larger than with the whole pad in view.
-  const shot = framedShot(stage, new Vector3(0, 18.4, 31.6), new Vector3(0, 1.0, 3.7), { keep: 11.5 });
+  const shot = framedShot(stage, new Vector3(0, 12.5, 27), new Vector3(0, 1.4, 2.2), { keep: 11.5 });
 
   stage.onFrame((t, dt) => {
     press.ram.position.y = 2.85 + Math.abs(Math.sin(t * 0.8)) * 0.75;
@@ -179,7 +191,7 @@ export async function mount(el: HTMLElement) {
       z.rippleT = Math.min(1, z.rippleT + dt * 0.7);
       z.ripple.scale.setScalar(1 + z.rippleT * 5);
       z.ripple.material.opacity = (1 - z.rippleT) * 0.6;
-      z.zone.fill.material.opacity = 0.08 + Math.sin(t * 2.4 + z.x) * 0.03;
+      z.zone.fill.material.opacity = (0.08 + Math.sin(t * 2.4 + z.x) * 0.03) * (stage.dark ? 0.55 : 1);
     }
     shot(dt, 2.5);
     labels.update(stage.size.width, stage.size.height);

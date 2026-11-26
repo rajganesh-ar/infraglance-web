@@ -1,0 +1,618 @@
+{
+  "guard-live": {
+    "app": "guard",
+    "title": "Live cameras",
+    "caption": "Annotated feeds per camera with PPE boxes, zone occupancy and the live violation list.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-live-2880.b12c8025.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-live-1440.b12c8025.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-live-960.b12c8025.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-live-480.b12c8025.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-live-2880.b12c8025.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-live-1440.b12c8025.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-live-960.b12c8025.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-live-480.b12c8025.jpg"
+      ]
+    ]
+  },
+  "guard-focus": {
+    "app": "guard",
+    "title": "Camera focus",
+    "caption": "One camera full size, with its event timeline and the open violation in context.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-focus-2880.1a1d5bd8.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-focus-1440.1a1d5bd8.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-focus-960.1a1d5bd8.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-focus-480.1a1d5bd8.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-focus-2880.1a1d5bd8.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-focus-1440.1a1d5bd8.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-focus-960.1a1d5bd8.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-focus-480.1a1d5bd8.jpg"
+      ]
+    ]
+  },
+  "guard-alerts": {
+    "app": "guard",
+    "title": "Alerts",
+    "caption": "Every violation with severity, camera, zone, duration and status; acknowledge and resolve in place.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-alerts-2880.c9afc2ee.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-alerts-1440.c9afc2ee.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-alerts-960.c9afc2ee.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-alerts-480.c9afc2ee.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-alerts-2880.c9afc2ee.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-alerts-1440.c9afc2ee.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-alerts-960.c9afc2ee.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-alerts-480.c9afc2ee.jpg"
+      ]
+    ]
+  },
+  "guard-alert-detail": {
+    "app": "guard",
+    "title": "Alert evidence",
+    "caption": "Evidence photo, person handle, corrective-action checklist and notes for the shift log.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080808",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-alert-detail-2880.583a653f.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-alert-detail-1440.583a653f.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-alert-detail-960.583a653f.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-alert-detail-480.583a653f.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-alert-detail-2880.583a653f.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-alert-detail-1440.583a653f.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-alert-detail-960.583a653f.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-alert-detail-480.583a653f.jpg"
+      ]
+    ]
+  },
+  "guard-analytics": {
+    "app": "guard",
+    "title": "Analytics",
+    "caption": "Compliance trend, violations by PPE type, by hour and by zone, from the API datapoints.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-analytics-2880.10e53789.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-analytics-1440.10e53789.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-analytics-960.10e53789.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-analytics-480.10e53789.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-analytics-2880.10e53789.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-analytics-1440.10e53789.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-analytics-960.10e53789.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-analytics-480.10e53789.jpg"
+      ]
+    ]
+  },
+  "guard-zones": {
+    "app": "guard",
+    "title": "Zones & cameras",
+    "caption": "Zones with their mandatory PPE rules, camera health and credentials.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-zones-2880.ace180dd.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-zones-1440.ace180dd.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-zones-960.ace180dd.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-zones-480.ace180dd.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-zones-2880.ace180dd.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-zones-1440.ace180dd.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-zones-960.ace180dd.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-zones-480.ace180dd.jpg"
+      ]
+    ]
+  },
+  "guard-reports": {
+    "app": "guard",
+    "title": "Reports",
+    "caption": "Compliance summary PDF, alert log and zone audit CSVs, and scheduled reports.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/guard-reports-2880.670a88b6.avif"
+      ],
+      [
+        1440,
+        "/media/app/guard-reports-1440.670a88b6.avif"
+      ],
+      [
+        960,
+        "/media/app/guard-reports-960.670a88b6.avif"
+      ],
+      [
+        480,
+        "/media/app/guard-reports-480.670a88b6.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/guard-reports-2880.670a88b6.jpg"
+      ],
+      [
+        1440,
+        "/media/app/guard-reports-1440.670a88b6.jpg"
+      ],
+      [
+        960,
+        "/media/app/guard-reports-960.670a88b6.jpg"
+      ],
+      [
+        480,
+        "/media/app/guard-reports-480.670a88b6.jpg"
+      ]
+    ]
+  },
+  "inspect-station": {
+    "app": "inspect",
+    "title": "Inspection station",
+    "caption": "Live part feed with the anomaly heatmap, the score against the threshold and the decision.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-station-2880.a922fa64.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-station-1440.a922fa64.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-station-960.a922fa64.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-station-480.a922fa64.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-station-2880.a922fa64.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-station-1440.a922fa64.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-station-960.a922fa64.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-station-480.a922fa64.jpg"
+      ]
+    ]
+  },
+  "inspect-review": {
+    "app": "inspect",
+    "title": "Review queue",
+    "caption": "Parts in the review band or rejected, ready to confirm or release as good.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-review-2880.9e68c96e.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-review-1440.9e68c96e.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-review-960.9e68c96e.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-review-480.9e68c96e.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-review-2880.9e68c96e.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-review-1440.9e68c96e.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-review-960.9e68c96e.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-review-480.9e68c96e.jpg"
+      ]
+    ]
+  },
+  "inspect-review-detail": {
+    "app": "inspect",
+    "title": "Defect review",
+    "caption": "The part, its heatmap, score and ΔE, with confirm and release that feed the training set.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-review-detail-2880.0c913f56.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-review-detail-1440.0c913f56.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-review-detail-960.0c913f56.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-review-detail-480.0c913f56.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-review-detail-2880.0c913f56.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-review-detail-1440.0c913f56.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-review-detail-960.0c913f56.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-review-detail-480.0c913f56.jpg"
+      ]
+    ]
+  },
+  "inspect-spc": {
+    "app": "inspect",
+    "title": "Trends & SPC",
+    "caption": "X̄ control chart with limits and run rules, a defect Pareto and reject rate by hour and shift.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-spc-2880.39958616.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-spc-1440.39958616.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-spc-960.39958616.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-spc-480.39958616.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-spc-2880.39958616.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-spc-1440.39958616.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-spc-960.39958616.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-spc-480.39958616.jpg"
+      ]
+    ]
+  },
+  "inspect-colour": {
+    "app": "inspect",
+    "title": "Colour ΔE2000",
+    "caption": "Each lot measured against its reference under D65, scored with CIEDE2000 against the tolerance.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-colour-2880.e1f490d5.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-colour-1440.e1f490d5.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-colour-960.e1f490d5.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-colour-480.e1f490d5.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-colour-2880.e1f490d5.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-colour-1440.e1f490d5.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-colour-960.e1f490d5.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-colour-480.e1f490d5.jpg"
+      ]
+    ]
+  },
+  "inspect-lots": {
+    "app": "inspect",
+    "title": "Lots & traceability",
+    "caption": "Every part traced to its lot, station, model version and decision; hold or release a lot.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-lots-2880.e06a8725.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-lots-1440.e06a8725.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-lots-960.e06a8725.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-lots-480.e06a8725.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-lots-2880.e06a8725.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-lots-1440.e06a8725.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-lots-960.e06a8725.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-lots-480.e06a8725.jpg"
+      ]
+    ]
+  },
+  "inspect-model": {
+    "app": "inspect",
+    "title": "Model & threshold",
+    "caption": "Good-part model versions and threshold tuning with false-reject, escape and review-load rates.",
+    "w": 2880,
+    "h": 1800,
+    "color": "#080818",
+    "avif": [
+      [
+        2880,
+        "/media/app/inspect-model-2880.ee85883d.avif"
+      ],
+      [
+        1440,
+        "/media/app/inspect-model-1440.ee85883d.avif"
+      ],
+      [
+        960,
+        "/media/app/inspect-model-960.ee85883d.avif"
+      ],
+      [
+        480,
+        "/media/app/inspect-model-480.ee85883d.avif"
+      ]
+    ],
+    "jpg": [
+      [
+        2880,
+        "/media/app/inspect-model-2880.ee85883d.jpg"
+      ],
+      [
+        1440,
+        "/media/app/inspect-model-1440.ee85883d.jpg"
+      ],
+      [
+        960,
+        "/media/app/inspect-model-960.ee85883d.jpg"
+      ],
+      [
+        480,
+        "/media/app/inspect-model-480.ee85883d.jpg"
+      ]
+    ]
+  }
+}

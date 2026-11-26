@@ -1,11 +1,11 @@
-import { CircleGeometry, CylinderGeometry, Group, LatheGeometry, Mesh, MeshStandardMaterial, Object3D, TorusGeometry, Vector2, Vector3, BoxGeometry } from 'three';
+import { CircleGeometry, CylinderGeometry, Group, LatheGeometry, Mesh, MeshStandardMaterial, Object3D, RingGeometry, TorusGeometry, Vector2, Vector3, BoxGeometry } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { createStage } from '../core/stage';
 import { createLabels } from '../core/labels';
 import { C, M, addEnvironment, bake, led, overlayMat, solid } from '../core/kit';
 import { avoidCrew, createCast } from './cast';
 import { INSPECT_CELL_CREW } from './crew';
-import { framedShot } from './props';
+import { appMonitor, framedShot, hallBackdrop, meshGuarding } from './props';
 
 // Ashima 3D simplex noise (MIT)
 const NOISE = /* glsl */ `
@@ -101,6 +101,10 @@ export async function mount(el: HTMLElement) {
   avoidCrew(labels, crew);
 
   // Inspection cell: plinth with turntable, gantry and the scanner head.
+  // The hall behind the cell.
+  const hall = hallBackdrop(64, 11, 6, 9);
+  hall.position.set(0, 0, -7.5);
+  scene.add(hall);
   const cell = new Group();
   const plinth = solid(new CylinderGeometry(4.2, 4.3, 0.5, 72), M.body());
   plinth.position.y = 0.25;
@@ -119,9 +123,65 @@ export async function mount(el: HTMLElement) {
   const window_ = solid(new BoxGeometry(0.8, 0.04, 0.3), M.dark());
   window_.position.set(0, 6.49, -0.1);
   gantry.add(bar, head, window_);
+  const add = (m: Object3D, x: number, y: number, z: number) => (m.position.set(x, y, z), gantry.add(m), m);
+  // Post feet and the linear guide rails on the beam face, with the head's carriage plate.
+  for (const x of [-5.2, 5.2]) add(solid(new BoxGeometry(0.7, 0.04, 0.7), M.galv()), x, 0.02, -0.6);
+  for (const y of [7.08, 7.32]) add(solid(new BoxGeometry(10.2, 0.04, 0.03), M.steel()), 0, y, -0.33);
+  add(solid(new RoundedBoxGeometry(1.0, 0.6, 0.06, 1, 0.02), M.galv()), 0, 7.05, -0.3);
+  // Main camera: lens barrel and hood through the head, ring light round it (lit face under the bloom threshold).
+  add(solid(new CylinderGeometry(0.075, 0.075, 0.2, 20), M.dark()), 0, 6.42, -0.2);
+  add(solid(new CylinderGeometry(0.13, 0.09, 0.14, 20, 1, true), M.dark()), 0, 6.28, -0.2);
+  add(solid(new CylinderGeometry(0.42, 0.42, 0.07, 40, 1, true), M.dark()), 0, 6.46, -0.2);
+  add(solid(new RingGeometry(0.2, 0.42, 40).rotateX(-Math.PI / 2), M.dark()), 0, 6.495, -0.2);
+  for (const s of [-1, 1]) add(solid(new BoxGeometry(0.04, 0.14, 0.04), M.galv()), s * 0.44, 6.56, -0.2);
+  const ringFace = new Mesh(new RingGeometry(0.22, 0.4, 40).rotateX(Math.PI / 2), led(0xeef6ff, 1.3));
+  ringFace.position.set(0, 6.42, -0.2);
+  // Two angled side cameras on brackets: housing, lens, flared hood, cable gland; aimed at the part.
+  for (const s of [-1, 1]) {
+    const camG = new Group();
+    camG.position.set(s * 2.4, 6.7, -0.1);
+    camG.lookAt(0, 3.0, 0.4);
+    camG.add(solid(new RoundedBoxGeometry(0.17, 0.17, 0.34, 1, 0.02), M.white()));
+    const lens = solid(new CylinderGeometry(0.05, 0.05, 0.12, 16).rotateX(Math.PI / 2), M.dark());
+    lens.position.z = 0.23;
+    const hood = solid(new CylinderGeometry(0.06, 0.095, 0.14, 16, 1, true).rotateX(Math.PI / 2), M.dark());
+    hood.position.z = 0.36;
+    const gland = solid(new CylinderGeometry(0.025, 0.025, 0.08, 8).rotateX(Math.PI / 2), M.dark());
+    gland.position.z = -0.21;
+    camG.add(lens, hood, gland);
+    gantry.add(camG);
+    add(solid(new BoxGeometry(0.06, 0.42, 0.06), M.galv()), s * 2.4, 6.95, -0.32);
+  }
+  // Cable carrier (drag chain) in a tray on the beam: lower run, a bend, upper run back to the head carriage.
+  add(solid(new BoxGeometry(5.2, 0.03, 0.2), M.galv()), 0.6, 7.44, -0.6);
+  const link = new BoxGeometry(0.1, 0.07, 0.14);
+  for (let x = 3.0; x > -1.8; x -= 0.11) add(solid(link, M.dark()), x, 7.5, -0.6);
+  for (let k = 0; k <= 8; k++) {
+    const a = -Math.PI / 2 - (k / 8) * Math.PI;
+    const m = add(solid(link, M.dark()), -1.8 + Math.cos(a) * 0.17, 7.67 + Math.sin(a) * 0.17, -0.6);
+    m.rotation.z = a + Math.PI / 2;
+  }
+  for (let x = -1.8; x < -0.1; x += 0.11) add(solid(link, M.dark()), x, 7.84, -0.6);
+  add(solid(new BoxGeometry(0.12, 0.5, 0.18), M.galv()), 0, 7.62, -0.6);
+  // Status beacon on the left post, electrical cabinet behind the cell (RAL 7035, door seam, handle, vents).
+  add(solid(new CylinderGeometry(0.05, 0.05, 0.45, 12), M.galv()), -5.2, 7.62, -0.6);
+  add(solid(new RoundedBoxGeometry(1.4, 2.0, 0.5, 1, 0.03), M.body()), -7.4, 1.0, -3.2);
+  add(solid(new BoxGeometry(0.01, 1.9, 0.01), M.dark()), -7.4, 1.0, -2.945);
+  for (const s of [-1, 1]) add(solid(new BoxGeometry(0.03, 0.18, 0.04), M.steel()), -7.4 + s * 0.08, 1.15, -2.94);
+  add(solid(new RoundedBoxGeometry(1.5, 0.1, 0.6, 1, 0.02), M.body2()), -7.4, 2.05, -3.2);
+  add(solid(new BoxGeometry(1.5, 0.1, 0.55), M.body2()), -7.4, 0.05, -3.2);
   bake(gantry);
-  cell.add(gantry);
+  cell.add(gantry, ringFace);
+  // Perimeter guarding behind and either side of the cell; the operator side stays open.
+  cell.add(meshGuarding([[-5.95, 0.7, -5.95, -4.9], [-5.95, -4.9, 5.95, -4.9], [5.95, -4.9, 5.95, 0.7]], 2.1));
   scene.add(cell);
+  // Operator display beside the cell with Inspect's station view, turned to the operator and the camera
+  // (right of the operator at (6.0, 1.7), so she never stands in front of the screen).
+  const hmi = appMonitor('inspect-station', { width: 1.0, height: 1.55, tilt: 0.1, shelf: true });
+  hmi.position.set(7.4, 0, 0.7);
+  hmi.rotation.y = -0.5;
+  scene.add(hmi);
+  labels.avoid(hmi.top, () => hmi.screenHeight, () => true, 0.55);
   const table = solid(new CylinderGeometry(3.6, 3.6, 0.12, 72), M.steel());
   table.position.y = 0.56;
   scene.add(table);

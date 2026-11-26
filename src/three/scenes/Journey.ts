@@ -2,16 +2,18 @@ import { BoxGeometry, CatmullRomCurve3, CylinderGeometry, Fog, Group, Mesh, Obje
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { createStage } from '../core/stage';
 import { createLabels, type Label, type LabelOptions, type LabelTone, type SafeArea } from '../core/labels';
-import { C, M, SUN_DIR, SUN_DIST, addEnvironment, bake, cctv, crack, damp, detectionBox, forklift, hazardZone, led, overlayMat, paint, solid, thermalSpot, wrapPi } from '../core/kit';
+import { C, M, SUN_DIR, SUN_DIST, addEnvironment, bake, cctv, crack, damp, detectionBox, hazardZone, led, overlayMat, paint, solid, thermalSpot, wrapPi } from '../core/kit';
 import { INFRA_CREW, INSPECT_CREW, SENSE_CREW, type WorkerSpec } from './crew';
 import { avoidCrew, createCast, type CastMember, type Crew } from './cast';
 import {
+  appMonitor,
   car,
   drone,
+  feedHopper,
   flangeGeometry,
+  floodMast,
+  hallBackdrop,
   floorLine,
-  hmiStand,
-  hydraulicPress,
   pad,
   palletRacking,
   pipeRack,
@@ -22,6 +24,7 @@ import {
   vapour,
   zebra,
 } from './props';
+import { forklift, hydraulicPress } from './machines';
 
 /** Station centres along X (metres). */
 const GX = -52, IX = -23, FX = 6, SX = 38, BX = 92;
@@ -92,6 +95,13 @@ export async function mount(el: HTMLElement) {
   scene.add(guard);
   {
     guard.add(pad(28, 20));
+    // The bay wall behind the press and racking, and a yard floodlight.
+    const bay = hallBackdrop(28, 9, 6, 4);
+    bay.position.set(0, SLAB, -10);
+    guard.add(bay);
+    const gMast = floodMast(12, 3);
+    gMast.position.set(12.4, SLAB, -8.2);
+    guard.add(gMast);
     const floor = new Group();
     floor.position.y = SLAB;
     guard.add(floor);
@@ -106,6 +116,13 @@ export async function mount(el: HTMLElement) {
     const crossing = zebra(1.9, AISLE[1] - AISLE[0]);
     crossing.position.set(-8.8, 0, (AISLE[0] + AISLE[1]) / 2);
     floor.add(crossing);
+    // Supervisor console with Guard's live view, between the racking aisle (w2, z ≤ −4.9) and w1's route
+    // (z ≥ 2.3), far enough forward that it never hides w2's feet from the chapter camera.
+    const sup = appMonitor('guard-live', { width: 1.3, height: 1.5, tilt: 0.14, shelf: true });
+    sup.position.set(-3.6, 0, 0.5);
+    sup.rotation.y = -0.42;
+    floor.add(sup);
+    labels.avoid(sup.top, () => sup.screenHeight, () => onChapter(1), 0.7);
 
     const press = hydraulicPress();
     press.position.set(5, 0, -1.5);
@@ -208,6 +225,9 @@ export async function mount(el: HTMLElement) {
   scene.add(inspect);
   {
     inspect.add(pad(22, 14));
+    const iBay = hallBackdrop(22, 8, 5.5, null);
+    iBay.position.set(0, SLAB, -7);
+    inspect.add(iBay);
     const line = new Group();
     line.position.y = SLAB;
     inspect.add(line);
@@ -216,10 +236,10 @@ export async function mount(el: HTMLElement) {
     fixed.add(at(solid(new BoxGeometry(18, 0.05, 1.5), M.rubber()), 0, 1.055, 0));
     for (const x of [-8.4, -4.2, 0, 4.2, 8.4]) for (const z of [-0.75, 0.75]) fixed.add(at(solid(new BoxGeometry(0.1, 0.75, 0.1), M.galv()), x, 0.375, z));
     for (const z of [-0.92, 0.92]) fixed.add(at(solid(new BoxGeometry(18, 0.1, 0.05), M.galv()), 0, 1.17, z));
-    // Inspection tunnel: white panels, roof camera, stack light
-    for (const z of [-1.25, 1.25]) fixed.add(at(solid(new RoundedBoxGeometry(2.8, 2.3, 0.12, 2, 0.03), M.white()), 0, 2.0, z));
-    fixed.add(at(solid(new RoundedBoxGeometry(2.8, 0.18, 2.62, 2, 0.03), M.white()), 0, 3.2, 0));
-    fixed.add(at(solid(new RoundedBoxGeometry(0.46, 0.38, 0.4, 2, 0.05), M.white()), 0, 3.48, 0));
+    // Inspection tunnel: light-grey powder-coated guarding panels, roof camera, stack light
+    for (const z of [-1.25, 1.25]) fixed.add(at(solid(new RoundedBoxGeometry(2.8, 2.3, 0.12, 2, 0.03), M.body()), 0, 2.0, z));
+    fixed.add(at(solid(new RoundedBoxGeometry(2.8, 0.18, 2.62, 2, 0.03), M.body2()), 0, 3.2, 0));
+    fixed.add(at(solid(new RoundedBoxGeometry(0.46, 0.38, 0.4, 2, 0.05), M.dark()), 0, 3.48, 0));
     fixed.add(at(solid(new CylinderGeometry(0.04, 0.04, 0.5, 10), M.galv()), 1.2, 3.55, 1.0));
     // Reject bin and chute
     fixed.add(at(solid(new RoundedBoxGeometry(1.3, 0.8, 1.3, 2, 0.04), M.yellow()), 5.5, 0.4, -2.0));
@@ -243,9 +263,14 @@ export async function mount(el: HTMLElement) {
     const pusher = solid(new RoundedBoxGeometry(0.5, 0.26, 0.8, 2, 0.04), M.galv());
     pusher.position.set(5.5, 1.22, 1.35);
     line.add(pusher);
-    const hmi = hmiStand('Inspect · Line 2', [['PASS', '1 184', '#15803d'], ['REVIEW', '12', '#b45309'], ['REJECT', '9', '#c62828']]);
-    hmi.position.set(3.2, 0, 2.4);
+    // Line-side display with Inspect's station view, turned toward the operator and the chapter camera,
+    // beside the operator (2.4, 3.1) rather than behind her, and far enough forward that from the chapter
+    // camera it sits below the parts leaving the tunnel and their pass / reject boxes.
+    const hmi = appMonitor('inspect-station', { width: 1.15, height: 1.5, tilt: 0.1 });
+    hmi.position.set(3.9, 0, 3.0);
+    hmi.rotation.y = -0.45;
     line.add(hmi);
+    labels.avoid(hmi.top, () => hmi.screenHeight, () => onChapter(2), 0.6);
     const operators = cast.add(line, INSPECT_CREW);
     avoidCrew(labels, operators);
     crews.push([2, operators]);
@@ -318,13 +343,12 @@ export async function mount(el: HTMLElement) {
     const conveyor = troughedConveyor({ length: 24, angle: 0.2, hot: 9, ore: isMobile ? 70 : 150 });
     flow.add(conveyor);
     const pile = stockpile(5.5, 4.4);
-    pile.position.set(16.2, 0, 0);
+    pile.position.set(16.6, 0, 0);
     flow.add(pile);
-    const hopper = new Group();
-    hopper.add(at(solid(new RoundedBoxGeometry(2.6, 1.6, 3.0, 2, 0.04), M.body2()), 0, 1.7, 0));
-    for (const [x, z] of [[-1.1, -1.3], [1.1, -1.3], [-1.1, 1.3], [1.1, 1.3]]) hopper.add(at(solid(new BoxGeometry(0.16, 0.9, 0.16), M.body2()), x, 0.45, z));
-    bake(hopper);
-    hopper.position.set(-12.6, 0, 0);
+    // Feed hopper over the loading zone (outlet 1.4 m up the belt from the tail, inside the skirt boards).
+    const feed = conveyor.beltAt(-conveyor.length / 2 + 1.4);
+    const hopper = feedHopper(feed.y);
+    hopper.position.set(feed.x, 0, 0);
     flow.add(hopper);
     const cam = cctv(7, 9);
     cam.position.set(2, 0, -6.5);

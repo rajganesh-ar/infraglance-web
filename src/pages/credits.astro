@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/sections/PageHero.astro';
 import { allCredits } from '../lib/media';
 import credits3d from '../data/credits-3d.json';
+import creditsApps from '../data/credits-apps.json';
 import { nb } from '../data/helpers';
 
 const credits = allCredits().sort((a, b) => a.type.localeCompare(b.type) || a.key.localeCompare(b.key));
@@ -11,10 +12,10 @@ const videos = credits.filter((c) => c.type === 'video');
 const people3d = credits3d;
 ---
 <BaseLayout title="Image & video credits" description="Credits and licences for the stock photography, video and 3D assets used on the Infraglance website.">
-  <PageHero eyebrow="Credits" title="Image &amp; video credits" lead="Photos and video on this site are free-licence stock media, colour-graded for the site. We thank the photographers and filmmakers below. Product mockups and 3D scenes are our own work and use illustrative demo data; the animated 3D people and the sky lighting are open-licence assets, credited below." crumbs={[{ href: '/credits', label: 'Credits' }]} />
+  <PageHero eyebrow="Credits" title="Image &amp; video credits" lead="Photos and video on this site are free-licence stock media, colour-graded for the site. We thank the photographers and filmmakers below. Product mockups, app screens and 3D scenes are our own work and use illustrative or simulated data (the other sample frames inside the app screens are site photos credited above); the animated 3D people and the sky lighting are open-licence assets, credited below." crumbs={[{ href: '/credits', label: 'Credits' }]} />
   <section class="section tone-light">
     <div class="container container--wide">
-      {[{ h: 'Video', list: videos }, { h: 'Photos', list: photos }, { h: '3D people and lighting', list: people3d }].map(({ h, list }) => list.length > 0 && (
+      {[{ h: 'Video', list: videos }, { h: 'Photos', list: photos }, { h: 'Photos inside the app screens', list: creditsApps }, { h: '3D people and lighting', list: people3d }].map(({ h, list }) => list.length > 0 && (
         <div class="block">
           <h2>{h} <span class="mono">{list.length}</span></h2>
           <div class="table-wrap">

@@ -4,7 +4,7 @@ import { createLabels } from '../core/labels';
 import { C, addEnvironment, detectionBox, fatLines, thermalSpot } from '../core/kit';
 import { avoidCrew, createCast } from './cast';
 import { SENSE_SCENE_CREW } from './crew';
-import { framedShot, pad, pipeRack, vapour } from './props';
+import { floodMast, framedShot, pad, pipeRack, tankFarm, vapour } from './props';
 
 const SLAB = 0.12;
 
@@ -19,6 +19,13 @@ export async function mount(el: HTMLElement) {
   const cast = createCast(stage);
 
   scene.add(pad(26, 16));
+  // Yard context: floodlight masts at the rack ends and a tank farm behind, fading into the fog.
+  for (const [x, z] of [[-12.4, -2.6], [12.4, -2.6]]) {
+    const mast = floodMast(11, 3);
+    mast.position.set(x, 0.12, z);
+    scene.add(mast);
+  }
+  scene.add(tankFarm([[-15, -17, 5, 9], [-2, -20, 6.5, 11], [12, -17.5, 4.5, 8]]));
   const plant = pipeRack();
   plant.position.y = SLAB;
   scene.add(plant);

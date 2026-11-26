@@ -1,0 +1,207 @@
+---
+/**
+ * Real UI screens of the Infraglance desktop apps (Glance Guard · PPE, Glance Inspect · Anomaly), from the
+ * apps' own 2x capture (scripts/app-screens.mjs → src/data/app-screens.json). Pixel-exact screenshots,
+ * not mockups; the apps run on simulated data, and every view says so.
+ *
+ * - `ids` with one screen: a single framed screen with its caption.
+ * - several screens: a gallery with tabs (thumbnails on wide screens). Screens from both apps add an
+ *   app switcher above the tabs. Only the visible screen loads; the rest load when picked.
+ * Clicking a screen opens it at full 2x resolution in a dialog (Esc or click to close).
+ */
+import screens from '../../data/app-screens.json';
+
+type Screen = (typeof screens)[keyof typeof screens];
+interface Props {
+  ids: string[];
+  /** Initial app when the gallery spans both apps. */
+  app?: 'guard' | 'inspect';
+  sizes?: string;
+  class?: string;
+  /** Shorter caption row (no screen title), for tight columns. */
+  compact?: boolean;
+}
+const { ids, sizes = '(min-width: 1440px) 1344px, 94vw', class: cls = '', compact = false } = Astro.props;
+const APPS = {
+  guard: { name: 'Glance Guard', area: 'PPE monitoring', accent: 'var(--guard)' },
+  inspect: { name: 'Glance Inspect', area: 'Anomaly inspection', accent: 'var(--inspect)' },
+} as const;
+const list = ids
+  .map((id) => ({ id, ...(screens as Record<string, Screen>)[id] }))
+  .filter((s) => s.title) as ({ id: string } & Screen)[];
+const apps = [...new Set(list.map((s) => s.app))] as (keyof typeof APPS)[];
+const startApp = Astro.props.app && apps.includes(Astro.props.app) ? Astro.props.app : apps[0];
+const first = (app: string) => list.find((s) => s.app === app)!.id;
+const gallery = list.length > 1;
+const ss = (a: [number, string][], max = 2880) => a.filter(([w]) => w >= 1440 && w <= max).map(([w, u]) => `${u} ${w}w`).join(', ');
+const at = (a: [number, string][], w: number) => a.find(([x]) => x === w)?.[1] ?? a[0][1];
+const uid = `as-${list.map((s) => s.id).join('-').replace(/[^a-z0-9-]/g, '').slice(0, 40)}`;
+---
+<div class:list={['appscreens', cls, { 'appscreens--gallery': gallery }]} data-appscreens data-app={startApp}>
+  {apps.length > 1 && (
+    <div class="as-apps" role="group" aria-label="App">
+      {apps.map((a) => (
+        <button type="button" class:list={['as-app-btn', { 'is-on': a === startApp }]} data-app-btn={a} aria-pressed={a === startApp ? 'true' : 'false'} style={`--accent:${APPS[a].accent}`}>
+          <span class="as-app-dot" aria-hidden="true"></span>{APPS[a].name}<span class="as-app-area">· {APPS[a].area}</span>
+        </button>
+      ))}
+    </div>
+  )}
+
+  <div class="as-display">
+    {list.map((s) => {
+      const on = s.id === first(startApp);
+      return (
+        <figure class="as-screen" data-screen={s.id} data-of={s.app} hidden={!on} id={`${uid}-${s.id}`} role={gallery ? 'tabpanel' : undefined} aria-label={gallery ? s.title : undefined}>
+          <button type="button" class="as-zoom" data-zoom={at(s.jpg as [number, string][], 2880)} data-zoom-avif={at(s.avif as [number, string][], 2880)} aria-label={`Open the ${s.title} screen at full size`}>
+            <picture style={`--pic-color:${s.color}`}>
+              <source type="image/avif" srcset={ss(s.avif as [number, string][])} sizes={sizes} />
+              <img src={at(s.jpg as [number, string][], 1440)} srcset={ss(s.jpg as [number, string][])} sizes={sizes} width={s.w} height={s.h} loading="lazy" decoding="async" alt={`${APPS[s.app as keyof typeof APPS].name} desktop app, ${s.title} screen: ${s.caption}`} />
+            </picture>
+          </button>
+          <figcaption class="as-cap">
+            <span class="as-cap-app" style={`--accent:${APPS[s.app as keyof typeof APPS].accent}`}>{APPS[s.app as keyof typeof APPS].name}{!compact && <> · {s.title}</>}</span>
+            <span class="as-cap-text">{s.caption}</span>
+            <span class="as-cap-tag mono">Real app · simulated data</span>
+          </figcaption>
+        </figure>
+      );
+    })}
+  </div>
+
+  {gallery && (
+    <div class="as-tabs" role="tablist" aria-label="Screens">
+      {list.map((s) => (
+        <button
+          type="button"
+          role="tab"
+          class:list={['as-tab', { 'is-on': s.id === first(startApp) }]}
+          data-tab={s.id}
+          data-of={s.app}
+          hidden={s.app !== startApp}
+          aria-selected={s.id === first(startApp) ? 'true' : 'false'}
+          aria-controls={`${uid}-${s.id}`}
+          tabindex={s.id === first(startApp) ? 0 : -1}
+          style={`--accent:${APPS[s.app as keyof typeof APPS].accent}`}
+        >
+          <img class="as-thumb" src={at(s.jpg as [number, string][], 480)} width="160" height="100" loading="lazy" decoding="async" alt="" />
+          <span class="as-tab-t">{s.title}</span>
+        </button>
+      ))}
+    </div>
+  )}
+
+  <dialog class="as-lightbox" aria-label="Screen at full size">
+    <button type="button" class="as-lb-close" aria-label="Close">Close <span aria-hidden="true">×</span></button>
+    <picture class="as-lb-pic"><source type="image/avif" /><img alt="" /></picture>
+  </dialog>
+</div>
+
+<style>
+  .appscreens { --frame: #0b1017; display: grid; gap: var(--s-4); }
+  .as-display { position: relative; }
+  /* The screen as it sits on a display: a thin dark bezel, a hairline, a deep soft shadow. */
+  .as-screen { margin: 0; display: grid; gap: var(--s-3); }
+  .as-screen[hidden] { display: none; }
+  .as-zoom { display: block; width: 100%; padding: 6px; border-radius: 10px; background: var(--frame); border: 1px solid rgb(255 255 255 / 0.08); box-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 30px 60px -28px rgb(0 0 0 / 0.65), 0 12px 24px -16px rgb(0 0 0 / 0.4); cursor: zoom-in; transition: border-color 0.2s, transform 0.4s var(--ease-out); }
+  .as-zoom:hover { border-color: color-mix(in srgb, var(--accent, var(--cyan)) 40%, rgb(255 255 255 / 0.08)); }
+  .as-zoom:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+  .as-zoom picture { display: block; border-radius: 5px; overflow: hidden; background: var(--pic-color, #05070b); }
+  .as-zoom img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; }
+  :global(:is(.tone-light, .tone-mist)) .as-zoom { border-color: rgb(8 17 29 / 0.14); box-shadow: 0 30px 60px -30px rgb(8 17 29 / 0.45), 0 10px 20px -14px rgb(8 17 29 / 0.25); }
+
+  .as-cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); font-size: var(--fs-sm); color: var(--text-2); }
+  .as-cap-app { font-weight: 600; color: var(--text); }
+  .as-cap-app::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 1px; background: var(--accent); translate: 0 -1px; }
+  .as-cap-text { flex: 1 1 24ch; min-width: 0; }
+  .as-cap-tag { margin-left: auto; font-size: var(--fs-micro); letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 3px 6px; white-space: nowrap; }
+
+  .as-apps { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .as-app-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 var(--s-4); border: 1px solid var(--line-2); border-radius: var(--radius); font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); background: transparent; transition: color 0.2s, border-color 0.2s, background-color 0.2s; }
+  .as-app-btn:hover { color: var(--text); }
+  .as-app-btn.is-on { color: var(--text); border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .as-app-dot { width: 8px; height: 8px; border-radius: 1px; background: var(--accent); }
+  .as-app-area { font-weight: 400; color: var(--muted); }
+  .as-app-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .as-tabs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s-2); }
+  .as-tab { display: grid; gap: 6px; padding: 6px; text-align: left; border: 1px solid var(--line); border-radius: var(--radius-lg); background: transparent; color: var(--text-2); font-size: var(--fs-xs); font-weight: 500; transition: border-color 0.2s, background-color 0.2s, color 0.2s; }
+  .as-tab[hidden] { display: none; }
+  .as-tab:hover { color: var(--text); border-color: var(--line-2); }
+  .as-tab.is-on { color: var(--text); border-color: color-mix(in srgb, var(--accent) 65%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .as-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .as-thumb { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; border-radius: 2px; background: #05070b; opacity: 0.85; transition: opacity 0.2s; }
+  .as-tab.is-on .as-thumb, .as-tab:hover .as-thumb { opacity: 1; }
+  .as-tab-t { padding-inline: 2px; }
+
+  /* Phones: the tabs become one scrolling row of labels (thumbnails would be too small to read). */
+  @media (max-width: 760px) {
+    .as-tabs { display: flex; overflow-x: auto; scrollbar-width: none; gap: var(--s-2); margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+    .as-tabs::-webkit-scrollbar { display: none; }
+    .as-tab { flex: none; padding: 8px 12px; }
+    .as-thumb { display: none; }
+    .as-zoom { padding: 4px; border-radius: 7px; }
+    .as-cap-tag { margin-left: 0; }
+  }
+
+  .as-lightbox { width: min(96vw, 1920px); max-width: none; max-height: 96vh; padding: 0; border: 0; border-radius: 8px; background: var(--frame); box-shadow: 0 40px 120px rgb(0 0 0 / 0.7); overflow: auto; }
+  .as-lightbox::backdrop { background: rgb(3 6 10 / 0.86); backdrop-filter: blur(4px); }
+  .as-lb-pic img { display: block; width: 100%; height: auto; cursor: zoom-out; }
+  .as-lb-close { position: sticky; top: 8px; float: right; margin: 8px 8px -40px 0; z-index: 1; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius); font-size: var(--fs-sm); font-weight: 500; color: #eef3f8; background: rgb(8 14 23 / 0.86); border: 1px solid rgb(255 255 255 / 0.16); }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-appscreens]').forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+    const screens = [...root.querySelectorAll<HTMLElement>('[data-screen]')];
+    const show = (id: string, focus = false) => {
+      screens.forEach((s) => (s.hidden = s.dataset.screen !== id));
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.classList.toggle('is-on', on);
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+    };
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab!)));
+    // Arrow keys move between the visible tabs (the tablist pattern).
+    root.querySelector('[role="tablist"]')?.addEventListener('keydown', (e) => {
+      const k = (e as KeyboardEvent).key;
+      if (k !== 'ArrowRight' && k !== 'ArrowLeft') return;
+      const vis = tabs.filter((t) => !t.hidden);
+      const i = vis.findIndex((t) => t.classList.contains('is-on'));
+      const next = vis[(i + (k === 'ArrowRight' ? 1 : -1) + vis.length) % vis.length];
+      if (next) show(next.dataset.tab!, true);
+      e.preventDefault();
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-app-btn]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const app = b.dataset.appBtn!;
+        root.dataset.app = app;
+        root.querySelectorAll<HTMLButtonElement>('[data-app-btn]').forEach((o) => {
+          o.classList.toggle('is-on', o === b);
+          o.setAttribute('aria-pressed', String(o === b));
+        });
+        tabs.forEach((t) => (t.hidden = t.dataset.of !== app));
+        const firstTab = tabs.find((t) => t.dataset.of === app);
+        const firstScreen = screens.find((s) => s.dataset.of === app);
+        show(firstTab?.dataset.tab ?? firstScreen!.dataset.screen!);
+      }),
+    );
+
+    // Full-size view: the 2x capture in a dialog.
+    const dlg = root.querySelector<HTMLDialogElement>('.as-lightbox')!;
+    const img = dlg.querySelector('img')!;
+    const src = dlg.querySelector('source')!;
+    root.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((z) =>
+      z.addEventListener('click', () => {
+        src.srcset = z.dataset.zoomAvif!;
+        img.src = z.dataset.zoom!;
+        img.alt = z.querySelector('img')?.alt ?? '';
+        dlg.showModal();
+      }),
+    );
+    dlg.addEventListener('click', () => dlg.close());
+  });
+</script>

@@ -47,9 +47,9 @@ const TOTAL = EDGE + (chapters.length + 1) * MOVE + chapters.length * HOLD + EDG
 const JH = `${(TOTAL * UNIT_VH + 100).toFixed(1)}vh`;
 const total = String(chapters.length).padStart(2, '0');
 ---
-<section class="journey tone-mist" data-journey data-hold={HOLD} data-move={MOVE} data-edge={EDGE} data-chapters={chapters.length} style={`--jh:${JH}`} aria-label="A tour of an Infraglance site">
+<section class="journey" data-journey data-hold={HOLD} data-move={MOVE} data-edge={EDGE} data-chapters={chapters.length} style={`--jh:${JH}`} aria-label="A tour of an Infraglance site">
   <div class="stage">
-    <Scene name="journey" class="journey-scene" note={false} accent="var(--cyan)" caption="A 3D model of one industrial site in daylight with five stations: a press bay with workers, a hazard zone and a forklift; a quality inspection tunnel on a conveyor; a bulk ore conveyor with a hot idler; a pipe rack with a vapour leak, a gauge and a hot motor; and a steel truss bridge surveyed by a drone." />
+    <Scene name="journey" class="journey-scene" note={false} dark accent="var(--cyan)" caption="A 3D model of one industrial site with five stations: a press bay with workers, a hazard zone and a forklift; a quality inspection tunnel on a conveyor; a bulk ore conveyor with a hot idler; a pipe rack with a vapour leak, a gauge and a hot motor; and a steel truss bridge surveyed by a drone." />
     <div class="veil" aria-hidden="true"></div>
 
     <div class="container container--wide hud">
@@ -94,7 +94,8 @@ const total = String(chapters.length).padStart(2, '0');
 </section>
 
 <style>
-  .journey { position: relative; background: var(--bg); }
+  /* Navy band: the 3D runs its dark rig (stage.ts reads this colour); panels are dark glass. */
+  .journey { --bg: var(--navy); position: relative; background: var(--bg); }
   @media (prefers-reduced-motion: no-preference) { .journey { height: var(--jh); } }
   /* Phones and small tablets: a shorter pin (about 340vh); chapters re-space from the element height. */
   @media (max-width: 900px) and (prefers-reduced-motion: no-preference) { .journey { height: calc(var(--jh) * 0.62); } }
@@ -110,9 +111,9 @@ const total = String(chapters.length).padStart(2, '0');
   .panel {
     position: absolute; top: 50%; width: min(460px, 38vw); display: grid; gap: var(--s-3, 12px);
     padding: var(--s-6, 24px); color: var(--text);
-    background: rgba(255, 255, 255, 0.95); -webkit-backdrop-filter: blur(10px) saturate(1.1); backdrop-filter: blur(10px) saturate(1.1);
-    border: 1px solid var(--line); border-radius: var(--radius-lg, 4px);
-    box-shadow: 0 1px 2px rgba(8, 17, 29, 0.06), 0 18px 40px -18px rgba(8, 17, 29, 0.28);
+    background: rgba(8, 14, 23, 0.84); -webkit-backdrop-filter: blur(12px) saturate(1.1); backdrop-filter: blur(12px) saturate(1.1);
+    border: 1px solid var(--line-2); border-radius: var(--radius-lg, 4px);
+    box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.6);
     opacity: 0; transform: translateY(calc(-50% + 14px)); transition: opacity 0.45s var(--ease-out), transform 0.65s var(--ease-out);
   }
   .panel::before { content: ''; position: absolute; inset: -1px -1px auto; height: 2px; background: var(--accent, var(--cyan)); border-radius: var(--radius-lg, 4px) var(--radius-lg, 4px) 0 0; }
@@ -131,8 +132,8 @@ const total = String(chapters.length).padStart(2, '0');
 
   .rail {
     position: absolute; right: var(--gutter); top: 50%; translate: 0 -50%; pointer-events: auto;
-    padding: 6px; background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-    border: 1px solid var(--line); border-radius: var(--radius-lg, 4px); box-shadow: 0 10px 24px -16px rgba(8, 17, 29, 0.3);
+    padding: 6px; background: rgba(8, 14, 23, 0.78); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border: 1px solid var(--line-2); border-radius: var(--radius-lg, 4px); box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.5);
   }
   .rail ol { display: grid; gap: 2px; }
   .rail button {
@@ -141,18 +142,18 @@ const total = String(chapters.length).padStart(2, '0');
     border-left: 2px solid transparent; border-radius: var(--radius, 2px); transition: color 0.2s, background-color 0.2s, border-color 0.2s;
   }
   .rail button .mono { font-size: var(--fs-micro, 0.6875rem); font-weight: 600; letter-spacing: 0.04em; }
-  .rail button:hover { color: var(--text); background: rgba(8, 17, 29, 0.04); }
-  .rail button.is-on { color: var(--text); background: color-mix(in srgb, var(--accent) 9%, #fff); border-left-color: var(--accent); }
+  .rail button:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+  .rail button.is-on { color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); border-left-color: var(--accent); }
   .rail button.is-on .mono { color: var(--accent); }
   .rail button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-  /* A small white chip, like the pillar scenes' note: legible over whatever the 3D puts behind it. */
+  /* A small dark chip, like the pillar scenes. note: legible over whatever the 3D puts behind it. */
   .demo-tag {
     position: absolute; left: var(--gutter); bottom: 14px; z-index: 3; margin: 0;
     font-size: var(--fs-micro, 0.6875rem); line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2);
-    background: rgba(255, 255, 255, 0.88); border: 1px solid var(--line); border-radius: var(--radius, 2px); padding: 5px 7px;
+    background: rgba(8, 14, 23, 0.8); border: 1px solid var(--line-2); border-radius: var(--radius, 2px); padding: 5px 7px;
   }
-  .progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(8, 17, 29, 0.08); z-index: 3; }
+  .progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255, 255, 255, 0.08); z-index: 3; }
   .progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--guard), var(--inspect), var(--flow), var(--sense), var(--infra)); transform-origin: left; transform: scaleX(0); }
 
   @media (max-width: 1180px) {

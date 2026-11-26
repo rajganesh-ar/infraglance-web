@@ -78,7 +78,7 @@ const jsonLd = [
     </div>
   </section>
 
-  <!-- Workflow + 3D (mist: the 3D is a light daylight scene) -->
+  <!-- Workflow + 3D (the 3D sits in a navy card: dark rig and camera HUD) -->
   <section class="section tone-mist how" id="how" style={`--accent:${p.color}`}>
     <div class="container container--wide">
       <div class="section-head" data-reveal>
@@ -97,7 +97,7 @@ const jsonLd = [
         ))}
       </ol>
       <div class="scene-wrap" data-reveal>
-        <Scene name={p.scene} note={false} caption={p.sceneCaption} accent={p.color} class="uc-scene" />
+        <Scene name={p.scene} note={false} caption={p.sceneCaption} accent={p.color} class="uc-scene" dark hud />
         <div class="scene-head" aria-hidden="true">
           <span class="eyebrow">Illustrative 3D</span>
           <span class="cap">{p.sceneCaption}</span>
@@ -224,7 +224,8 @@ const jsonLd = [
     .flow-copy { padding-top: 0; }
   }
 
-  .scene-wrap { position: relative; margin-top: var(--s-12); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg); }
+  .scene-wrap { position: relative; margin-top: var(--s-12); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--navy); --muted: #8593a3; }
+  .scene-wrap .eyebrow { color: color-mix(in srgb, var(--accent, var(--cyan)) 72%, #fff); }
   .scene-wrap :global(.uc-scene) { width: 100%; aspect-ratio: 16 / 9; max-height: 520px; }
   .scene-head { position: absolute; left: var(--s-5); right: var(--s-5); top: var(--s-4); z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); pointer-events: none; }
   .scene-head .cap { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--muted); }

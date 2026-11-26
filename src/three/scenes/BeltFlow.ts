@@ -1,11 +1,10 @@
-import { BoxGeometry, Group, Mesh, Object3D, PlaneGeometry, Vector3 } from 'three';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { BoxGeometry, Mesh, Object3D, PlaneGeometry, Vector3 } from 'three';
 import { createStage } from '../core/stage';
 import { createLabels } from '../core/labels';
-import { C, M, addEnvironment, bake, cctv, detectionBox, overlayMat, solid, thermalSpot } from '../core/kit';
+import { C, M, addEnvironment, cctv, detectionBox, overlayMat, solid, thermalSpot } from '../core/kit';
 import { avoidCrew, createCast } from './cast';
 import { FLOW_CREW } from './crew';
-import { framedShot, pad, stockpile, troughedConveyor } from './props';
+import { feedHopper, floodMast, framedShot, hallBackdrop, pad, stockpile, troughedConveyor } from './props';
 
 /** Flow pillar: bulk conveyor with an ore stream, a hot idler on thermal, belt drift, a foreign object and an operator on the service road. */
 export async function mount(el: HTMLElement) {
@@ -21,6 +20,15 @@ export async function mount(el: HTMLElement) {
   const apron = pad(46, 17);
   apron.position.set(1, apron.position.y, 1.6);
   scene.add(apron);
+  // Context: the plant building behind the conveyor and floodlight masts on the apron.
+  const shed = hallBackdrop(80, 12, 7.5, 16);
+  shed.position.set(0, 0, -9);
+  scene.add(shed);
+  for (const [x, z] of [[-17, -5.5], [16, -5.5]]) {
+    const mast = floodMast(12, 3);
+    mast.position.set(x, 0.12, z);
+    scene.add(mast);
+  }
 
   const L = 30, ANG = 0.16;
   const conveyor = troughedConveyor({ length: L, angle: ANG, hot: 10, ore: isMobile ? 90 : 170 });
@@ -28,19 +36,12 @@ export async function mount(el: HTMLElement) {
   scene.add(conveyor);
   const { conv } = conveyor;
   const pile = stockpile(5, 4.2);
-  pile.position.set(-2 + (L / 2) * Math.cos(ANG) + 4.6, 0, 0);
+  pile.position.set(-2 + (L / 2) * Math.cos(ANG) + 5.2, 0, 0); // clear of the head house tower legs
   scene.add(pile);
-  const hopper = new Group();
-  const hb = solid(new RoundedBoxGeometry(2.6, 1.6, 3.0, 2, 0.04), M.body2());
-  hb.position.y = 1.7;
-  hopper.add(hb);
-  for (const [x, z] of [[-1.1, -1.3], [1.1, -1.3], [-1.1, 1.3], [1.1, 1.3]]) {
-    const leg = solid(new BoxGeometry(0.16, 0.9, 0.16), M.body2());
-    leg.position.set(x, 0.45, z);
-    hopper.add(leg);
-  }
-  bake(hopper);
-  hopper.position.set(-2 - (L / 2) * Math.cos(ANG) - 0.8, 0, 0);
+  // Feed hopper over the loading zone (outlet 1.4 m up the belt from the tail, inside the skirt boards).
+  const feed = conveyor.beltAt(-L / 2 + 1.4);
+  const hopper = feedHopper(feed.y);
+  hopper.position.set(-2 + feed.x, 0, 0);
   scene.add(hopper);
 
   // Belt-edge drift warning (on the belt, so it moves with it)

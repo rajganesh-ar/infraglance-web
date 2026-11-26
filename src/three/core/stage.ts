@@ -1,9 +1,12 @@
 /**
  * Renderer, daylight environment and post chain shared by every 3D scene.
  *
- * Look: a light architectural-visualisation daylight scene whose background is
- * exactly the colour of the page section it sits in (the canvas edge is
- * invisible). Post chain: N8AO (subtle, tinted) → bloom (alert lamps only) →
+ * Look: the background is exactly the colour of the page section the scene sits
+ * in (the canvas edge is invisible). The site's 3D bands are navy: a dark host
+ * switches to the dark rig (`Stage.dark`: dark sealed floors, a low sky fill, key
+ * plus cool rim light), so each scene reads as one camera's view of a working
+ * plant, as a digital twin would show it. A light (mist) host keeps the original
+ * daylight arch-vis look. Post chain: N8AO (subtle, tinted) → bloom (alert lamps only) →
  * Khronos Neutral tone mapping → SMAA. No vignette and no tilt-shift.
  *
  * Quality tiers: high (HDRI, AO, 2048 shadows, DPR up to 2), mid (HDRI, half-res
@@ -43,6 +46,7 @@ import {
 } from 'three';
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
+import { setMood } from './mood';
 
 export type Tier = 'high' | 'mid' | 'low';
 
@@ -75,6 +79,8 @@ export interface Stage {
   tier: Tier;
   /** Phone/tablet-sized or touch-first: scenes use fewer particles and wider shots. */
   isMobile: boolean;
+  /** Host section is dark (navy 3D band): dark yard, low sky fill, key + rim light. */
+  dark: boolean;
   size: { width: number; height: number };
   pointer: { x: number; y: number };
   /** Part of the canvas not covered by overlaid page chrome (CSS px); updated before resize callbacks run. */
@@ -113,6 +119,7 @@ const HDRI_CLAMP = 16;
 /** Share of the sky's blue kept in the environment (1 = as shot); a neutral fill reads as daylight, not a blue cast. */
 const SKY_SATURATION = 0.45;
 const ENV_INTENSITY = 0.75;
+const ENV_INTENSITY_DARK = 0.34;
 const FALLBACK_BG = '#eaeff4';
 /** Sibling elements a page lays over the top of the canvas. */
 const OVERLAY_SELECTOR = '.scene-head, .net-head, [data-scene-overlay]';
@@ -158,17 +165,19 @@ function parseCss(v: string): [number, number, number, number] | null {
   return null;
 }
 
-/** First non-transparent background behind the scene element; light fallback for dark or unknown hosts. */
-function hostBackground(el: HTMLElement): [number, number, number] {
+/**
+ * First non-transparent background behind the scene element (light fallback for unknown hosts).
+ * A dark host (the navy 3D bands) switches the scene to the dark rig: see `Stage.dark`.
+ */
+function hostBackground(el: HTMLElement): { rgb: [number, number, number]; dark: boolean } {
   for (let n: HTMLElement | null = el; n; n = n.parentElement) {
     const c = parseCss(getComputedStyle(n).backgroundColor);
     if (c && c[3] > 0.5) {
       const lum = 0.2126 * s2l(c[0]) + 0.7152 * s2l(c[1]) + 0.0722 * s2l(c[2]);
-      if (lum > 0.4) return [c[0], c[1], c[2]];
-      break; // A dark host: 3D scenes are daylight scenes, so keep the light fallback.
+      return { rgb: [c[0], c[1], c[2]], dark: lum < 0.2 };
     }
   }
-  return cssToSrgb(FALLBACK_BG);
+  return { rgb: cssToSrgb(FALLBACK_BG), dark: false };
 }
 
 function cssToSrgb(c: ColorRepresentation): [number, number, number] {
@@ -272,7 +281,11 @@ export function createStage(el: HTMLElement, opts: StageOptions = {}): Stage {
   // Shader info-log checks stall compilation and print D3D compiler notes; only useful while developing.
   renderer.debug.checkShaderErrors = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
 
-  const bg = compensate(opts.background !== undefined ? cssToSrgb(opts.background) : hostBackground(el), exposure);
+  const host = opts.background !== undefined ? { rgb: cssToSrgb(opts.background), dark: false } : hostBackground(el);
+  const dark = host.dark;
+  setMood(dark); // kit palette (floors, pads) follows the host
+  el.classList.toggle('is-dark', dark);
+  const bg = compensate(host.rgb, exposure);
   renderer.setClearColor(bg, 1);
 
   const canvas = renderer.domElement;
@@ -282,7 +295,8 @@ export function createStage(el: HTMLElement, opts: StageOptions = {}): Stage {
 
   const scene = new Scene();
   scene.background = bg;
-  scene.environmentIntensity = ENV_INTENSITY;
+  // Dark bands: a lower sky fill, so the key light models the forms and the yard falls off into the navy.
+  scene.environmentIntensity = dark ? ENV_INTENSITY_DARK : ENV_INTENSITY;
 
   const camera = new PerspectiveCamera(opts.fov ?? 30, 1, opts.near ?? 0.5, opts.far ?? 900);
 
@@ -361,6 +375,7 @@ export function createStage(el: HTMLElement, opts: StageOptions = {}): Stage {
     ? [...el.parentElement.children].filter((n): n is HTMLElement => n !== el && n instanceof HTMLElement && n.matches(OVERLAY_SELECTOR))
     : [];
   const free: FreeArea = { left: 0, top: 0, right: 1, bottom: 1 };
+  const hud = !!el.querySelector('[data-hud]');
   /** Free area: below any overlay whose content sits over the top half of the canvas, with an 8 px gap. */
   const measureFrame = (w: number, h: number) => {
     let top = 0;
@@ -380,7 +395,8 @@ export function createStage(el: HTMLElement, opts: StageOptions = {}): Stage {
     free.left = 0;
     free.top = Math.round(top);
     free.right = w;
-    free.bottom = h;
+    // A camera HUD prints its name and clock along the bottom edge: keep subjects and chips above it.
+    free.bottom = hud ? h - (w < 640 ? 26 : 36) : h;
   };
 
   const resize = () => {
@@ -534,6 +550,7 @@ export function createStage(el: HTMLElement, opts: StageOptions = {}): Stage {
     camera,
     tier,
     isMobile,
+    dark,
     size,
     pointer,
     frame: free,

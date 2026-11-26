@@ -29,6 +29,7 @@ import {
   MeshStandardMaterial,
   Object3D,
   PlaneGeometry,
+  Quaternion,
   RepeatWrapping,
   SphereGeometry,
   SRGBColorSpace,
@@ -45,20 +46,37 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import type { Stage } from './stage';
+import { isDark } from './mood';
 
 /**
- * Overlay / status colours for a light scene (AA-ish on the light floor).
+ * Overlay / status colours. Light scenes use the deeper set (AA-ish on the light floor); dark
+ * (navy band) scenes the brighter set, as detection overlays on a camera feed read.
  * `bg` is only the fallback; the real background comes from the host section.
  */
+const STATUS = {
+  light: { green: 0x16a34a, amber: 0xd97706, red: 0xdc2626, cyan: 0x0891b2, ink: 0x1b2733 },
+  dark: { green: 0x22c55e, amber: 0xf59e0b, red: 0xef4444, cyan: 0x22d3ee, ink: 0xc9d4df },
+};
+const status = () => (isDark() ? STATUS.dark : STATUS.light);
 export const C = {
   bg: 0xeaeff4,
-  green: 0x16a34a,
-  amber: 0xd97706,
-  red: 0xdc2626,
-  cyan: 0x0891b2,
+  get green() {
+    return status().green;
+  },
+  get amber() {
+    return status().amber;
+  },
+  get red() {
+    return status().red;
+  },
+  get cyan() {
+    return status().cyan;
+  },
   blue: 0x1d5fd1,
   teal: 0x0f766e,
-  ink: 0x1b2733,
+  get ink() {
+    return status().ink;
+  },
   slate: 0x94a3b8,
   white: 0xffffff,
 };
@@ -78,32 +96,80 @@ const cached = <T extends Material>(key: string, make: () => T): T => {
   if (!m) cache.set(key, (m = make()));
   return m;
 };
-const std = (key: string, color: ColorRepresentation, roughness: number, metalness = 0, extra: Partial<MeshStandardMaterial> = {}) =>
-  cached(key, () => Object.assign(new MeshStandardMaterial({ color, roughness, metalness }), extra));
+const std = (key: string, color: ColorRepresentation, roughness: number, metalness = 0, extra: Partial<MeshStandardMaterial> = {}, wear = 0) =>
+  cached(key, () => weather(Object.assign(new MeshStandardMaterial({ color, roughness, metalness }), extra), wear));
+
+const WEATHER_GLSL = /* glsl */ `
+varying vec3 vIgW;
+float igwHash(vec2 p) { p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
+float igwNoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(igwHash(i), igwHash(i + vec2(1, 0)), u.x), mix(igwHash(i + vec2(0, 1)), igwHash(i + vec2(1, 1)), u.x), u.y);
+}`;
+
+/**
+ * Service wear on a painted or bare-metal surface, in world space so baked and instanced parts agree:
+ * low-frequency patchiness and fine mottling in the albedo, matching roughness variation (scuffed,
+ * polished-by-hands areas), and grime that darkens the bottom 0.9 m above the floor. `wear` 0..1;
+ * 0 leaves the material untouched. One shader program per wear level (shared by every colour).
+ */
+export function weather<T extends MeshStandardMaterial>(m: T, wear: number): T {
+  if (wear <= 0) return m;
+  const w = wear.toFixed(2);
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vIgW;').replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+vec4 igWp = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+igWp = instanceMatrix * igWp;
+#endif
+vIgW = (modelMatrix * igWp).xyz;`,
+    );
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>\n${WEATHER_GLSL}`)
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+float igN = igwNoise(vIgW.xz * 0.9 + vIgW.y * 0.7) * 0.55 + igwNoise(vec2(vIgW.x + vIgW.z, vIgW.y) * 4.3) * 0.3 + igwNoise(vec2(vIgW.x - vIgW.z, vIgW.y) * 17.0) * 0.15;
+float igLow = 1.0 - smoothstep(0.1, 1.0, vIgW.y);
+diffuseColor.rgb *= 1.0 - ${w} * (0.13 * igN + 0.12 * igLow);`,
+      )
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor * (1.0 + ${w} * (igN - 0.45) * 0.6 + ${w} * igLow * 0.15), 0.04, 1.0);`);
+  };
+  m.customProgramCacheKey = () => `ig-wear-${w}`;
+  return m;
+}
 
 /** Named palette materials, cached so meshes batch by material. */
 export const M = {
   /** Light grey housings (RAL 7035). */
-  body: () => std('body', 0xc3c8cc, 0.55),
+  body: () => std('body', 0xc3c8cc, 0.55, 0, {}, 0.7),
   /** Basalt grey structure (RAL 7012). */
-  body2: () => std('body2', 0x60656a, 0.6),
+  body2: () => std('body2', 0x60656a, 0.6, 0, {}, 0.8),
+  /** Aluminium jacketing on insulated pipes and tanks (semi-matt sheet metal). */
+  clad: () => std('clad', 0xc6ccd2, 0.4, 0.85, {}, 0.4),
+  /** Muted gas-line yellow (ochre, weathered): a pipe colour, not a toy colour. */
+  ochre: () => std('ochre', 0xb08a26, 0.62, 0, {}, 0.8),
   /** White painted steel. */
-  white: () => std('white', 0xe9eaec, 0.5),
+  white: () => (isDark() ? std('whiteD', 0xcdd1d5, 0.55, 0, {}, 0.6) : std('white', 0xe9eaec, 0.5, 0, {}, 0.5)),
   /** Machined / stainless steel. */
-  steel: () => std('steel', 0xaeb4b9, 0.32, 1),
+  steel: () => std('steel', 0xaeb4b9, 0.32, 1, {}, 0.3),
   /** Hot-dip galvanised steel (duller than stainless). */
-  galv: () => std('galv', 0xa7adb2, 0.5, 1),
-  dark: () => std('dark', 0x2c3136, 0.7),
-  concrete: () => concreteMat(0xe1e4e7),
-  rubber: () => std('rubber', 0x1f2124, 0.85),
+  galv: () => std('galv', 0xa7adb2, 0.5, 1, {}, 0.5),
+  dark: () => std('dark', 0x2c3136, 0.7, 0, {}, 0.5),
+  /** Station slabs: light concrete, or a sealed dark floor in the navy bands. */
+  concrete: () => concreteMat(isDark() ? 0x464c53 : 0xe1e4e7),
+  rubber: () => std('rubber', 0x1f2124, 0.85, 0, {}, 0.3),
   /** Safety yellow (RAL 1003). */
-  yellow: () => std('yellow', 0xe8a900, 0.5),
+  yellow: () => std('yellow', 0xe8a900, 0.5, 0, {}, 0.85),
   /** Safety orange (RAL 2004). */
-  orange: () => std('orange', 0xd8571a, 0.5),
+  orange: () => std('orange', 0xd8571a, 0.5, 0, {}, 0.7),
   /** Signal red paint (valves, handwheels). */
-  red: () => std('red', 0xb91c1c, 0.5),
+  red: () => std('red', 0xb91c1c, 0.5, 0, {}, 0.6),
   /** Blue-grey bridge paint (RAL 7031). */
-  bridge: () => std('bridge', 0x66747c, 0.55),
+  bridge: () => std('bridge', 0x66747c, 0.55, 0, {}, 0.85),
   // Light, weathered asphalt: dark roads became the strongest line in wide shots.
   asphalt: () => std('asphalt', 0x989ea4, 0.92),
   hivis: () => std('hivis', 0xd4ea1a, 0.75, 0, { emissive: new Color(0x1c2400) }),
@@ -116,9 +182,9 @@ export const M = {
   helmet: () => std('helmet', 0xeeeeea, 0.35),
   glass: () => std('glass', 0xd6e6ee, 0.05, 0, { transparent: true, opacity: 0.28, depthWrite: false }),
   water: () => std('water', 0x3f5560, 0.06, 0, { envMapIntensity: 1.2 }),
-  card: () => std('card', 0xb08a5a, 0.85),
-  pallet: () => std('pallet', 0xa88a62, 0.85),
-  aggregate: () => std('aggregate', 0x8f8a82, 1, 0, { flatShading: true }),
+  card: () => std('card', 0xb08a5a, 0.85, 0, {}, 0.5),
+  pallet: () => std('pallet', 0xa88a62, 0.85, 0, {}, 0.8),
+  aggregate: () => (isDark() ? std('aggregateD', 0x6a645c, 1, 0, { flatShading: true }) : std('aggregate', 0x8f8a82, 1, 0, { flatShading: true })),
   /** Status LEDs and lenses: lit, but well under the bloom threshold. */
   cyanLed: () => led(0x0891b2, 0.8),
   greenLed: () => led(0x16a34a, 0.8),
@@ -136,8 +202,8 @@ export function led(color: ColorRepresentation, intensity = 0.8) {
 }
 
 /** Uncached painted material, for parts that animate colour. */
-export function paint(color: ColorRepresentation, roughness = 0.55, metalness = 0) {
-  return new MeshStandardMaterial({ color, roughness, metalness });
+export function paint(color: ColorRepresentation, roughness = 0.55, metalness = 0, wear = metalness > 0.5 ? 0.3 : 0.6) {
+  return weather(new MeshStandardMaterial({ color, roughness, metalness }), wear);
 }
 
 const CONCRETE_GLSL = /* glsl */ `
@@ -340,11 +406,19 @@ export function addEnvironment(stage: Stage, opts: EnvOptions = {}) {
   const fog = opts.fog ?? [60, 190];
   scene.fog = fog ? new Fog(bg.clone(), fog[0], fog[1]) : null;
 
+  const dark = stage.dark;
   // Cool sky above, cool grey bounce below (a brown bounce made the light floor read warm and murky).
-  const hemi = new HemisphereLight(0xe6eef6, 0xc4cad1, 0.45);
+  // Dark bands: a dim, cool fill and a near-black bounce, so the forms are modelled by the key and rim lights.
+  const hemi = dark ? new HemisphereLight(0xb9c8d9, 0x12171d, 0.32) : new HemisphereLight(0xe6eef6, 0xc4cad1, 0.45);
   scene.add(hemi);
+  if (dark) {
+    // Cool rim from behind-left: separates steel edges and people from the dark yard.
+    const rim = new DirectionalLight(0x9cb8d6, 1.1);
+    rim.position.set(-SUN_DIR.x, 0.55, -SUN_DIR.z).multiplyScalar(SUN_DIST);
+    scene.add(rim, rim.target);
+  }
 
-  const sun = new DirectionalLight(0xfff3e2, 3.0);
+  const sun = new DirectionalLight(dark ? 0xf4f0e8 : 0xfff3e2, dark ? 3.1 : 3.0);
   sun.position.copy(SUN_DIR).multiplyScalar(SUN_DIST);
   sun.castShadow = tier !== 'low';
   const s = opts.shadowSize ?? 30;
@@ -360,7 +434,7 @@ export function addEnvironment(stage: Stage, opts: EnvOptions = {}) {
   let ground: Mesh | null = null;
   if (opts.ground !== false) {
     // Yard floor: mottled, no joint grid (joints are on the station slabs only, so it never reads as graph paper).
-    ground = new Mesh(new PlaneGeometry(1200, 1200), concreteMat(opts.groundColor ?? 0xd5dadf, 0));
+    ground = new Mesh(new PlaneGeometry(1200, 1200), concreteMat(opts.groundColor ?? (dark ? 0x33393f : 0xd5dadf), 0));
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.01;
     ground.receiveShadow = true;
@@ -391,16 +465,35 @@ export function fatLines(positions: number[], color: ColorRepresentation, width 
   return l;
 }
 
-/** Detection box: 2 px status-coloured edges (green ok / amber warn / red bad). */
+const _bp = new Vector3();
+const _bs = new Vector3();
+const _bq = new Quaternion();
+const _cam = new Vector3();
+
+/**
+ * Detection box as a camera feed draws it: a flat 2 px status-coloured rectangle (green ok / amber warn /
+ * red bad) standing upright and turned to face the camera, not a 3D wire cube. Sized w × h (the depth
+ * argument is kept for callers; it only sets the default scale). Position, rotation.y and scale are the
+ * caller's as before; the yaw is replaced at draw time so the rectangle always faces the lens.
+ */
 export function detectionBox(w: number, h: number, d: number, color: ColorRepresentation = C.green) {
-  const box = new BoxGeometry(w, h, d);
-  const edges = new EdgesGeometry(box);
-  const geo = new LineSegmentsGeometry().fromEdgesGeometry(edges);
-  box.dispose();
-  edges.dispose();
-  const mat = new LineMaterial({ color: new Color(color).getHex(), linewidth: 2, worldUnits: false, transparent: true, opacity: 1, depthWrite: false });
+  void d;
+  const x = w / 2, y = h / 2;
+  const geo = new LineSegmentsGeometry().setPositions([-x, -y, 0, x, -y, 0, x, -y, 0, x, y, 0, x, y, 0, -x, y, 0, -x, y, 0, -x, -y, 0]);
+  const mat = new LineMaterial({ color: new Color(color).getHex(), linewidth: 1.6, worldUnits: false, transparent: true, opacity: 1, depthWrite: false, depthTest: false });
   const l = new LineSegments2(geo, mat);
-  l.renderOrder = 3;
+  l.renderOrder = 4;
+  // LineSegments2's own hook sets the line resolution; keep it, and turn the rectangle to the lens first
+  // (three computes modelViewMatrix from matrixWorld right after onBeforeRender, so this frame uses it).
+  const base = l.onBeforeRender.bind(l);
+  const obj = l as Object3D;
+  obj.onBeforeRender = (renderer, _scene, camera) => {
+    l.matrixWorld.decompose(_bp, _bq, _bs);
+    _cam.setFromMatrixPosition(camera.matrixWorld);
+    _bq.setFromAxisAngle(UP, Math.atan2(_cam.x - _bp.x, _cam.z - _bp.z));
+    l.matrixWorld.compose(_bp, _bq, _bs);
+    base(renderer);
+  };
   return Object.assign(l, {
     setColor: (c: ColorRepresentation) => mat.color.set(c),
   });
@@ -533,60 +626,6 @@ function stripToCommon(g: BufferGeometry) {
 }
 
 // ---------------------------------------------------------------- props
-/** Counterbalance forklift (~1.1 × 2.3 m, guard 2.1 m) baked to five draw calls, with a beacon. */
-export function forklift() {
-  const g = new Group();
-  const body = new Group();
-  const chassis = solid(new RoundedBoxGeometry(1.1, 0.62, 1.9, 2, 0.06), M.yellow());
-  chassis.position.set(0, 0.6, 0);
-  const cw = solid(new RoundedBoxGeometry(1.08, 0.7, 0.46, 2, 0.08), M.dark());
-  cw.position.set(0, 0.72, -0.86);
-  const seat = solid(new RoundedBoxGeometry(0.46, 0.42, 0.42, 2, 0.06), M.dark());
-  seat.position.set(0, 1.12, -0.32);
-  const dash = solid(new RoundedBoxGeometry(0.9, 0.36, 0.28, 2, 0.04), M.yellow());
-  dash.position.set(0, 1.08, 0.5);
-  body.add(chassis, cw, seat, dash);
-  const postGeo = new BoxGeometry(0.06, 1.25, 0.06);
-  for (const [x, z] of [[-0.5, 0.42], [0.5, 0.42], [-0.5, -0.62], [0.5, -0.62]]) {
-    const p = solid(postGeo, M.dark());
-    p.position.set(x, 1.53, z);
-    body.add(p);
-  }
-  const roof = solid(new BoxGeometry(1.06, 0.05, 1.14), M.dark());
-  roof.position.set(0, 2.16, -0.1);
-  body.add(roof);
-  const railGeo = new BoxGeometry(0.09, 2.4, 0.12);
-  for (const x of [-0.33, 0.33]) {
-    const r = solid(railGeo, M.dark());
-    r.position.set(x, 1.3, 1.08);
-    body.add(r);
-  }
-  const carriage = solid(new BoxGeometry(0.86, 0.36, 0.06), M.dark());
-  carriage.position.set(0, 0.42, 1.18);
-  body.add(carriage);
-  const forkGeo = new BoxGeometry(0.1, 0.045, 1.05);
-  for (const x of [-0.24, 0.24]) {
-    const f = solid(forkGeo, M.steel());
-    f.position.set(x, 0.12, 1.72);
-    body.add(f);
-  }
-  const wheelGeo = new CylinderGeometry(0.27, 0.27, 0.2, 20);
-  wheelGeo.rotateZ(Math.PI / 2);
-  const rearGeo = new CylinderGeometry(0.2, 0.2, 0.18, 18);
-  rearGeo.rotateZ(Math.PI / 2);
-  for (const [x, z, geo] of [[-0.48, 0.56, wheelGeo], [0.48, 0.56, wheelGeo], [-0.46, -0.7, rearGeo], [0.46, -0.7, rearGeo]] as const) {
-    const w = solid(geo, M.rubber());
-    w.position.set(x, geo === wheelGeo ? 0.27 : 0.2, z);
-    body.add(w);
-  }
-  bake(body);
-  g.add(body);
-  const beacon = new Mesh(new CylinderGeometry(0.06, 0.07, 0.1, 12), M.amberAlert());
-  beacon.position.set(0, 2.24, -0.42);
-  g.add(beacon, blobShadow(1.9, 3.0, 0.38));
-  return Object.assign(g, { beacon });
-}
-
 /** Pole-mounted CCTV camera with its floor coverage sector (no light cone). */
 export function cctv(height = 7, reach = 9, color: ColorRepresentation = C.cyan) {
   const g = new Group();
@@ -607,7 +646,7 @@ export function cctv(height = 7, reach = 9, color: ColorRepresentation = C.cyan)
   ledM.position.set(0.09, -0.08, 0.31);
   head.add(housing, hood, lens);
   // Sector centred on +Z (the way the camera looks).
-  const sector = new Mesh(new CircleGeometry(reach * 0.5, 48, -Math.PI / 2 - 0.6, 1.2), overlayMat(color, 0.07));
+  const sector = new Mesh(new CircleGeometry(reach * 0.5, 48, -Math.PI / 2 - 0.6, 1.2), overlayMat(color, isDark() ? 0.035 : 0.07));
   sector.rotation.x = -Math.PI / 2;
   sector.position.set(0, 0.025, 0.6);
   sector.renderOrder = 1;
@@ -616,7 +655,7 @@ export function cctv(height = 7, reach = 9, color: ColorRepresentation = C.cyan)
     const a = -Math.PI / 2 - 0.6 + (i / 32) * 1.2;
     arcPts.push(Math.cos(a) * reach * 0.5, 0, -Math.sin(a) * reach * 0.5);
   }
-  const arc = new Line(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(arcPts, 3)), lineMat(color, 0.35));
+  const arc = new Line(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(arcPts, 3)), lineMat(color, isDark() ? 0.2 : 0.35));
   arc.position.set(0, 0.03, 0.6);
   const fixed = new Group();
   fixed.add(pole, arm, head);

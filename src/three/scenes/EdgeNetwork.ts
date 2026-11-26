@@ -4,24 +4,19 @@ import {
   BufferGeometry,
   CatmullRomCurve3,
   CylinderGeometry,
-  EdgesGeometry,
   Group,
-  IcosahedronGeometry,
   Line,
-  LineLoop,
-  LineSegments,
   Mesh,
   NormalBlending,
   Object3D,
   Points,
   PointsMaterial,
-  TorusGeometry,
   Vector3,
 } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { createStage } from '../core/stage';
 import { createLabels, type Label } from '../core/labels';
-import { C, M, addEnvironment, led, lineMat, paint, softDot, solid } from '../core/kit';
+import { M, addEnvironment, led, lineMat, paint, softDot, solid } from '../core/kit';
 
 /** Platform page: data flows from cameras → Glance Edge boxes → Glance Hub → apps, as a light "blueprint" model. */
 export async function mount(el: HTMLElement) {
@@ -34,26 +29,38 @@ export async function mount(el: HTMLElement) {
   const root = new Group();
   scene.add(root);
 
-  // Hub core: faceted white body, cyan edges, two orbit rings
+  // Hub: a server cabinet (the Hub runs on-prem or in the cloud; a rack reads as infrastructure, where a
+  // spinning faceted orb read as a toy). Diagram scale: the 42U cabinet is drawn 5 units tall, front to +Z.
   const hub = new Group();
   hub.position.set(8, 0, 0);
-  const coreGeo = new IcosahedronGeometry(2.6, 1);
-  const core = new Mesh(coreGeo, paint(0xf4f6f8, 0.45));
-  (core.material as ReturnType<typeof paint>).flatShading = true;
-  core.castShadow = core.receiveShadow = true;
-  const coreEdges = new LineSegments(new EdgesGeometry(coreGeo), lineMat(C.cyan, 0.6));
-  const ring1 = new Mesh(new TorusGeometry(4.2, 0.035, 8, 120), led(0x0891b2, 0.8));
-  // Outer orbit as a 1 px line like the data paths: a thin tube was sub-pixel at this distance and rendered
-  // as a broken, dotted dark ellipse (and a metal one mirrored the dark lower sky as a black slash).
-  const ring2 = new LineLoop(
-    new BufferGeometry().setFromPoints(Array.from({ length: 160 }, (_, i) => new Vector3(Math.cos((i / 160) * Math.PI * 2) * 4.9, Math.sin((i / 160) * Math.PI * 2) * 4.9, 0))),
-    lineMat(0x7d8b99, 0.7),
-  );
-  ring1.rotation.x = Math.PI / 2.3;
-  ring2.rotation.y = Math.PI / 2.6;
-  const spin = new Group();
-  spin.add(core, coreEdges);
-  hub.add(spin, ring1, ring2);
+  const cab = new Group();
+  const shell = paint(0x1b222a, 0.5, 0.2);
+  const unitMat = paint(0x2b343e, 0.42, 0.3);
+  cab.add(solid(new RoundedBoxGeometry(2.5, 5.0, 2.3, 2, 0.06), shell));
+  const unitGeo = new RoundedBoxGeometry(2.08, 0.36, 0.08, 2, 0.02);
+  for (let i = 0; i < 10; i++) {
+    const u = solid(unitGeo, unitMat);
+    u.position.set(0, -2.05 + i * 0.45, 1.17);
+    cab.add(u);
+  }
+  const plinth = solid(new BoxGeometry(2.6, 0.16, 2.4), paint(0x12171d, 0.6));
+  plinth.position.y = -2.58;
+  cab.add(plinth);
+  cab.traverse((o) => ((o as Mesh).isMesh ? ((o as Mesh).castShadow = (o as Mesh).receiveShadow = true) : null));
+  // Status LEDs per unit: a lit strip and a link light (under the bloom threshold).
+  const unitLedGeo = new BoxGeometry(0.34, 0.06, 0.02);
+  const dotGeo = new BoxGeometry(0.07, 0.07, 0.02);
+  const leds: Mesh[] = [];
+  for (let i = 0; i < 10; i++) {
+    const y = -2.05 + i * 0.45;
+    const strip = new Mesh(unitLedGeo, led(0x22d3ee, 1.1));
+    strip.position.set(0.66, y, 1.22);
+    const dot = new Mesh(dotGeo, led(i === 6 ? 0xf59e0b : 0x22c55e, 1.2));
+    dot.position.set(-0.86, y, 1.22);
+    cab.add(strip, dot);
+    leds.push(dot);
+  }
+  hub.add(cab);
   root.add(hub);
   labels.add('Glance Hub', hub, new Vector3(0, 5.8, 0), 'info');
 
@@ -190,10 +197,8 @@ export async function mount(el: HTMLElement) {
       positions[i * 3 + 2] = tmp.z;
     }
     geo.attributes.position.needsUpdate = true;
-    spin.rotation.y = t * 0.3;
-    spin.rotation.x = t * 0.15;
-    ring1.rotation.z = t * 0.4;
-    ring2.rotation.x = t * 0.25;
+    // Link lights flicker with traffic.
+    leds.forEach((d, i) => (d.visible = Math.sin(t * (7 + i * 1.3) + i * 2.1) > -0.6));
     root.rotation.y = Math.sin(t * 0.15) * 0.1 + stage.pointer.x * 0.1;
     root.rotation.x = stage.pointer.y * -0.05;
     camera.position.set(lookX, 6.4, base);

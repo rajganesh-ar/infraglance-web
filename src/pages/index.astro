@@ -4,7 +4,7 @@ import HeroSlider from '../components/sections/HeroSlider.astro';
 import Journey from '../components/sections/Journey.astro';
 import Picture from '../components/media/Picture.astro';
 import Video from '../components/media/Video.astro';
-import CameraFeed from '../components/mockups/CameraFeed.astro';
+import AppScreens from '../components/media/AppScreens.astro';
 import HubDashboard from '../components/mockups/HubDashboard.astro';
 import ArchitectureDiagram from '../components/sections/ArchitectureDiagram.astro';
 import PillarGrid from '../components/sections/PillarGrid.astro';
@@ -83,6 +83,23 @@ const trust = [
     </div>
   </section>
 
+  <!-- Desktop apps (navy): real screens of the two WPF apps -->
+  <section class="section apps-sec" aria-labelledby="apps-h">
+    <div class="container container--wide">
+      <div class="section-head section-head--row" data-reveal>
+        <div class="stack">
+          <span class="eyebrow">Desktop apps</span>
+          <h2 id="apps-h">The apps your teams work in.</h2>
+          <p class="lead">Glance Guard runs the safety desk, Glance Inspect runs the line. Both are Windows desktop apps built on one design system, shown here as real screens running on simulated data.</p>
+        </div>
+        <a href="/platform#apps" class="btn btn--ghost">Every screen <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div data-reveal style="--d:0.08s">
+        <AppScreens ids={['guard-live', 'guard-alerts', 'guard-alert-detail', 'guard-analytics', 'guard-zones', 'guard-reports', 'inspect-station', 'inspect-review', 'inspect-spc', 'inspect-colour', 'inspect-lots', 'inspect-model']} />
+      </div>
+    </div>
+  </section>
+
   <!-- Live camera (mist) -->
   <section class="section tone-mist">
     <div class="container container--wide split">
@@ -97,7 +114,7 @@ const trust = [
         </ul>
         <a href="/use-cases/ppe-compliance" class="link-arrow">See the PPE compliance use case <span class="arrow" aria-hidden="true">→</span></a>
       </div>
-      <div data-reveal style="--d:0.1s"><CameraFeed /></div>
+      <div data-reveal style="--d:0.1s"><AppScreens ids={['guard-focus']} sizes="(min-width: 1024px) 46vw, 94vw" compact /></div>
     </div>
   </section>
 
@@ -258,6 +275,7 @@ const trust = [
   @media (max-width: 760px) { .band-points { grid-template-columns: 1fr; } }
 
   .platform-sec { background: var(--bg); }
+  .apps-sec { background: var(--navy); border-block: 1px solid var(--line); }
   .hub-row { margin-top: var(--s-16); }
   .h3-lg { font-size: var(--fs-2xl); }
 

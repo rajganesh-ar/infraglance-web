@@ -3,9 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/sections/PageHero.astro';
 import Scene from '../../components/Scene.astro';
 import CTASection from '../../components/sections/CTASection.astro';
-import CameraFeed from '../../components/mockups/CameraFeed.astro';
-import PhoneAlert from '../../components/mockups/PhoneAlert.astro';
-import InspectHMI from '../../components/mockups/InspectHMI.astro';
+import AppScreens from '../../components/media/AppScreens.astro';
 import FlowTimeline from '../../components/mockups/FlowTimeline.astro';
 import HubDashboard from '../../components/mockups/HubDashboard.astro';
 import InfraReport from '../../components/mockups/InfraReport.astro';
@@ -52,6 +50,12 @@ const copy: Record<string, { eyebrow: string; title: string; text: string; cta: 
   infra: { eyebrow: 'In the report', title: 'A defect register you can compare year to year.', text: 'Every defect is geo-referenced, measured and compared with the previous survey, then reviewed and signed by a qualified engineer.', cta: 'Let’s look at your assets.' },
 });
 const mc = copy[p.slug];
+// Pillars with a real desktop app show its screens (src/data/app-screens.json) instead of an HTML mockup.
+const APP_SCREENS: Record<string, string[]> = {
+  guard: ['guard-live', 'guard-focus', 'guard-alerts', 'guard-alert-detail', 'guard-analytics', 'guard-zones', 'guard-reports'],
+  inspect: ['inspect-station', 'inspect-review', 'inspect-review-detail', 'inspect-spc', 'inspect-colour', 'inspect-lots', 'inspect-model'],
+};
+const appIds = APP_SCREENS[p.slug];
 const ctaImage = freshImage([cases[0]?.gallery[1]?.img, ...ctaPoolFor(p.slug)], onPage);
 // Honest primary action: a pillar with nothing generally available yet offers early access, not a demo.
 const primary = items.some((it) => it.phase === 'Available')
@@ -65,9 +69,9 @@ const segs = (s: string) => s.split(' · ');
     <div class="btn-row"><a href={primary.href} class="btn btn--primary">{primary.label} <span class="arrow" aria-hidden="true">→</span></a><a href="#products" class="btn btn--ghost">See {items.length} products</a></div>
   </PageHero>
 
-  <!-- 3D scene: light daylight scene in a mist band -->
-  <section class="scene-sec tone-mist" style={`--accent:${p.color}`}>
-    <Scene name={p.scene} note={false} caption={p.sceneCaption} accent={p.color} class="pillar-scene" />
+  <!-- 3D scene: one camera's view of the site, in a navy band (dark rig, camera HUD) -->
+  <section class="scene-sec" style={`--accent:${p.color}`}>
+    <Scene name={p.scene} note={false} caption={p.sceneCaption} accent={p.color} class="pillar-scene" dark hud />
     <div class="container container--wide scene-head">
       <span class="eyebrow">Illustrative 3D</span>
       <span class="cap" aria-hidden="true">{p.sceneCaption}</span>
@@ -98,8 +102,25 @@ const segs = (s: string) => s.split(' · ');
     </div>
   </section>
 
+  {appIds ? (
+  <!-- The pillar's real desktop app: its screens, full width, in a navy band -->
+  <section class="section apps-sec" style={`--accent:${p.color}`} aria-labelledby="app-h">
+    <div class="container container--wide">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">{mc.eyebrow} · desktop app</span>
+        <h2 id="app-h">{mc.title}</h2>
+        <p class="lead">{mc.text}</p>
+        <div class="caps">
+          <span class="mono caps-h">Capabilities</span>
+          <div class="chips">{p.capabilities.map((c) => <span class="chip">{c}</span>)}</div>
+        </div>
+      </div>
+      <div data-reveal style="--d:0.08s"><AppScreens ids={appIds} /></div>
+    </div>
+  </section>
+  ) : (
   <section class="section tone-mist" style={`--accent:${p.color}`}>
-    <div class:list={['container container--wide split', { 'split--duo': p.slug === 'guard' }]}>
+    <div class="container container--wide split">
       <div class="stack" data-reveal>
         <span class="eyebrow">{mc.eyebrow}</span>
         <h2>{mc.title}</h2>
@@ -110,14 +131,13 @@ const segs = (s: string) => s.split(' · ');
         </div>
       </div>
       <div data-reveal class="mock-col" style="--d:0.1s">
-        {p.slug === 'guard' && <div class="duo"><CameraFeed /><PhoneAlert size="sm" /></div>}
-        {p.slug === 'inspect' && <InspectHMI />}
         {p.slug === 'flow' && <FlowTimeline />}
         {p.slug === 'sense' && <HubDashboard variant="sense" />}
         {p.slug === 'infra' && <InfraReport />}
       </div>
     </div>
   </section>
+  )}
 
   <section class="section tone-light" id="products" style={`--accent:${p.color}`}>
     <div class="container container--wide">
@@ -199,11 +219,11 @@ const segs = (s: string) => s.split(' · ');
 </BaseLayout>
 
 <style>
-  .scene-sec { position: relative; border-block: 1px solid var(--line); background: var(--bg); }
+  .scene-sec { position: relative; border-block: 1px solid var(--line); background: var(--navy); }
   .scene-sec :global(.pillar-scene) { height: min(60vh, 520px); }
   .scene-head { position: absolute; inset: var(--s-5) 0 auto; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); pointer-events: none; }
   .scene-head .cap { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.04em; color: var(--muted); }
-  .modes { pointer-events: auto; margin-left: auto; display: flex; gap: var(--s-1); padding: var(--s-1); border-radius: var(--radius-lg); background: rgba(255, 255, 255, 0.92); border: 1px solid var(--line-2); box-shadow: 0 4px 14px -6px rgba(8, 17, 29, 0.2); }
+  .modes { pointer-events: auto; margin-left: auto; display: flex; gap: var(--s-1); padding: var(--s-1); border-radius: var(--radius-lg); background: rgba(8, 14, 23, 0.82); border: 1px solid var(--line-2); box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5); }
   .modes[hidden] { display: none; }
   .mode { display: inline-flex; align-items: center; height: 32px; padding: 0 var(--s-3); border-radius: var(--radius); font-size: var(--fs-sm); font-weight: 500; color: var(--text-2); transition: background 0.2s, color 0.2s; }
   .mode:hover { color: var(--text); }
@@ -221,15 +241,9 @@ const segs = (s: string) => s.split(' · ');
 
   .caps { display: grid; gap: var(--s-2); margin-top: var(--s-2); }
   .caps-h { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
-  /* Guard: the camera feed and the phone read as one pair — feed large, phone beside it,
-     both centred on the same axis. The feed's title bar carries the Demo data label for both. */
-  @media (min-width: 1025px) { .split--duo { grid-template-columns: minmax(0, 0.76fr) minmax(0, 1.24fr); column-gap: clamp(2rem, 1rem + 2.5vw, 3rem); } }
-  .duo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-4); }
-  .duo :global(.phone-wrap) { filter: drop-shadow(0 20px 36px rgb(8 17 29 / 0.22)); }
-  .duo :global(.phone-wrap .ui-demo) { display: none; }
-  /* Side by side, the phone is drawn slightly smaller so it stands about as tall as the feed beside it. */
-  @media (min-width: 1101px) { .duo :global(.phone-wrap) { zoom: 0.88; } }
-  @media (min-width: 1101px) and (max-width: 1359px) { .duo :global(.phone-wrap) { zoom: 0.84; } }
+  /* Real app screens (Guard, Inspect): a navy band like the 3D band above, the screens full width. */
+  .apps-sec { background: var(--navy); border-block: 1px solid var(--line); }
+  .apps-sec .caps { margin-top: var(--s-3); }
 
   .card :global(.status) { align-self: flex-start; }
   .glyph { font-size: var(--fs-micro); letter-spacing: 0.08em; color: var(--muted); }
@@ -247,9 +261,6 @@ const segs = (s: string) => s.split(' · ');
   .ind .arrow { color: var(--accent); transition: transform 0.2s; }
   .ind:hover .arrow { transform: translateX(3px); }
 
-  @media (max-width: 1100px) {
-    .duo { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--s-6); }
-  }
   @media (max-width: 760px) {
     .gap { grid-template-columns: 1fr; }
     .gap > .g-arrow { display: none; }

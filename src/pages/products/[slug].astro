@@ -4,6 +4,7 @@ import PageHero from '../../components/sections/PageHero.astro';
 import CTASection from '../../components/sections/CTASection.astro';
 import Status from '../../components/ui/Status.astro';
 import CameraFeed from '../../components/mockups/CameraFeed.astro';
+import AppScreens from '../../components/media/AppScreens.astro';
 import InspectHMI from '../../components/mockups/InspectHMI.astro';
 import FlowTimeline from '../../components/mockups/FlowTimeline.astro';
 import HubDashboard from '../../components/mockups/HubDashboard.astro';
@@ -75,6 +76,9 @@ const shotFor: Record<string, { img: string; caption: string; pos?: string }> = 
   'infra-progress': { img: 'scaffold-height', caption: 'A structure rising: progress compared with the model and the schedule, week by week.' },
 };
 const mockCaption = mockFor[it.slug];
+// Products whose detections the real desktop apps show: a real app screen instead of the HTML mockup.
+const appScreen: Record<string, string> = { 'guard-ppe': 'guard-live', 'inspect-defect': 'inspect-station', 'inspect-colour': 'inspect-colour' };
+const realScreen = appScreen[it.slug];
 const shot = mockCaption ? undefined : shotFor[it.slug];
 const ctaImage = freshImage([p.photo, ...ctaPoolFor(it.slug)], [heroImg, shot?.img, ...(mockCaption ? (mockImages[p.slug] ?? []) : [])]);
 const cta = phaseCta(it);
@@ -120,7 +124,10 @@ const jsonLd = [
           <p class="lead">{it.summary}</p>
           <ul class="check-list">{it.detects.map((d) => <li>{d}</li>)}</ul>
         </div>
-        {mockCaption && (
+        {realScreen && (
+          <div class="mock" data-reveal style="--d:0.1s"><AppScreens ids={[realScreen]} sizes="(min-width: 1024px) 46vw, 94vw" compact /></div>
+        )}
+        {mockCaption && !realScreen && (
           <figure class="mock" data-reveal style="--d:0.1s">
             {p.slug === 'guard' && <CameraFeed />}
             {p.slug === 'inspect' && <InspectHMI />}
