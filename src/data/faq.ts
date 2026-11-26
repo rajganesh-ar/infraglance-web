@@ -10,7 +10,7 @@ export const faq: { group: string; items: { q: string; a: string }[] }[] = nbDee
       { q: 'What does Infraglance do?', a: `We turn cameras, drones and sensors into real-time intelligence on safety, quality, operations and the condition of infrastructure assets. There are ${products.length} products across five pillars — Guard, Inspect, Flow, Sense and Infra — on one edge-first platform: ${available} available today and the rest in early access or on the roadmap. Custom engineering covers problems no product addresses yet.` },
       { q: 'Do you sell products or custom projects?', a: 'Both, on the same platform. A typical engagement starts with a product and a short configuration. When a use case needs a new model, special imaging or a deep integration, Infraglance Engineering builds it — and it is then maintained like any other product.' },
       { q: 'Which industries do you work with?', a: 'Manufacturing, heavy and process industry (steel, cement, mining, oil & gas, chemicals), energy and utilities, transport infrastructure, construction and logistics.' },
-      { q: 'Do you have case studies?', a: 'Infraglance is a new company running a design-partner programme. We publish case studies only with real, measured results and the customer’s permission — until then we are happy to show the platform live in our Experience Lab or on your own footage.' },
+      { q: 'Do you have case studies?', a: 'Infraglance is built by a team with 8+ years of industrial experience and is running a design-partner programme. We publish case studies only with real, measured results and the customer’s permission — until then we are happy to show the platform live in our Experience Lab or on your own footage.' },
     ],
   },
   {
