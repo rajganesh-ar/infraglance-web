@@ -9,10 +9,10 @@
   "compatibility_date": "2026-01-14",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 
-  // Keep per-branch Preview URLs on explicitly. Without this key, turning off workers.dev (or adding
-  // custom-domain routes) makes every production deploy switch Preview URLs off again.
-  // Preview hosts are public (unlisted): set false if previews must never be reachable.
-  "preview_urls": true,
+  // Preview URLs are off. Every uploaded version used to stay reachable on its own public host
+  // (<version>-infraglance-web.<subdomain>.workers.dev), including old builds. Set true to bring
+  // back branch previews; any value a version was built with is then public again on that host.
+  "preview_urls": false,
 
   // Static site + one Worker route (/api/contact).
   //   html_handling "drop-trailing-slash": /platform serves dist/platform/index.html with no redirect,
@@ -74,5 +74,4 @@
   // ],
   // Once the domain serves the site, also add "workers_dev": false so the copy on
   // infraglance-web.<subdomain>.workers.dev is not indexed as duplicate content.
-  // "preview_urls": true above keeps branch previews working after that.
 }

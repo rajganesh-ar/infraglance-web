@@ -102,7 +102,7 @@ If a large HTTPS push fails on Windows, run `git config http.postBuffer 52428800
    npx wrangler secret put TURNSTILE_SECRET
    ```
    Secrets persist across deploys. Until this secret is set, the form answers "not configured".
-9. **Custom domain:** open the Worker → Settings → Domains & Routes → Add → Custom domain, and add `infraglance.com` and `www.infraglance.com`. The other way is to uncomment `routes` in `wrangler.jsonc`. Add a Redirect Rule from `www` to the apex domain (301). Once the domain serves the site, set `"workers_dev": false` so the copy on `*.workers.dev` is not indexed as duplicate content. Leave `"preview_urls": true` in place so branch previews keep working.
+9. **Custom domain:** open the Worker → Settings → Domains & Routes → Add → Custom domain, and add `infraglance.com` and `www.infraglance.com`. The other way is to uncomment `routes` in `wrangler.jsonc`. Add a Redirect Rule from `www` to the apex domain (301). Once the domain serves the site, set `"workers_dev": false` so the copy on `*.workers.dev` is not indexed as duplicate content. Preview URLs are off (`"preview_urls": false`): with them on, every old version stays public on its own `<version>-infraglance-web.*.workers.dev` host.
 10. **Analytics (optional):** there are two ways. Either enable Web Analytics' automatic setup for the zone, or add a site manually and set its token as the `PUBLIC_CF_BEACON_TOKEN` build variable, then rebuild. Use one or the other, not both, or every visit is counted twice. The CSP in `public/_headers` already allows the beacon.
 
 ### Release guard
@@ -129,7 +129,7 @@ The guard runs on Workers Builds (`WORKERS_CI=1`) and on `npm run deploy`. Local
 ### Everyday flow
 
 - **Production:** push or merge to `main`, then Workers Builds builds and runs `wrangler deploy`. Wrangler uploads only changed asset hashes, so after the first upload (about 180 MB) deploys are small.
-- **Previews:** other branches run `wrangler versions upload` and get a preview URL (`"preview_urls": true` in `wrangler.jsonc` keeps them on, even after `workers_dev` is turned off). Previews share the production bindings, so a test submission lands in the real leads table. Such leads are tagged `[preview]` in the stored message and the email subject. Local tests are tagged `[local]`.
+- **Previews:** other branches run `wrangler versions upload`. Preview URLs are off (`"preview_urls": false` in `wrangler.jsonc`), so those versions are not reachable until you set it to `true`. Previews share the production bindings, so a test submission lands in the real leads table. Such leads are tagged `[preview]` in the stored message and the email subject. Local tests are tagged `[local]`.
 - **Database changes:** add `migrations/000N_description.sql`. Run `npm run db:migrate:local` to test it, then run `npm run db:migrate:remote` before merging code that needs it. Builds do not run migrations.
 - **Reading leads:** run `npm run db:leads`, or open the dashboard → D1 → infraglance-leads → Console.
 
