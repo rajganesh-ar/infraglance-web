@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Device frame</title>
+<link rel="stylesheet" href="/collateral/brand/brand.css">
+<style>
+  html, body { background: transparent; margin: 0; }
+  body { padding: 40px; display: inline-block; }
+  #dev { display: inline-block; }
+
+  /* ---------- Laptop ---------- */
+  .laptop { width: 1180px; display: flex; flex-direction: column; align-items: center; }
+  .lid {
+    position: relative; width: 1072px; padding: 16px 16px 22px;
+    background: #0c1016; border: 1px solid #323c49; border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
+  .lid::before { /* camera */
+    content: ''; position: absolute; top: 6px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px;
+    border-radius: 50%; background: #1d2632; box-shadow: inset 0 0 0 1px #2b3644;
+  }
+  .display {
+    position: relative; width: 1040px; height: 650px; overflow: hidden; border-radius: 3px;
+    background:
+      radial-gradient(120% 90% at 18% 0%, rgb(34 211 238 / 0.10), transparent 55%),
+      radial-gradient(90% 80% at 100% 100%, rgb(59 130 246 / 0.10), transparent 60%),
+      linear-gradient(160deg, #0f1c2c 0%, #0a1422 45%, #070b11 100%);
+    display: grid; place-items: center;
+  }
+  .display::after { /* faint dot grid */
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  .display .win { position: relative; z-index: 1; display: block; border-radius: 6px; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 22px 48px -22px rgb(0 0 0 / 0.75); }
+  .hinge { width: 1072px; height: 6px; background: linear-gradient(#05070b, #1a212b); }
+  .base {
+    position: relative; width: 1180px; height: 16px;
+    background: linear-gradient(180deg, #3a4452 0%, #262e39 35%, #151a21 100%);
+    border-radius: 0 0 14px 14px / 0 0 12px 12px;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14);
+  }
+  .base::before { /* thumb notch */
+    content: ''; position: absolute; top: 0; left: 50%; width: 150px; height: 6px; margin-left: -75px;
+    border-radius: 0 0 8px 8px; background: linear-gradient(#1a212b, #252d38);
+  }
+  .feet { width: 1100px; height: 3px; display: flex; justify-content: space-between; }
+  .feet i { width: 80px; height: 3px; border-radius: 0 0 3px 3px; background: #0c1016; }
+
+  /* ---------- Phone ---------- */
+  .phone {
+    position: relative; padding: var(--bz); border-radius: var(--ro);
+    background: #0a0e13;
+    box-shadow: 0 0 0 1.5px #3b4654, inset 0 0 0 1px #1f2731;
+  }
+  .phone .btn { position: absolute; width: 3px; border-radius: 2px; background: #2c3542; }
+  .phone .btn.l1 { left: -4px; top: 18%; height: 4%; }
+  .phone .btn.l2 { left: -4px; top: 25%; height: 8%; }
+  .phone .btn.l3 { left: -4px; top: 35%; height: 8%; }
+  .phone .btn.r1 { right: -4px; top: 28%; height: 12%; }
+  .scr { position: relative; overflow: hidden; border-radius: var(--ri); background: linear-gradient(180deg, #13202e 0%, #0a0f15 55%, #080b10 100%); }
+  .island { position: absolute; z-index: 5; top: var(--it); left: 50%; width: var(--iw); height: var(--ih); transform: translateX(-50%); border-radius: 999px; background: #000; }
+  .scr > img.full { display: block; }
+  .sbar { position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 6px 26px 0 32px; color: #eef3f8; font: 600 15px/1 var(--font-sans); }
+  .sbar .r { display: flex; gap: 6px; align-items: center; font: 600 13px/1 var(--font-sans); }
+  .app { position: absolute; left: 0; right: 0; top: 48px; }
+  .app img { display: block; margin: 0 -1px; }
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 78px; padding: 8px 18px 24px; display: grid; grid-template-columns: repeat(4, 1fr); background: #0b1118; border-top: 1px solid #1a2330; }
+  .tabs span { display: grid; justify-items: center; gap: 4px; font: 500 10.5px/1 var(--font-sans); color: #8794a3; }
+  .tabs span.on { color: #22d3ee; }
+  .tabs svg { width: 22px; height: 22px; }
+  .home { position: absolute; z-index: 5; bottom: 8px; left: 50%; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: #dfe6ee; opacity: 0.85; }
+</style>
+</head>
+<body>
+<div id="dev"></div>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const id = q.get('id'), v = q.get('v'), dsf = +q.get('dsf') || 3;
+const dev = document.getElementById('dev');
+const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const ICON = {
+  home: '<path d="M4 11.5 12 5l8 6.5V20h-5.5v-5h-5v5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+  events: '<path d="M12 4a5 5 0 0 0-5 5v3.5L5.5 16h13L17 12.5V9a5 5 0 0 0-5-5zM10 19a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+  sites: '<rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+  ask: '<path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4 3.5V16h0.5A2.5 2.5 0 0 1 5 13.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+};
+const SIG = '<svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="currentColor"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="currentColor"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="currentColor"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="currentColor"/></svg>';
+const BAT = '<svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="22.5" y="4" width="1.6" height="4" rx="0.8" fill="currentColor" opacity="0.5"/></svg>';
+const tabs = (on) => `<div class="tabs">${[['home','Overview'],['events','Events'],['sites','Cameras'],['ask','Ask']].map(([k,l]) => `<span class="${k===on?'on':''}"><svg viewBox="0 0 24 24">${ICON[k]}</svg>${l}</span>`).join('')}</div>`;
+
+async function run() {
+  await document.fonts.ready;
+  if (v === 'laptop') {
+    const img = await load(q.get('src') === 'laptop' ? `/collateral/images/build/laptop/${id}.png` : `/collateral/images/screens/${id}.png`);
+    let w = img.naturalWidth / dsf, h = img.naturalHeight / dsf;
+    const s = Math.min(1, 976 / w, 590 / h);
+    w = Math.round(w * s); h = Math.round(h * s);
+    dev.innerHTML = `<div class="laptop"><div class="lid"><div class="display"><img class="win" src="${img.src}" style="width:${w}px;height:${h}px"></div></div><div class="hinge"></div><div class="base"></div><div class="feet"><i></i><i></i></div></div>`;
+  } else if (v === 'phone-full') {
+    // the screen image already is a full phone screen (guard-phone): 240 x 488 css px
+    const img = await load(`/collateral/images/screens/${id}.png`);
+    const w = img.naturalWidth / dsf, h = img.naturalHeight / dsf;
+    dev.innerHTML = `<div class="phone" style="--bz:9px;--ro:39px;--ri:30px;--it:10px;--iw:66px;--ih:19px"><i class="btn l1"></i><i class="btn l2"></i><i class="btn l3"></i><i class="btn r1"></i><div class="scr" style="width:${w}px;height:${h}px"><div class="island"></div><img class="full" src="${img.src}" style="width:${w}px;height:${h}px"></div></div>`;
+  } else {
+    // phone-width layout of a window, with status bar and tab bar
+    const img = await load(`/collateral/images/build/narrow/${id}.png`);
+    const w = img.naturalWidth / dsf, h = img.naturalHeight / dsf;
+    const SW = 390, SH = 812;
+    dev.innerHTML = `<div class="phone" style="--bz:13px;--ro:58px;--ri:46px;--it:12px;--iw:112px;--ih:32px"><i class="btn l1"></i><i class="btn l2"></i><i class="btn l3"></i><i class="btn r1"></i><div class="scr" style="width:${SW}px;height:${SH}px"><div class="island"></div><div class="sbar"><span>14:32</span><span class="r">${SIG}<span>5G</span>${BAT}</span></div><div class="app"><img src="${img.src}" style="width:${w + 2}px;height:${(h * (w + 2)) / w}px"></div>${tabs(q.get('tab') || 'home')}<div class="home"></div></div></div>`;
+  }
+  await Promise.all([...dev.querySelectorAll('img')].map((i) => i.decode().catch(() => {})));
+  window.__ready = true;
+}
+run().catch((e) => { console.error(e); window.__ready = 'error'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+/*
+ * Trident Packaging proposal deck: layouts that the main deck (collateral/deck/deck.css) doesn't have.
+ * Loaded after brand.css and deck.css; same 1280 × 720 slide, margins and type scale.
+ */
+
+/* ---------- Shared: tags, source line, notes ---------- */
+/* Proposed service / custom engineering tags: distinct from the product status pills (no dot). */
+.tag {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px; flex: none;
+  border: 1px solid var(--cyan-l); border-radius: var(--radius); color: var(--cyan-l);
+  font: 500 9pt/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+}
+.tag--eng { border-color: var(--text-dark-2); color: var(--text-dark); background: var(--white); }
+.dark .tag, .t-ink .tag, .t-navy .tag { border-color: color-mix(in srgb, var(--cyan) 60%, transparent); color: var(--cyan); }
+.src { position: absolute; left: var(--m); right: var(--m); bottom: 40px; font-size: 9.5pt; line-height: 1.4; color: var(--text-dark-3); }
+.t-ink .src, .dark .src { color: var(--text-light-3); }
+.note { font-size: 11pt; line-height: 1.45; color: var(--text-dark-3); }
+.t-ink .note, .dark .note, .t-navy .note { color: var(--text-light-3); }
+.head h2 { margin-top: 12px; }
+.head .lead { margin-top: 12px; max-width: 820px; }
+
+/* ---------- 02 Our understanding ---------- */
+.und { flex-direction: row; gap: 48px; }
+.und .l { width: 640px; flex: none; display: flex; flex-direction: column; }
+.und .l h2 { margin-top: 12px; font-size: 36pt; }
+.und .stmt { margin-top: 22px; font-size: 18pt; line-height: 1.42; font-weight: 400; color: var(--text-dark); text-wrap: pretty; }
+.und .hyp { margin-top: auto; margin-bottom: 38px; }
+.und .hyp .label { display: block; padding-bottom: 9px; border-bottom: 1px solid var(--line-light-2); }
+.und .hyp li { display: grid; grid-template-columns: 30px 1fr; padding: 10px 0; border-bottom: 1px solid var(--line-light); font-size: 14pt; line-height: 1.38; }
+.und .hyp li .n { font: 500 9pt/1.7 var(--font-mono); color: var(--cyan-l); }
+.und .r { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 30px; }
+.und .card { background: var(--white); border: 1px solid var(--line-light-2); border-top: 2px solid var(--cyan-l); border-radius: var(--radius-lg); padding: 22px 24px 20px; }
+.und .card h3 { font-size: 20pt; letter-spacing: -0.01em; margin-top: 8px; }
+.und .card ol { margin-top: 14px; }
+.und .card li { display: grid; grid-template-columns: 32px 1fr; padding: 12px 0; border-top: 1px solid var(--line-light); font-size: 14pt; line-height: 1.38; }
+.und .card li .n { font: 500 9pt/1.7 var(--font-mono); color: var(--cyan-l); }
+.und .card .note { margin-top: 14px; }
+
+/* ---------- 03 Market ---------- */
+.mkt .facts4 { margin-top: 34px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line-light-2); }
+.mkt .facts4 > div { padding: 20px 24px 0 0; display: grid; gap: 10px; align-content: start; }
+.mkt .facts4 > div + div { padding-left: 24px; border-left: 1px solid var(--line-light-2); }
+.mkt .big { font-size: 34pt; line-height: 1; font-weight: 600; letter-spacing: -0.02em; color: var(--text-dark); }
+.mkt .big.w { font-size: 22pt; line-height: 1.1; padding-top: 8px; padding-bottom: 4px; }
+.mkt .facts4 p { font-size: 13pt; line-height: 1.45; color: var(--text-dark-2); }
+.mkt .facts4 .k { font: 500 9pt/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan-l); }
+.msg { margin-top: auto; margin-bottom: 52px; background: var(--ink); color: var(--white); border-radius: var(--radius-lg); padding: 20px 26px; display: flex; align-items: center; gap: 18px; font-size: 18pt; font-weight: 500; letter-spacing: -0.01em; line-height: 1.3; }
+.msg::before { content: ''; width: 3px; align-self: stretch; background: var(--cyan); border-radius: 2px; flex: none; }
+
+/* ---------- 04 Pressures ---------- */
+.press .cards { margin-top: 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; flex: 1; margin-bottom: 58px; }
+.press .card { background: var(--white); border: 1px solid var(--line-light-2); border-radius: var(--radius-lg); padding: 18px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.press .card .n { font: 500 9pt/1 var(--font-mono); color: var(--cyan-l); letter-spacing: 0.1em; }
+.press .card h3 { font-size: 17pt; line-height: 1.2; letter-spacing: -0.01em; }
+.press .card p { font-size: 13pt; line-height: 1.45; color: var(--text-dark-2); text-wrap: pretty; }
+.press .card .fact { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line-light); font: 500 9pt/1.4 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dark); }
+
+/* ---------- 05 Process strip ---------- */
+.proc .strip { position: relative; margin-top: 34px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; flex: 1; margin-bottom: 64px; }
+.proc .strip::before { content: ''; position: absolute; left: 6px; right: 6px; top: 6px; height: 1px; background: var(--cyan-l); }
+.proc .stage { position: relative; display: flex; flex-direction: column; gap: 10px; padding-top: 26px; min-width: 0; }
+.proc .stage::before { content: ''; position: absolute; left: 0; top: 0; width: 13px; height: 13px; border-radius: 50%; background: var(--mist); border: 2px solid var(--cyan-l); }
+.proc .stage .n { font: 500 9pt/1 var(--font-mono); letter-spacing: 0.1em; color: var(--cyan-l); }
+.proc .stage h3 { font-size: 14pt; line-height: 1.2; min-height: 2.4em; }
+.proc .stage .p { background: var(--white); border: 1px solid var(--line-light-2); border-radius: var(--radius-lg); padding: 10px 10px 11px; display: grid; gap: 7px; justify-items: start; }
+.proc .stage .p b { font-size: 12pt; font-weight: 600; line-height: 1.2; }
+.proc .stage .p span:last-child { font-size: 11pt; line-height: 1.35; color: var(--text-dark-2); text-wrap: pretty; }
+.proc .legend { position: absolute; left: var(--m); right: var(--m); bottom: 40px; display: flex; gap: 10px; align-items: center; font-size: 9.5pt; color: var(--text-dark-3); }
+.proc .legend .st { height: 22px; }
+
+/* ---------- 06 Platform: three facts instead of the pillar rail ---------- */
+.facts3 { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.facts3 div { padding: 12px 16px; border: 1px solid var(--line-light-2); border-left: 2px solid var(--cyan-l); border-radius: var(--radius); background: var(--paper); display: grid; gap: 4px; }
+.facts3 b { font-size: 13pt; font-weight: 600; }
+.facts3 span { font-size: 11.5pt; line-height: 1.38; color: var(--text-dark-2); }
+
+/* ---------- In-action slides with a list of products instead of numbered callouts ---------- */
+.act .panel .plist { margin-top: auto; }
+.act .panel .plist li { grid-template-columns: 1fr; gap: 7px; padding: 11px 0 12px; font-size: 12.5pt; }
+.act .panel .plist .pr { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.act .panel .plist .pr b { font-size: 13.5pt; }
+.act .panel .plist li > span { text-wrap: pretty; }
+.act .panel .adv { margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line-dark-2); font-size: 10.5pt; line-height: 1.4; color: var(--text-light-3); }
+.act .panel h2.sm { font-size: 26pt; }
+
+/* ---------- 09 Line performance: proposed row in the product list ---------- */
+.prods .tag { height: 24px; }
+
+/* ---------- 12 OHS ---------- */
+.ohs .r { justify-content: center; gap: 14px; }
+.ohs .r .shot { width: 100%; height: auto; display: block; margin-right: -8px; }
+.ohs .priv { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 4.5%; }
+.ohs .priv span { font: 500 9pt/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 8px; border: 1px solid var(--line-light-2); border-radius: var(--radius); color: var(--text-dark-2); background: var(--white); }
+.ohs .r .note { padding-left: 4.5%; }
+
+/* ---------- 13 Warehouse: product pills in the point list ---------- */
+.problem .pts h3 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.problem.wh .text h2 { font-size: 34pt; }
+
+/* ---------- 14 Metrics ---------- */
+.met .tbl { margin-top: 26px; display: grid; }
+.met .row { display: grid; grid-template-columns: 300px 1fr 300px; gap: 24px; padding: 12px 0; border-top: 1px solid var(--line-light-2); align-items: baseline; }
+.met .row:last-child { border-bottom: 1px solid var(--line-light-2); }
+.met .row.h { padding: 0 0 9px; border-top: 0; }
+.met .row b { font-size: 15pt; font-weight: 600; line-height: 1.25; }
+.met .row span { font-size: 13pt; line-height: 1.4; color: var(--text-dark-2); }
+.met .row .w { font: 500 9.5pt/1.45 var(--font-mono); letter-spacing: 0.02em; color: var(--text-dark-2); }
+.met .base { margin-top: auto; margin-bottom: 30px; }
+
+/* ---------- 15 Pilot ---------- */
+.pilot .steps { margin-top: 28px; }
+.pilot .step h3 { font-size: 20pt; }
+.pilot .step p { font-size: 13pt; }
+.pilot .two { margin-top: auto; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pilot .box { background: var(--white); border: 1px solid var(--line-light-2); border-radius: var(--radius-lg); padding: 14px 18px 12px; }
+.pilot .box .label { display: block; color: var(--cyan-l); margin-bottom: 6px; }
+.pilot .box li { position: relative; padding: 5px 0 5px 16px; font-size: 13pt; line-height: 1.35; color: var(--text-dark); }
+.pilot .box li::before { content: ''; position: absolute; left: 0; top: 13px; width: 6px; height: 6px; border-radius: 1px; background: var(--cyan-l); }
+
+/* ---------- 16–17 Additional services ---------- */
+.svc .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; }
+.svc .newtag { margin-top: 2px; display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 10px; border-radius: var(--radius); background: var(--ink); color: var(--white); font: 500 9pt/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.svc .newtag::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); }
+.svc .grid { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1; margin-bottom: 64px; }
+.svc.s8 .grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.svc .c { background: var(--white); border: 1px solid var(--line-light-2); border-radius: var(--radius-lg); padding: 16px 18px; display: flex; flex-direction: column; gap: 9px; }
+.svc .c .tag { align-self: flex-start; }
+.svc .c h3 { font-size: 16pt; line-height: 1.22; letter-spacing: -0.008em; }
+.svc .c p { font-size: 13pt; line-height: 1.42; color: var(--text-dark-2); text-wrap: pretty; }
+.svc.s8 .c { padding: 14px 15px; gap: 8px; }
+.svc.s8 .c h3 { font-size: 14pt; }
+.svc.s8 .c p { font-size: 12pt; }
+.svc .c.eng { background: var(--ink); border-color: var(--ink); color: var(--text-light); }
+.svc .c.eng p { color: var(--text-light-2); }
+.svc .c.eng .tag { border-color: color-mix(in srgb, var(--cyan) 60%, transparent); color: var(--cyan); background: transparent; }
+
+/* ---------- 18 Why Infraglance ---------- */
+.dp .terms { margin-top: auto; margin-bottom: 30px; }
+.dp .terms li { position: relative; padding: 9px 0 9px 18px; border-top: 1px solid var(--line-dark-2); font-size: 13pt; line-height: 1.38; color: var(--text-light-2); }
+.dp .terms li::before { content: ''; position: absolute; left: 0; top: 17px; width: 7px; height: 7px; border-radius: 1px; background: var(--cyan); }
+.dp .list li b { color: var(--white); font-weight: 600; }
+
+/* ---------- 19 Next steps ---------- */
+.next .steps { grid-template-columns: repeat(4, 1fr); }
+.next .step h3 { font-size: 19pt; }
+.next .step p { font-size: 13pt; }
+.next .links { margin-top: auto; margin-bottom: 30px; padding-top: 18px; border-top: 1px solid var(--line-light-2); display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 0 48px; }
+.next .links div { display: grid; gap: 7px; }
+.next .links b { font-size: 17pt; font-weight: 500; letter-spacing: -0.01em; color: var(--text-dark); }
+
+/* ---------- 20 Back page ---------- */
+.contact .fine p.first { font-size: 8.5pt; }
+
+/* ---------- Review fixes ---------- */
+.problem .foot .sec { color: rgb(255 255 255 / 0.88); text-shadow: 0 0 6px rgb(0 0 0 / 0.55); }
+.met .row.h span { font-size: 9.5pt; }
+.met .row { grid-template-columns: 290px 1fr 330px; padding: 10px 0; }
+.met .row.h { padding: 0 0 8px; }
+.dp .list li > span:last-child { text-wrap: pretty; }
+.next .steps { margin-top: 36px; }
+.next .step h3 { font-size: 21pt; }
+.next .step p { font-size: 14pt; }
+.mkt .facts4 p { font-size: 14pt; }
+.mkt .big { font-size: 40pt; }
+.mkt .big.w { font-size: 24pt; }
+.ohs .tiles h3 { display: block; }
+.ohs .tiles h3 span { margin-right: 10px; }
+/* Slide 13: the footer sits on the bright part of the photo, so give it a small ink chip. */
+.wh .foot .sec, .wh .foot .pn { background: rgb(5 7 11 / 0.72); color: rgb(255 255 255 / 0.9); text-shadow: none; padding: 3px 8px; border-radius: 2px; }

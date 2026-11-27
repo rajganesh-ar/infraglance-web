@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>Infraglance · Proposal for Trident Packaging Limited</title>
+  <link rel="stylesheet" href="/collateral/brand/brand.css">
+  <link rel="stylesheet" href="/collateral/deck/deck.css">
+  <link rel="stylesheet" href="/collateral/trident/trident.css">
+  <script type="module" src="/collateral/brand/det.js"></script>
+  <script type="module" src="/collateral/deck/deck.js"></script>
+  <script type="module">
+    // Wrap hyphenated words and number ranges ("start-up", "8–12+", "1–2") in <nobr> (no span selector matches it), so no line
+    // breaks after a hyphen or en dash. Text only: skips SVG, detection figures and scripts.
+    const RX = /[\p{L}\d+%$]+(?:[-–][\p{L}\d+%$]+)+/gu;
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.parentElement.closest('svg, script, style, .det, .nw, nobr') || !/[-–]/.test(n.data) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    const nodes = [];
+    while (walk.nextNode()) nodes.push(walk.currentNode);
+    for (const n of nodes) {
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      for (const m of n.data.matchAll(RX)) {
+        frag.append(n.data.slice(last, m.index));
+        const s = document.createElement('nobr');
+        s.textContent = m[0];
+        frag.append(s);
+        last = m.index + m[0].length;
+      }
+      frag.append(n.data.slice(last));
+      n.replaceWith(frag);
+    }
+  </script>
+</head>
+<body>
+
+<!-- 01 · Cover -->
+<section class="slide cover dark" data-bookmark="Cover">
+  <figure class="det" data-det="inspect-closures"></figure>
+  <div class="inner">
+    <img data-inline-svg class="logo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance">
+    <div class="copy">
+      <p class="eyebrow">Prepared for Trident Packaging Limited</p>
+      <h1>Every closure,<br>every shift,<br>seen.</h1>
+      <p class="lead">Our proposal for vision AI in quality, safety and uptime for a rigid plastic packaging&nbsp;plant.</p>
+    </div>
+    <div class="meta"><span><a href="https://infraglance.com">infraglance.com</a></span><span>Lusaka · November 2026</span><span>Confidential</span></div>
+  </div>
+</section>
+
+<!-- 02 · Our understanding -->
+<section class="slide und t-paper" data-bookmark="Our understanding of Trident">
+  <div class="l">
+    <p class="eyebrow">Our understanding</p>
+    <h2>Our understanding of Trident.</h2>
+    <p class="stmt">Trident Packaging Limited, Lilayi, Lusaka: rigid plastic packaging (caps and closures, and bottles) for beverage and FMCG fillers, within a regional supply chain that reaches East&nbsp;Africa.</p>
+    <div class="hyp">
+      <span class="label">What we think matters most</span>
+      <ol>
+        <li><span class="n">01</span><span>Consistent quality, lot after lot, for demanding bottlers.</span></li>
+        <li><span class="n">02</span><span>Uptime and less scrap through power cuts and restarts.</span></li>
+        <li><span class="n">03</span><span>A safe moulding floor and warehouse under the new OHS&nbsp;Act.</span></li>
+      </ol>
+    </div>
+  </div>
+  <div class="r">
+    <div class="card">
+      <span class="label">To confirm together</span>
+      <h3>What we don’t know yet</h3>
+      <ol>
+        <li><span class="n">01</span><span>Product lines and volumes</span></li>
+        <li><span class="n">02</span><span>Moulding on site versus sourced</span></li>
+        <li><span class="n">03</span><span>Customers and their quality specs</span></li>
+        <li><span class="n">04</span><span>Lines, cameras and power backup</span></li>
+      </ol>
+      <p class="note">Built from public information; we’ll confirm the details in a discovery&nbsp;call.</p>
+    </div>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 03 · The market -->
+<section class="slide mkt t-mist" data-bookmark="The market you serve">
+  <div class="head">
+    <p class="eyebrow">The market you serve</p>
+    <h2>A growing market that rewards consistency.</h2>
+  </div>
+  <div class="facts4">
+    <div><span class="k">Demand</span><span class="big">US$110m</span><p>Trade Kings’ new beverage plant in the Lusaka MFEZ, commissioned in 2025: more bottling capacity in&nbsp;Zambia.</p></div>
+    <div><span class="k">Buyers</span><span class="big w">Supermarket grade</span><p>Local food processors report too few packaging suppliers that meet supermarket grade.</p></div>
+    <div><span class="k">Competition</span><span class="big w">Local and integrated</span><p>PPM Zambia and ALPLA supply the market, and large bottlers make their own preforms and&nbsp;caps.</p></div>
+    <div><span class="k">Reach</span><span class="big">18%</span><p>of Zambia’s 2023 exports went to the DRC. COMESA, SADC, the Tripartite FTA and AfCFTA open the&nbsp;region.</p></div>
+  </div>
+  <p class="msg"><span>For a closure supplier, consistent quality is what wins bottlers, and what keeps&nbsp;them.</span></p>
+  <p class="src">Sources: African Marketing Confederation on the Trade Kings plant (2025); How We Made It In Africa (2021); PPM Zambia and ALPLA websites; US Commercial Service, Zambia Country Commercial Guide (2023 data).</p>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 04 · The pressures -->
+<section class="slide press t-mist" data-bookmark="The pressures">
+  <div class="head">
+    <p class="eyebrow">The pressures</p>
+    <h2>Four pressures on a closures plant.</h2>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <span class="n">01</span>
+      <h3>Zero-defect closures</h3>
+      <p>Bottlers expect every cap to seal, every tamper band to hold and every lot to match the brand&nbsp;colour.</p>
+      <span class="fact">Seal · tamper band · colour</span>
+    </div>
+    <div class="card">
+      <span class="n">02</span>
+      <h3>Power cuts and restarts</h3>
+      <p>The 2024 drought brought load-shedding of 8–12+&nbsp;hours a day. Every restart costs warm-up time and start-up&nbsp;scrap.</p>
+      <span class="fact">2024 · 8–12+ h a day</span>
+    </div>
+    <div class="card">
+      <span class="n">03</span>
+      <h3>Imported resin, moving currency</h3>
+      <p>Resin is imported, and the kwacha hit a record low of about K28 to the US dollar in January 2025, so every scrapped cap costs&nbsp;more.</p>
+      <span class="fact">Jan 2025 · about K28/US$</span>
+    </div>
+    <div class="card">
+      <span class="n">04</span>
+      <h3>New duties</h3>
+      <p>Since 30 December 2025, the OHS Act No.&nbsp;16 of 2025 requires employers with 10 or more staff to run a safety committee and an approved risk assessment every two years, with daily penalties. EPR regulations cover plastic packaging.</p>
+      <span class="fact">OHS Act 2025 · EPR</span>
+    </div>
+  </div>
+  <p class="src">Sources: News24 (2024) on load-shedding; TimesLIVE and Bloomberg (2025) on the kwacha; OHS Act No.&nbsp;16 of 2025; Extended Producer Responsibility Regulations 2018.</p>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 05 · Where vision AI fits -->
+<section class="slide proc t-mist" data-bookmark="Where vision AI fits">
+  <div class="head">
+    <p class="eyebrow">Where vision AI fits</p>
+    <h2>Where vision AI fits in a closures plant.</h2>
+  </div>
+  <div class="strip">
+    <div class="stage"><span class="n">01</span><h3>Resin intake and drying</h3>
+      <div class="p"><b>Sense Scene</b><span class="st st--a"><i></i>Available</span><span>Pellet spills and blocked walkways</span></div>
+      <div class="p"><b>Sense Thermal</b><span class="st st--e"><i></i>Early access</span><span>Dryer and motor hot spots</span></div>
+    </div>
+    <div class="stage"><span class="n">02</span><h3>Moulding</h3>
+      <div class="p"><b>Guard Zone</b><span class="st st--a"><i></i>Available</span><span>Zones around presses and robots</span></div>
+      <div class="p"><b>Sense Machine</b><span class="st st--e"><i></i>Early access</span><span>Video fused with PLC signals</span></div>
+    </div>
+    <div class="stage"><span class="n">03</span><h3>Cooling and chillers</h3>
+      <div class="p"><b>Sense Gauge</b><span class="st st--a"><i></i>Available</span><span>Chiller and compressor gauges</span></div>
+    </div>
+    <div class="stage"><span class="n">04</span><h3>Inspection and sorting</h3>
+      <div class="p"><b>Inspect Defect</b><span class="st st--a"><i></i>Available</span><span>Short shots, flash and specks</span></div>
+      <div class="p"><b>Inspect Colour</b><span class="st st--a"><i></i>Available</span><span>ΔE against the brand master</span></div>
+    </div>
+    <div class="stage"><span class="n">05</span><h3>Packing</h3>
+      <div class="p"><b>Flow Line</b><span class="st st--a"><i></i>Available</span><span>Jams and micro-stops</span></div>
+    </div>
+    <div class="stage"><span class="n">06</span><h3>Warehouse</h3>
+      <div class="p"><b>Guard Traffic</b><span class="st st--e"><i></i>Early access</span><span>Forklifts and people</span></div>
+      <div class="p"><b>Guard Fire</b><span class="st st--e"><i></i>Early access</span><span>Smoke and flame in stores</span></div>
+    </div>
+    <div class="stage"><span class="n">07</span><h3>Dispatch</h3>
+      <div class="p"><b>Flow Gate</b><span class="st st--e"><i></i>Early access</span><span>Truck turnaround and dock timing</span></div>
+    </div>
+  </div>
+  <p class="legend">Product status as in our catalogue: <span class="st st--a"><i></i>Available</span><span class="st st--e"><i></i>Early access</span><span class="st st--r"><i></i>Roadmap</span></p>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 06 · The platform -->
+<section class="slide platform t-mist" data-bookmark="The platform">
+  <div class="head">
+    <p class="eyebrow">The Glance Platform</p>
+    <h2>The platform in one slide.</h2>
+    <p class="lead">Glance Edge runs the AI on your site. Glance Hub turns detections into events, evidence and decisions. Studio, Ask and Mobile put them in your teams’&nbsp;hands.</p>
+  </div>
+  <div class="diag">
+    <div class="bracket" style="left: 0; width: 494px"><span>On your site</span></div>
+    <div class="bracket" style="left: 528px; width: 270px"><span>On-prem or private cloud</span></div>
+    <div class="node">
+      <span class="k">Capture</span>
+      <h3>Your cameras</h3>
+      <p>IP cameras on the lines and in the warehouse; inspection stations and thermal where needed.</p>
+      <div class="chips"><span>RTSP</span><span>ONVIF</span><span>Thermal</span></div>
+    </div>
+    <div class="arrow"></div>
+    <div class="node edge">
+      <span class="k">Glance Edge</span>
+      <h3>AI where the cameras are</h3>
+      <p>Decoding, inference, tracking and rules run on site, on a box sized to your camera&nbsp;streams.</p>
+      <div class="chips"><span>Edge S · M · L</span></div>
+    </div>
+    <div class="arrow"></div>
+    <div class="node hub">
+      <span class="k">Glance Hub</span>
+      <h3>The control room for the plant</h3>
+      <p>Events with duration, severity and evidence clips, <span class="nw">corrective-action</span> workflows and the monthly accuracy report&nbsp;card.</p>
+      <div class="chips"><span>Events</span><span>Evidence</span><span>Workflows</span></div>
+    </div>
+    <div class="arrow"></div>
+    <div class="apps">
+      <div class="app"><b>Studio</b><span>Zones, PPE matrices and rules in minutes, with no&nbsp;code.</span></div>
+      <div class="app"><b>Ask</b><span>Plain-language questions, answered with&nbsp;evidence.</span></div>
+      <div class="app"><b>Mobile</b><span>Alerts acknowledged and closed out on the&nbsp;floor.</span></div>
+      <div class="app"><b>API</b><span>REST, webhooks, PLC, MES and&nbsp;ERP.</span></div>
+    </div>
+  </div>
+  <div class="facts3">
+    <div><b>Video stays on site</b><span>Only events, short evidence clips and metadata leave by&nbsp;default.</span></div>
+    <div><b>Works when the internet drops</b><span>Detection and local alarms keep working; events sync when it&nbsp;returns.</span></div>
+    <div><b>On-prem or private cloud</b><span>Fully on-premise and <span class="nw">air-gapped</span> deployments are&nbsp;available.</span></div>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 07 · Quality: closure defects -->
+<section class="slide act dark" style="--pc: var(--inspect)" data-bookmark="Quality: closure defects">
+  <figure class="det" data-det="inspect-closures"></figure>
+  <div class="panel">
+    <p class="eyebrow">Quality · Closure defects</p>
+    <h2>Every cap,<br>not a sample.</h2>
+    <ol>
+      <li><span class="n">01</span><span><b>Short shots, flash and deformation</b> flagged cap by&nbsp;cap.</span></li>
+      <li><span class="n">02</span><span><b>Black specks and contamination</b> located, with the nearest good cap as&nbsp;evidence.</span></li>
+      <li><span class="n">03</span><span><b>Tamper-band damage</b> sent to pass, review or reject, per&nbsp;SKU.</span></li>
+      <li><span class="n">04</span><span><b>Trained on good caps only</b>: typically 50–200 images per&nbsp;SKU.</span></li>
+    </ol>
+    <p class="prod">Inspect Defect <span class="st st--a"><i></i>Available</span></p>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 08 · Quality: colour and the bottling line -->
+<section class="slide act dark" style="--pc: var(--inspect)" data-bookmark="Quality: colour and the bottling line">
+  <figure class="det" data-det="inspect-capping-line"></figure>
+  <div class="panel">
+    <p class="eyebrow">Quality · Colour and capping</p>
+    <h2>The right shade,<br>a seated cap.</h2>
+    <ol class="plist">
+      <li><div class="pr"><b>Inspect Colour</b><span class="st st--a"><i></i>Available</span></div><span>ΔE2000 against the brand master, lot by lot, so masterbatch dosing drift shows before a&nbsp;complaint.</span></li>
+      <li><div class="pr"><b>Inspect Pack</b><span class="st st--e"><i></i>Early access</span></div><span>On bottling lines: cap present and seated, seal and tamper band, and codes, at line&nbsp;speed.</span></li>
+      <li><div class="pr"><b>Inspect Measure</b><span class="st st--r"><i></i>Roadmap</span></div><span>Non-contact dimensions and ovality, validated by&nbsp;MSA.</span></li>
+    </ol>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 09 · Line performance -->
+<section class="slide pov t-paper" style="--pc: var(--flow); --pc-l: var(--flow-l)" data-bookmark="Line performance">
+  <div class="l">
+    <p class="eyebrow">Line performance</p>
+    <h2>The micro-stops your OEE report never shows.</h2>
+    <p class="lead">Flow Line finds jams, pile-ups and short stops and attributes them to a station. Sense Machine adds the machine’s own signals: motor on with no movement means a&nbsp;jam.</p>
+    <div class="blocks">
+      <div><span class="label">What it sees</span>
+        <ul class="caps"><li>Jams, pile-ups and fallen products</li><li>Micro-stops under 2&nbsp;minutes</li><li>Bottlenecks by station and shift</li><li>Restart time and start-up scrap after a power cut</li></ul>
+      </div>
+      <div><span class="label">Products</span>
+        <ul class="prods">
+          <li><b>Flow Line</b><span class="st st--a"><i></i>Available</span></li>
+          <li><b>Sense Machine</b><span class="st st--e"><i></i>Early access</span></li>
+          <li><b>Restart analytics</b><span class="tag">Proposed</span></li>
+        </ul>
+        <p class="note" style="margin-top: 10px">Restart analytics is a proposed service (slide&nbsp;16), scoped in the&nbsp;pilot.</p>
+      </div>
+    </div>
+  </div>
+  <div class="r">
+    <img class="shot" data-screen="flow-timeline" data-variant="laptop" alt="Glance Flow shift timeline">
+    <p class="cap"><b>Glance Flow</b> · shift timeline, every stop attributed</p>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 10 · Plant condition -->
+<section class="slide act dark" style="--pc: var(--sense)" data-bookmark="Plant condition">
+  <figure class="det" data-det="sense-gauge"></figure>
+  <div class="panel">
+    <p class="eyebrow">Plant condition</p>
+    <h2>Chillers and compressors, watched all&nbsp;day.</h2>
+    <ol class="plist">
+      <li><div class="pr"><b>Sense Gauge</b><span class="st st--a"><i></i>Available</span></div><span>Chiller, compressor and hydraulic gauges read from cameras, with trends and limit&nbsp;alarms.</span></li>
+      <li><div class="pr"><b>Sense Thermal</b><span class="st st--e"><i></i>Early access</span></div><span>Hot spots on motors, panels and heater bands, from radiometric thermal cameras.</span></li>
+      <li><div class="pr"><b>Sense Scene</b><span class="st st--a"><i></i>Available</span></div><span>Pellet spills, leaks and blocked exits, flagged against each camera’s&nbsp;baseline.</span></li>
+    </ol>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 11 · Safety on the moulding floor -->
+<section class="slide act dark" style="--pc: var(--guard)" data-bookmark="Safety on the moulding floor">
+  <figure class="det" data-det="guard-moulding-cell"></figure>
+  <div class="panel">
+    <p class="eyebrow">Safety</p>
+    <h2 class="sm">Safety on the moulding&nbsp;floor.</h2>
+    <ol class="plist">
+      <li><div class="pr"><b>Guard Zone</b><span class="st st--a"><i></i>Available</span></div><span>Danger zones around presses, robots and granulators.</span></li>
+      <li><div class="pr"><b>Guard PPE+</b><span class="st st--a"><i></i>Available</span></div><span>Gloves, ear and eye protection, set by zone and&nbsp;task.</span></li>
+      <li><div class="pr"><b>Guard Traffic</b><span class="st st--e"><i></i>Early access</span></div><span>Forklifts and people, kept&nbsp;apart.</span></li>
+      <li><div class="pr"><b>Guard Fire</b><span class="st st--e"><i></i>Early access</span></div><span>Smoke and flame in resin and finished-goods&nbsp;stores.</span></li>
+    </ol>
+    <p class="adv">Guard Zone is advisory: it warns people and logs events, and is not a safety&nbsp;interlock.</p>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 12 · OHS Act 2025 -->
+<section class="slide site ohs t-paper" data-bookmark="Ready for the OHS Act 2025">
+  <div class="l">
+    <p class="eyebrow">Safety duties</p>
+    <h2>Ready for the OHS Act&nbsp;2025.</h2>
+    <p class="lead">Guard events and Glance Hub reports give your safety officer and safety committee evidence, not&nbsp;anecdotes.</p>
+    <div class="tiles">
+      <div><h3><span>01</span>Risk-assessment evidence</h3><p>Hazards and near-misses by zone, for the risk assessment you renew every two&nbsp;years.</p></div>
+      <div><h3><span>02</span>Committee dashboards</h3><p>Events, trends and corrective actions to review at every committee meeting.</p></div>
+      <div><h3><span>03</span>Near-miss trends</h3><p>Proximity events and zone breaches, by area and by shift.</p></div>
+      <div><h3><span>04</span>Incident clips</h3><p>Short evidence clips, with faces blurred, for every serious&nbsp;event.</p></div>
+    </div>
+  </div>
+  <div class="r">
+    <img class="shot" data-screen="hub-overview" data-variant="laptop" alt="Glance Hub overview">
+    <div class="priv"><span>Faces blurred on the device</span><span>No individual scoring</span><span>A person can always override</span></div>
+    <p class="note">Supports compliance; it does not replace your safety officer or legal&nbsp;advice.</p>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 13 · Warehouse and dispatch -->
+<section class="slide problem wh t-paper" data-bookmark="Warehouse and dispatch">
+  <div class="text">
+    <p class="eyebrow">Warehouse and dispatch</p>
+    <h2>From the last pallet to the truck&nbsp;gate.</h2>
+    <p class="lead">Where finished closures wait, move and&nbsp;leave.</p>
+    <ol class="pts">
+      <li><span class="n">01</span><div><h3>Flow Gate <span class="st st--e"><i></i>Early access</span></h3><p>Truck turnaround, number plates and dock occupancy, timed at the&nbsp;gate.</p></div></li>
+      <li><span class="n">02</span><div><h3>Guard Traffic <span class="st st--e"><i></i>Early access</span></h3><p>Forklift and pedestrian proximity in the aisles, with near-miss hot&nbsp;spots.</p></div></li>
+      <li><span class="n">03</span><div><h3>Pallet and carton counting <span class="tag">Proposed</span></h3><p>Counts at dispatch, matched to the order (slide&nbsp;17).</p></div></li>
+    </ol>
+  </div>
+  <div class="media">
+    <img class="ph" data-credit="truck-gate" src="/public/media/p/truck-gate-2600.d8c21ab8.jpg" alt="Trucks at loading docks being loaded">
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 14 · What a pilot would measure -->
+<section class="slide met t-paper" data-bookmark="What a pilot would measure">
+  <div class="head">
+    <p class="eyebrow">Measuring value</p>
+    <h2>What a pilot would measure.</h2>
+    <p class="lead">Definitions only: no numbers until we have measured your own&nbsp;baseline.</p>
+  </div>
+  <div class="tbl">
+    <div class="row h"><span class="label">Metric</span><span class="label">Definition</span><span class="label">Measured with</span></div>
+    <div class="row"><b>Defect escape rate</b><span>Defective caps that reach bottlers, per million&nbsp;shipped</span><span class="w">Inspect Defect logs and complaint records</span></div>
+    <div class="row"><b>Start-up scrap per restart</b><span>Caps scrapped from a restart to the first good shot, per&nbsp;event</span><span class="w">Restart events and scrap counts at the press</span></div>
+    <div class="row"><b>Micro-stops and OEE by line</b><span>Stops under 2&nbsp;minutes, and availability × performance × quality, by line and&nbsp;shift</span><span class="w">Flow Line</span></div>
+    <div class="row"><b>Colour complaints per lot</b><span>Shade complaints per lot shipped, set against measured&nbsp;ΔE</span><span class="w">Inspect Colour and complaint records</span></div>
+    <div class="row"><b>Near-misses per 1,000 forklift movements</b><span>Person–vehicle proximity events under the agreed&nbsp;distance</span><span class="w">Guard Traffic</span></div>
+  </div>
+  <p class="msg met-base" style="margin-bottom: 30px"><span>Baselines measured in weeks 1–2; targets agreed&nbsp;together.</span></p>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 15 · A pilot for Trident -->
+<section class="slide eng pilot t-paper" data-bookmark="A pilot for Trident">
+  <div class="head">
+    <p class="eyebrow">A pilot for Trident</p>
+    <h2>Prove it on one line before you scale&nbsp;it.</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">01 · 1–2 weeks</span>
+      <h3>Feasibility study</h3>
+      <p>Tested on your own footage and sample caps: what can be detected, expected accuracy, hardware and the business&nbsp;case.</p>
+      <span class="fee">Fixed fee · credited against the pilot</span>
+    </div>
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">02 · 4–8 weeks</span>
+      <h3>Pilot: proof of value</h3>
+      <p>One line or zone running live, with success criteria agreed up front and measured every&nbsp;week.</p>
+      <span class="fee">Fixed scope</span>
+    </div>
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">03 · 4–12 weeks</span>
+      <h3>Rollout</h3>
+      <p>Integrations, training and site acceptance tests, then 30 days of hypercare and&nbsp;handover.</p>
+      <span class="fee">Annual, per camera · station · asset</span>
+    </div>
+  </div>
+  <div class="two">
+    <div class="box"><span class="label">Suggested pilot scope</span>
+      <ul><li>One closure inspection point</li><li>2–4 cameras in the moulding hall, existing where available</li><li>One gauge cluster</li><li>One warehouse aisle</li></ul>
+    </div>
+    <div class="box"><span class="label">What we need from Trident</span>
+      <ul><li>Good and defective sample caps</li><li>A day of footage from your cameras</li><li>Your quality specs</li><li>A site walk-through</li></ul>
+    </div>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 16 · Additional services: on the line -->
+<section class="slide svc t-mist" data-bookmark="Additional services: on the line">
+  <div class="head">
+    <div>
+      <p class="eyebrow">Additional services · On the line</p>
+      <h2>Beyond the catalogue: on the&nbsp;line.</h2>
+    </div>
+    <span class="newtag"><span>New · co-developed with design partners</span></span>
+  </div>
+  <div class="grid">
+    <div class="c"><span class="tag">Proposed</span><h3>Cavity-ID traceability</h3><p>Read the mould-cavity number on each cap and trace every defect back to its&nbsp;cavity.</p></div>
+    <div class="c"><span class="tag tag--eng">Custom engineering</span><h3>360° high-speed closure inspection</h3><p>A purpose-built station for liner and wad presence and <span class="nw">tamper-band</span>&nbsp;bridges.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Preform inspection</h3><p>Gate, haze, black specks and ovality on&nbsp;preforms.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Power-event and restart analytics</h3><p>Load-shedding impact, generator run time and start-up scrap, event by&nbsp;event.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Compressed-air and energy-loss surveys</h3><p>Thermal surveys of air lines, motors and heaters, with acoustic leak checks to&nbsp;scope.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Regrind and recycled-content check</h3><p>Contamination checks on regrind and recycled content, supporting your EPR&nbsp;duties.</p></div>
+  </div>
+  <p class="src">Proposed: not in our current catalogue; scoped and co-developed with design partners. Custom engineering: built by Infraglance Engineering on the Glance Platform.</p>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 17 · Additional services: around the business -->
+<section class="slide svc s8 t-mist" data-bookmark="Additional services: around the business">
+  <div class="head">
+    <div>
+      <p class="eyebrow">Additional services · Around the business</p>
+      <h2>Beyond the catalogue: around the&nbsp;business.</h2>
+    </div>
+    <span class="newtag"><span>New · co-developed with design partners</span></span>
+  </div>
+  <div class="grid">
+    <div class="c"><span class="tag">Proposed</span><h3>Digital quality certificates</h3><p>Lot-level image evidence sent to bottlers with each&nbsp;delivery.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Inventory and pallet counting</h3><p>Automated counts in the warehouse and at&nbsp;dispatch.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Managed monitoring</h3><p>Remote monitoring and tuning after the standard 30-day hypercare.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>OHS evidence packs</h3><p>Ready-made packs for the risk assessment and the safety committee.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Audit evidence</h3><p>Inspection logs organised for ISO&nbsp;9001 and FSSC&nbsp;22000&nbsp;audits.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Complaint investigation</h3><p>Footage and inspection records linked to the lot a complaint&nbsp;names.</p></div>
+    <div class="c"><span class="tag">Proposed</span><h3>Operator training clips</h3><p>Short clips from real events, faces blurred, for toolbox&nbsp;talks.</p></div>
+    <div class="c eng"><span class="tag">Custom engineering</span><h3>Infraglance Engineering</h3><p>Configure, Extend, Build, Integrate&nbsp;&amp;&nbsp;deploy: custom models, imaging and integrations, available&nbsp;today.</p></div>
+  </div>
+  <p class="src">Proposed: not in our current catalogue; scoped and co-developed with design partners. Infraglance Engineering is an existing service.</p>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 18 · Why Infraglance, and why now -->
+<section class="slide dp t-ink" data-bookmark="Why Infraglance, and why now">
+  <div class="a">
+    <p class="eyebrow">Why Infraglance</p>
+    <h2>Why Infraglance, and why&nbsp;now.</h2>
+    <p class="lead">The OHS Act 2025 is in force, bottling capacity is growing and our design-partner programme is&nbsp;open.</p>
+    <ol class="list">
+      <li><span class="n">01</span><span><b>Edge-first.</b> Video is processed on site; only events and short clips leave by&nbsp;default.</span></li>
+      <li><span class="n">02</span><span><b>Your existing cameras.</b> Any IP camera that streams RTSP or&nbsp;ONVIF.</span></li>
+      <li><span class="n">03</span><span><b>Privacy by design.</b> Faces blurred on the device, and no individual&nbsp;scoring.</span></li>
+      <li><span class="n">04</span><span><b>Built for unreliable networks.</b> Detection and local alarms keep working offline. Power backup: to confirm&nbsp;together.</span></li>
+    </ol>
+  </div>
+  <div class="b">
+    <p class="eyebrow">Design-partner programme · now open</p>
+    <h2>Built on 8+&nbsp;years in&nbsp;industry.</h2>
+    <p class="lead">Infraglance is built by a team with 8+&nbsp;years of industrial experience, now running a design-partner programme. We publish case studies only with real, measured results and the customer’s&nbsp;permission.</p>
+    <ul class="terms">
+      <li>Early-access products, with scope agreed per site.</li>
+      <li>Feasibility fee credited against the proof of value.</li>
+      <li>Accuracy measured on your own data, reported monthly.</li>
+      <li>You own your footage, images and data.</li>
+      <li>Custom features from Infraglance Engineering: optional 12-month exclusivity.</li>
+    </ul>
+  </div>
+  <div class="foot dark"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 19 · Next steps -->
+<section class="slide eng next t-paper" data-bookmark="Next steps">
+  <div class="head">
+    <p class="eyebrow">Next steps</p>
+    <h2>Four steps to a pilot&nbsp;proposal.</h2>
+    <p class="lead">Every engagement starts small and fixed-fee, and scales only when the results are measured on your own site.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">01 · 60 minutes</span>
+      <h3>Discovery call</h3>
+      <p>Your lines, products, quality specs and&nbsp;priorities.</p>
+      <span class="fee">Remote</span>
+    </div>
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">02 · Lilayi</span>
+      <h3>Site walk-through</h3>
+      <p>A camera survey of the moulding hall, inspection and&nbsp;warehouse.</p>
+      <span class="fee">On site</span>
+    </div>
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">03 · 1–2 weeks</span>
+      <h3>Feasibility study</h3>
+      <p>On your footage and sample caps, with expected accuracy and the business&nbsp;case.</p>
+      <span class="fee">Fixed fee</span>
+    </div>
+    <div class="step">
+      <div class="top"><span class="dot"></span><span class="line"></span></div>
+      <span class="when">04</span>
+      <h3>Pilot proposal</h3>
+      <p>Scope, success criteria and a fixed quote for the&nbsp;pilot.</p>
+      <span class="fee">For your decision</span>
+    </div>
+  </div>
+  <div class="links">
+    <div><span class="label">Demos &amp; studies</span><b><a href="mailto:sales@infraglance.com">sales@infraglance.com</a></b></div>
+    <div><span class="label">General</span><b><a href="mailto:hello@infraglance.com">hello@infraglance.com</a></b></div>
+    <div><span class="label">Website</span><b><a href="https://infraglance.com">infraglance.com</a></b></div>
+  </div>
+  <div class="foot"><img data-inline-svg class="flogo" src="/collateral/brand/logo-on-light.svg" alt="Infraglance"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+<!-- 20 · Thank you -->
+<section class="slide contact dark" data-bookmark="Thank you">
+  <div class="bg"><img class="ph" data-credit="industrial-night" src="/public/media/p/industrial-night-2600.ade40d9c.jpg" alt=""></div>
+  <div class="inner">
+    <img data-inline-svg class="logo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance">
+    <p class="eyebrow" style="margin-top: 56px">Prepared for Trident Packaging Limited</p>
+    <h2>Thank you.</h2>
+    <p class="lead">We’d welcome a 60-minute discovery call to test our understanding and agree where a pilot would help&nbsp;most.</p>
+    <div class="links">
+      <div><span class="label">Demos &amp; studies</span><b><a href="mailto:sales@infraglance.com">sales@infraglance.com</a></b></div>
+      <div><span class="label">General</span><b><a href="mailto:hello@infraglance.com">hello@infraglance.com</a></b></div>
+      <div><span class="label">Website</span><b><a href="https://infraglance.com">infraglance.com</a></b></div>
+    </div>
+    <div class="fine">
+      <p class="first">Prepared for Trident Packaging Limited. Our understanding of Trident is based on public information as of November 2026 and is to be confirmed with Trident.</p>
+      <p class="first">Photos: licensed stock (Unsplash, Pexels). Product visuals show representative detections and sample data.</p>
+      <p id="credits"></p>
+    </div>
+  </div>
+  <div class="foot dark"><span class="sec">Confidential</span><span class="pn"></span></div>
+</section>
+
+</body>
+</html>

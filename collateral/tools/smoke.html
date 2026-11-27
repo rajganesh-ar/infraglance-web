@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>Collateral smoke test</title>
+  <link rel="stylesheet" href="/collateral/brand/brand.css">
+  <style>
+    @page { size: 297mm 167.06mm; margin: 0; }
+    .slide { width: 297mm; height: 167.06mm; padding: 12mm; background: var(--ink); color: var(--text-light); display: grid; grid-template-columns: 1fr 1.4fr; gap: 10mm; align-items: center; }
+    h1 { font-size: 26pt; font-weight: 600; letter-spacing: -0.01em; margin-top: 4mm; }
+    .eyebrow { color: var(--cyan); font-size: 8pt; }
+    .logo { height: 9mm; width: auto; }
+  </style>
+  <script type="module" src="/collateral/brand/det.js"></script>
+</head>
+<body>
+  <section class="slide">
+    <div>
+      <img data-inline-svg class="logo" src="/collateral/brand/logo-on-dark.svg" alt="Infraglance">
+      <p class="eyebrow" style="margin-top:8mm">Smoke test · det.js</p>
+      <h1>Every camera on site, working for safety and quality.</h1>
+      <img data-screen="guard-phone" style="width:40mm;height:30mm;margin-top:6mm" alt="">
+    </div>
+    <figure class="det" data-det="guard-ppe-crew" style="aspect-ratio: 16 / 9"></figure>
+  </section>
+</body>
+</html>

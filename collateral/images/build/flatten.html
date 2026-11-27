@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>flatten</title>
+<link rel="stylesheet" href="/collateral/brand/brand.css">
+<style>html,body{margin:0;background:#000;-webkit-font-smoothing:antialiased}#f{position:relative;width:2400px;height:1350px;overflow:hidden}#f img,#f svg{position:absolute;inset:0;width:2400px;height:1350px}
+body.safe #f::after{content:'';position:absolute;left:300px;top:60px;width:1800px;height:1230px;outline:4px dashed #f0f}</style></head>
+<body><div id="f"></div>
+<script type="module">
+const q = new URLSearchParams(location.search), id = q.get('id');
+if (q.get('safe')) document.body.classList.add('safe');
+const f = document.getElementById('f');
+const img = new Image(); img.src = `/collateral/images/base/${id}.jpg?${Date.now()}`;
+f.append(img);
+const ov = q.get('ov') ? `${id}-${q.get('ov')}` : id;
+const txt = await (await fetch(`/collateral/images/detections/${ov}.svg`, { cache: 'no-store' })).text();
+f.insertAdjacentHTML('beforeend', txt);
+await img.decode(); await document.fonts.ready;
+// safe-area check on every drawn element
+const bad = [];
+for (const el of f.querySelectorAll('svg rect, svg path, svg circle, svg ellipse, svg polygon, svg text, svg line')) {
+  const b = el.getBBox();
+  if (b.x < 299 || b.y < 59 || b.x + b.width > 2101 || b.y + b.height > 1291) bad.push(`${el.tagName} ${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.width)}x${Math.round(b.height)}`);
+}
+window.__bad = bad; window.__ready = true;
+</script></body></html>

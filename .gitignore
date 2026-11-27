@@ -32,3 +32,16 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Collateral: raw stock downloads (same licence limits as assets/raw) and review renders
+collateral/assets/raw/
+collateral/review/
+# Collateral outputs the scripts rebuild: flattened image pack (images/build/render.mjs), intermediate
+# screen captures, and full-resolution print PDFs (node collateral/tools/build.mjs). Email PDFs are kept.
+collateral/images/pack/
+collateral/images/build/laptop/
+collateral/images/build/narrow/
+collateral/out/*-print.pdf
+# Internal prospect research (third-party details, not for the repo)
+collateral/trident/research-brief.md
+collateral/trident/OUTLINE.md
